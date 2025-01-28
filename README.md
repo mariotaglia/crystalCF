@@ -1,6 +1,6 @@
-#
+--------------------------------------------------------------------------------------------------------------------
 # crystalCF
-#
+--------------------------------------------------------------------------------------------------------------------
 
 MOLT-CF code for nanoparticle superlattices (originally vacuum_solv branch in crystal)
 
@@ -9,7 +9,6 @@ MOLT-CF code for nanoparticle superlattices (originally vacuum_solv branch in cr
 Keywords for DEFINITIONS.txt
 
 
---------------------------------------------------------------------------------------------------------------------
 #
 branched int
 
@@ -26,25 +25,25 @@ Expects to read a comment line and then 3 integers corresponding to the length o
 Expects to read a comment line and then 2 integers corresponding to the first and last segment of the backbone (of length long) that have branches
 
 
-#--------------------------------------------------------------------------------------------------------------------
+#
 stdout int
 
 Redirects output to fort.int
 (use int=6 for standard output)
 
 
-#--------------------------------------------------------------------------------------------------------------------
+#
 sigmar real
 
 Adds a random value of the surface coverage (can be used to generate noise for microphase separation)
 real is the magnitude of the noise (in units of chains/nm^2)
 
-#--------------------------------------------------------------------------------------------------------------------
+#
 verbose int
 
 Level of output detail int from 1 to 5 (higher values, more detail). Partially obsolete.
 
-#--------------------------------------------------------------------------------------------------------------------
+#
 dimx int
 dimy int
 dimz int
@@ -53,7 +52,7 @@ Controls system size
 int determines the size in units of delta
 
 
-#--------------------------------------------------------------------------------------------------------------------
+#
 delta real
 
 Lattice discretization size
@@ -61,7 +60,7 @@ real is the lattice discretization size in nm
 
 
 
-#--------------------------------------------------------------------------------------------------------------------
+#
 dx real
 dy real
 dz real
@@ -72,21 +71,21 @@ Use it to check that free energy differences are tranlationally invariant
 real is the fraction of delta to shift the lattice
 
 
-#--------------------------------------------------------------------------------------------------------------------
+#
 gama real
 
 Use a non-cubic cell with angle gama. 
 real is the angle in degrees (e.g. use gama = 60.0 and cdiva = 1.633 for hexagonal)
 
 
-#--------------------------------------------------------------------------------------------------------------------
+#
 cdiva real
 
 Non cubic cell.
 Expands the c-axis of the cell by a factor cdiva 
 
 
-#--------------------------------------------------------------------------------------------------------------------
+#
 PBC in1 int2 int3 int4 int5 int6
 
 Establishes the type of boundary conditions
@@ -102,7 +101,7 @@ Possible values:
 0: Bulk
 3: Reflective boundary
 
-#--------------------------------------------------------------------------------------------------------------------
+#
 infile int
 
 Controls initial guess
@@ -114,7 +113,7 @@ int =
 3 : same as 1 but mirrors the input in the x axis 
 
 
-#--------------------------------------------------------------------------------------------------------------------
+#
 nst int
 
 Controls hydrophobicity
@@ -123,7 +122,7 @@ int is the number of hydrophobic cases to solve
 expects a list with the hydrophobic strength following the "nst int" line
 
 
-#--------------------------------------------------------------------------------------------------------------------
+#
 benergy real
 
 Energy of Gauche bonds
@@ -133,20 +132,20 @@ Adds an energy real for the gauche bonds (kBT per bond), real > 0 means that the
 
 
 
-#--------------------------------------------------------------------------------------------------------------------
+#
 Xucutoff real
 
 Cutoff of hydrophobic interactions
 real is the cutoff radius of hydrophobic interactions in nm
 
 
-#--------------------------------------------------------------------------------------------------------------------
+#
 int Chain length
 
 int is the chain length
 
 
-#--------------------------------------------------------------------------------------------------------------------
+#
 lseg real
 
 Segment length of the ligands
@@ -154,20 +153,20 @@ real is the segment length in nm
 Used for chain generation
 
 
-#--------------------------------------------------------------------------------------------------------------------
+#
 cuantas  int
 
 Number of conformations of the ligands
 int is the number of conformations per grafting point
 
 
-#--------------------------------------------------------------------------------------------------------------------
+#
 vpol real
 
 Segment volume
 real is the volume of a segment in nm^3
 
-#--------------------------------------------------------------------------------------------------------------------
+#
 vtkflag int
 
 Save vtk?
@@ -177,7 +176,7 @@ int =
 0 : do not save vtk file
 
 
-#--------------------------------------------------------------------------------------------------------------------
+#
 scx int
 scy int
 scz int
@@ -186,7 +185,7 @@ Supercell
 Supercell for vtk file, int is the number of copies to expand the cell
 
 
-#--------------------------------------------------------------------------------------------------------------------
+#
 readchains int
 
 Read conformations from file for faster initialization, only works for “branched 0”
@@ -195,7 +194,7 @@ int =
 1 : read chains from cadenas.dat
 0 : generate chain conformations before running
 		
-#--------------------------------------------------------------------------------------------------------------------
+#
 systemtype
 
 Determines the type of system
@@ -213,14 +212,14 @@ int =
 6: Planar surface with polymers grafted in a rectangular array
 
 
-#--------------------------------------------------------------------------------------------------------------------
+#
 randominput int
 
 Shifts the positions of grafting points to favor microphase separation for systemtype 
 4 different shifts are implemented (see program)
 
 
-#--------------------------------------------------------------------------------------------------------------------
+#
 seed int
 
 Random number generator for randominput only
@@ -237,11 +236,9 @@ int is the seed for the random number generator used for randominput = 1
 #--------------------------------------------------------------------------------------------------------------------
 
 
-#$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
-#$
-#$   SYSTEMTYPE OPTIONS
-#$
-#$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+--------------------------------------------------------------------------------------------------------------------
+#SYSTEMTYPE OPTIONS
+--------------------------------------------------------------------------------------------------------------------
 
 
 systemtype = 1
