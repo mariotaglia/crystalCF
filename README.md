@@ -1,18 +1,15 @@
 #
-#
 # crystalCF
 #
-# MOLT-CF code for nanoparticle superlattices (originally vacuum_solv branch in crystal)
-#
-#
-#
+
+MOLT-CF code for nanoparticle superlattices (originally vacuum_solv branch in crystal)
 
 
 
 Keywords for DEFINITIONS.txt
 
 
-#--------------------------------------------------------------------------------------------------------------------
+#--------------------------------------------------------------------------------------------------------------------#
 branched int
 
 Defines if chains are linear or branched 
