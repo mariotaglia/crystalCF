@@ -1,6 +1,4 @@
---------------------------------------------------------------------------------------------------------------------
 # crystalCF
---------------------------------------------------------------------------------------------------------------------
 
 MOLT-CF code for nanoparticle superlattices (originally vacuum_solv branch in crystal)
 
@@ -9,8 +7,7 @@ MOLT-CF code for nanoparticle superlattices (originally vacuum_solv branch in cr
 Keywords for DEFINITIONS.txt
 
 
-#
-branched int
+## branched int
 
 Defines if chains are linear or branched 
 
@@ -226,19 +223,18 @@ Random number generator for randominput only
 int is the seed for the random number generator used for randominput = 1
 
 
-#--------------------------------------------------------------------------------------------------------------------
-#vscan int	scan flag
-#	what to scan: 1, hamiltonian inception parameter kp, 2, attraction strength st. If 1 then the system will use the first st value.
-#hguess int	Hamiltonian inception for nanochannel	int is the rotational symmetry, use int = 0 for no inception
-#hring int	Hamiltonian inception for nanochannel	hring: int is the initial attractive zone’s distance to the wall (in xy plane)
-#oval real	Hamiltonian inception for nanochannel	oval: 3D shape of the growing zone 1 means spherical
-#nkp int	Strnght of Hamiltonian Inception loop. Followed by list.	int is the number of cases to stuy
-#--------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------
+vscan int	scan flag
+	what to scan: 1, hamiltonian inception parameter kp, 2, attraction strength st. If 1 then the system will use the first st value.
+hguess int	Hamiltonian inception for nanochannel	int is the rotational symmetry, use int = 0 for no inception
+hring int	Hamiltonian inception for nanochannel	hring: int is the initial attractive zone’s distance to the wall (in xy plane)
+oval real	Hamiltonian inception for nanochannel	oval: 3D shape of the growing zone 1 means spherical
+nkp int	Strnght of Hamiltonian Inception loop. Followed by list.	int is the number of cases to stuy
+--------------------------------------------------------------------------------------------------------------------
 
 
 --------------------------------------------------------------------------------------------------------------------
-#SYSTEMTYPE OPTIONS
---------------------------------------------------------------------------------------------------------------------
+# SYSTEMTYPE OPTIONS
 
 
 systemtype = 1
