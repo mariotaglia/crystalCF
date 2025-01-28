@@ -37,9 +37,9 @@ Adds a random value of the surface coverage (can be used to generate noise for m
 
 Level of output detail, *int* from 1 to 5 (higher values, more detail). Partially obsolete.
 
-## dimx *int*
-## dimy *int*
-## dimz *int*
+### dimx *int*
+### dimy *int*
+### dimz *int*
 
 Controls system size
 *int* determines the size in units of delta
