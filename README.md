@@ -7,11 +7,11 @@ MOLT-CF code for nanoparticle superlattices (originally vacuum_solv branch in cr
 Keywords for DEFINITIONS.txt
 
 
-## branched int
+## branched *int*
 
 Defines if chains are linear or branched 
 
-int =
+*int* =
 0 : linear chains
 1 : branched chains type 1: three ramifications following the initial segment of length long (see long below)
 
@@ -22,18 +22,16 @@ Expects to read a comment line and then 3 integers corresponding to the length o
 Expects to read a comment line and then 2 integers corresponding to the first and last segment of the backbone (of length long) that have branches
 
 
-#
-stdout int
+## stdout *int*
 
-Redirects output to fort.int
-(use int=6 for standard output)
+Redirects output to fort.*int*
+(use *int*=6 for standard output)
 
 
-#
-sigmar real
+## sigmar *real*
 
 Adds a random value of the surface coverage (can be used to generate noise for microphase separation)
-real is the magnitude of the noise (in units of chains/nm^2)
+*real* is the magnitude of the noise (in units of chains/nm^2)
 
 #
 verbose int
