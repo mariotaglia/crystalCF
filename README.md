@@ -33,61 +33,52 @@ Redirects output to fort.*int*
 Adds a random value of the surface coverage (can be used to generate noise for microphase separation)
 *real* is the magnitude of the noise (in units of chains/nm^2)
 
-#
-verbose int
+## verbose *int*
 
-Level of output detail int from 1 to 5 (higher values, more detail). Partially obsolete.
+Level of output detail, *int* from 1 to 5 (higher values, more detail). Partially obsolete.
 
-#
-dimx int
-dimy int
-dimz int
+## dimx *int*
+## dimy *int*
+## dimz *int*
 
 Controls system size
-int determines the size in units of delta
+*int* determines the size in units of delta
 
 
-#
-delta real
+## delta *real*
 
 Lattice discretization size
-real is the lattice discretization size in nm
+*real* is the lattice discretization size in nm
 
-
-
-#
-dx real
-dy real
-dz real
+## dx *real*
+## dy *real*
+## dz *real*
 
 Shift the lattice 
 
 Use it to check that free energy differences are tranlationally invariant
-real is the fraction of delta to shift the lattice
+*real* is the fraction of delta to shift the lattice
 
 
-#
-gama real
+## gama *real*
 
 Use a non-cubic cell with angle gama. 
-real is the angle in degrees (e.g. use gama = 60.0 and cdiva = 1.633 for hexagonal)
+*real* is the angle in degrees (e.g. use gama = 60.0 and cdiva = 1.633 for hexagonal)
 
 
-#
-cdiva real
+## cdiva *real*
 
 Non cubic cell.
-Expands the c-axis of the cell by a factor cdiva 
+Expands the c-axis of the cell by a factor *real*
 
 
-#
-PBC in1 int2 int3 int4 int5 int6
+## PBC *int1 int2 int3 int4 int5 int6*
 
 Establishes the type of boundary conditions
 
-int1-int2 for x 
-int3-int4 for y 
-int5-int6 for z 
+*int1-int2* for x 
+*int3-int4* for y 
+*int5-int6* for z 
 
 Possible values: 
 
@@ -96,107 +87,97 @@ Possible values:
 0: Bulk
 3: Reflective boundary
 
-#
-infile int
+## infile *int*
 
 Controls initial guess
 
-int =
+*int* =
 0 : uses an homogeneous initial guess
 1 : reads input from in.txt
 -1 : reads input from in.txt, but does not solve (just does one iteration and writes to disk)
 3 : same as 1 but mirrors the input in the x axis 
 
 
-#
-nst int
+## nst *int*
 
 Controls hydrophobicity
 
-int is the number of hydrophobic cases to solve
+*int* is the number of hydrophobic cases to solve
 expects a list with the hydrophobic strength following the "nst int" line
 
 
-#
-benergy real
+## benergy *real*
 
 Energy of Gauche bonds
 only works for “branched 0”
 
-Adds an energy real for the gauche bonds (kBT per bond), real > 0 means that the gauche bonds are less stable than the trans ones.
+Adds an energy *real* for the gauche bonds (kBT per bond), real > 0 means that the gauche bonds are less stable than the trans ones.
 
 
 
-#
-Xucutoff real
+## Xucutoff *real*
 
 Cutoff of hydrophobic interactions
 real is the cutoff radius of hydrophobic interactions in nm
 
 
-#
-int Chain length
+## long *int*
 
-int is the chain length
+Ligand chain length
+
+*int* is the chain length pf the ligands
 
 
-#
-lseg real
+## lseg *real*
 
 Segment length of the ligands
-real is the segment length in nm
+*real* is the segment length in nm
 Used for chain generation
 
 
-#
-cuantas  int
+## cuantas  *int*
 
 Number of conformations of the ligands
-int is the number of conformations per grafting point
+*int* is the number of conformations per grafting point
 
 
-#
-vpol real
+## vpol *real*
 
 Segment volume
-real is the volume of a segment in nm^3
+*real* is the volume of a segment in nm^3
 
-#
-vtkflag int
+## vtkflag *int*
 
 Save vtk?
 
-int =
+*int* =
 1 : save vtk file
 0 : do not save vtk file
 
 
-#
-scx int
-scy int
-scz int
+## scx *int*
+## scy *int*
+## scz *int*
 
 Supercell
-Supercell for vtk file, int is the number of copies to expand the cell
+Supercell for vtk file, *int* is the number of copies to expand the cell
 
 
-#
-readchains int
+## readchains *int*
 
 Read conformations from file for faster initialization, only works for “branched 0”
-int =
+*int* =
 -1 : save chains to cadenas.dat and exit
 1 : read chains from cadenas.dat
 0 : generate chain conformations before running
 		
-#
-systemtype
+## systemtype *int*
 
 Determines the type of system
 
 See below for the formated required for each input
 
-int = 
+*int* = 
 1 : Nanoparticles with continuous brush
 2 : Channel 3D with continuous brush
 3 : Not in use
@@ -207,18 +188,16 @@ int =
 6: Planar surface with polymers grafted in a rectangular array
 
 
-#
-randominput int
+## randominput *int*
 
 Shifts the positions of grafting points to favor microphase separation for systemtype 
 4 different shifts are implemented (see program)
 
 
-#
-seed int
+## seed *int*
 
 Random number generator for randominput only
-int is the seed for the random number generator used for randominput = 1
+*int* is the seed for the random number generator used for randominput = 1
 
 
 --------------------------------------------------------------------------------------------------------------------
