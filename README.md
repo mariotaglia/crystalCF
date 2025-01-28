@@ -9,7 +9,8 @@ MOLT-CF code for nanoparticle superlattices (originally vacuum_solv branch in cr
 Keywords for DEFINITIONS.txt
 
 
-#--------------------------------------------------------------------------------------------------------------------#
+--------------------------------------------------------------------------------------------------------------------
+#
 branched int
 
 Defines if chains are linear or branched 
