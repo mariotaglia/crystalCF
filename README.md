@@ -40,6 +40,7 @@ Level of output detail, *int* from 1 to 5 (higher values, more detail). Partiall
 ### dimx *int*
 ### dimy *int*
 ### dimz *int*
+#
 
 Controls system size
 *int* determines the size in units of delta
@@ -50,9 +51,10 @@ Controls system size
 Lattice discretization size
 *real* is the lattice discretization size in nm
 
-## dx *real*
-## dy *real*
-## dz *real*
+### dx *real*
+### dy *real*
+### dz *real*
+#
 
 Shift the lattice 
 
@@ -155,9 +157,10 @@ Save vtk?
 0 : do not save vtk file
 
 
-## scx *int*
-## scy *int*
-## scz *int*
+### scx *int*
+### scy *int*
+### scz *int*
+#
 
 Supercell
 Supercell for vtk file, *int* is the number of copies to expand the cell
