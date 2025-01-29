@@ -10,15 +10,9 @@ use transform
 use solventchains
 implicit none
     
-integer j, ii, jj,i, il
+integer j, il
 real*8 x(3)
 real*8 v(3)
-integer testsystem
-integer testsystem_cylinder
-integer testsystem_superellipse
-integer testsystem_cube
-integer testsystem_cuboctahedron
-integer flag
 integer aa
 real*8 com(3)
 

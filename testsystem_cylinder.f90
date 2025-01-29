@@ -5,11 +5,10 @@ use channel
 
 implicit none
 real*8 x(3), xx(3), v(3), maxx(3)
-integer j, i
-real*8 vect
-real*8 mmmult
+integer i
 real, external :: PBCSYMR, PBCREFR
 real*8 dims(3)
+real*8 vect
 
 dims(1) = delta*dimx
 dims(2) = delta*dimy

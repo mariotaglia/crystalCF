@@ -15,11 +15,10 @@ integer npoints ! points per cell for numerical integration
 integer counter
 character*5 title
 logical flag
-integer j,ix,iy,iz
-real pnumber
+integer iz
 real*8 area
 real*8 sumpolseg 
-real*8 sstemp,vvtemp, maxss
+real*8 maxss
 real*8 cutarea
 real*8 temp
 real*8 temp2
@@ -172,16 +171,10 @@ implicit none
 real*8 sumvolx1
 integer npoints
 integer indexvolx(dimx,dimy,dimz)
-integer listvolx(ncha,3)
-real*8 radio
 real*8 rchannel, rchannel2, originc(2)
-real*8 phi, dphi, tetha,dtetha, as, ds
-integer mphi, mtetha
-integer ix,iy,iz,jx,jy,jz
+integer jx,jy,jz
 real*8 x(3), v(3)
 integer i,j
-integer ncount
-real*8 comshift ! how far from the surface of the sphere the grafting point is
 integer ncha1 ! count for current sphere
 real*8 volx1(maxvolx)
 real*8 com1(maxvolx,3)
@@ -319,20 +312,15 @@ real*8 sumvolprot
 integer npoints
 real*8 rchannel, rchannel2, originc(2)
 real*8 volprot(dimx,dimy,dimz)
-real*8 dr(3), dxr(3)
 integer ix, iy, iz
 integer jx, jy, jz
 integer ax, ay, az
-real*8 vect
 logical flagin, flagout
 real*8 intcell_cylinder
-real*8 mmmult
 logical flag
 
-real*8 box(4)
 real*8 x(3), v(3)
 integer xmin,xmax,ymin,ymax
-integer i,j
 logical flagsym
 real*8 voltemp
 real*8 vertx(4), verty(4)
@@ -630,7 +618,6 @@ integer ix,iy,iz,ax,ay,az
 integer cc
 real*8 vect
 integer n
-real*8 mmmult
 real*8 dr(3), dxr(3)
 
 cc = 0

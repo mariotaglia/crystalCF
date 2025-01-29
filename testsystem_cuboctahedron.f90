@@ -7,8 +7,6 @@ use COrotMod
 implicit none
 real*8 x(3), xx(3), v(3), maxx(3)
 integer j, i
-real*8 vect
-real*8 mmmult
 real, external :: PBCSYMR, PBCREFR
 real*8 dims(3)
 logical test1, test2, test3, test4

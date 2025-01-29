@@ -16,11 +16,10 @@ integer npoints ! points per cell for numerical integration
 integer counter
 character*5 title
 logical flag
-integer j,ix,iy,iz
-real pnumber
+integer iz
 real*8 perimeter, area
 real*8 sumpolseg 
-real*8 sstemp,vvtemp, maxss
+real*8 maxss
 real*8 cutarea
 real*8 temp
 real*8 temp2
@@ -184,7 +183,6 @@ use const
 
 implicit none
 real*8 sizeX, sizeY, pfactor
-real*8 signX, signY
 real*8 deltatA, deltatB
 real*8 angle, maxangle
 real*8 sqrtUp, sqrtDown
@@ -193,15 +191,10 @@ real*8 vect(2)
 real*8 sumvolx1
 integer npoints
 integer indexvolx(dimx,dimy,dimz)
-integer listvolx(ncha,3)
 real*8 originc(2)
-real*8 phi, dphi, tetha,dtetha, as, ds
-integer mphi, mtetha
-integer ix,iy,iz,jx,jy,jz
+integer jx,jy,jz
 real*8 x(3), v(3)
 integer i,j
-integer ncount
-real*8 comshift ! how far from the surface of the sphere the grafting point is
 integer ncha1 ! count for current sphere
 real*8 volx1(maxvolx)
 real*8 com1(maxvolx,3)
@@ -209,7 +202,7 @@ integer p1(maxvolx,3)
 real*8 volxx1(dimx,dimy,dimz)
 integer flagin
 integer dims(3), is(3), js(3)
-integer jjjz, jjjt, npointz, npointt
+integer jjjz, npointz
 
 pi=acos(-1.0)
 
@@ -875,19 +868,14 @@ real*8 sumvolprot
 integer npoints
 real*8 originc(2)
 real*8 volprot(dimx,dimy,dimz)
-real*8 dr(3), dxr(3)
 integer ix,iy,iz,ax,ay,az
-real*8 vect
 logical flagin, flagout
 real*8 intcell_superellipse
-real*8 mmmult
 integer jx,jy, jz
 logical flag
 
-real*8 box(4)
 real*8 x(3), v(3)
 integer xmin,xmax,ymin,ymax
-integer i,j
 real*8 vertx(4), verty(4)
 
 logical flagsym
@@ -1178,15 +1166,13 @@ use system
 use transform
 
 implicit none
-real*8 testIn
 real*8 sizeX, sizeY, pfactor
 real*8 originc(2)
 integer ix,iy,iz,ax,ay,az
 integer cc
-real*8 vect
 integer n
-real*8 mmmult
 real*8 dr(3), dxr(3)
+real*8 vect
 
 cc = 0
 do ax = 1, n
