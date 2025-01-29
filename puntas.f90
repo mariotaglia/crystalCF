@@ -6,11 +6,9 @@ use mmask
 use kaist
 implicit none
 integer i,j,k
-integer nx, ny, nz
 real*8 vertices(1,3) !Número de centros de las gaussianas, 3
 real*8 Xarray(3)
 real*8, dimension(:,:), allocatable :: vert_test
-real*8 points_test(3)
 real*8 sigma
 integer counter
 character*5 title
@@ -19,25 +17,6 @@ real*8, parameter :: pi  = 4 * atan(1.0_8)
 ! Vértices del cubo
 
 vertices(1,:) = (/c_cube(1) + l_cube/2.0,c_cube(2) + l_cube/2.0,c_cube(3) + l_cube/2.0/) !Solo este vertice para el octavo del cubo
-!vertices(2,:) = (/c_cube(1) - l_cube/2.0,c_cube(2) + l_cube/2.0,c_cube(3) + l_cube/2.0/)
-!vertices(3,:) = (/c_cube(1) + l_cube/2.0,c_cube(2) - l_cube/2.0,c_cube(3) + l_cube/2.0/)
-!vertices(4,:) = (/c_cube(1) + l_cube/2.0,c_cube(2) + l_cube/2.0,c_cube(3) - l_cube/2.0/)
-!vertices(5,:) = (/c_cube(1) - l_cube/2.0,c_cube(2) - l_cube/2.0,c_cube(3) + l_cube/2.0/)
-!vertices(6,:) = (/c_cube(1) + l_cube/2.0,c_cube(2) - l_cube/2.0,c_cube(3) - l_cube/2.0/)
-!vertices(7,:) = (/c_cube(1) - l_cube/2.0,c_cube(2) + l_cube/2.0,c_cube(3) - l_cube/2.0/)
-!vertices(8,:) = (/c_cube(1) - l_cube/2.0,c_cube(2) - l_cube/2.0,c_cube(3) - l_cube/2.0/)
-
-!Caras del cubo (octavo)
-
-!vertices(1,:) = (/c_cube(1) - l_cube/2.0,c_cube(2) - l_cube/2.0,c_cube(3) + l_cube/2.0/)
-!vertices(2,:) = (/c_cube(1) + l_cube/2.0,c_cube(2) - l_cube/2.0,c_cube(3) - l_cube/2.0/)
-!vertices(3,:) = (/c_cube(1) - l_cube/2.0,c_cube(2) + l_cube/2.0,c_cube(3) - l_cube/2.0/)
-
-!Aristas del cubo (octavo)
-
-!vertices(1,:) = (/c_cube(1) - l_cube/2.0,c_cube(2) + l_cube/2.0,c_cube(3) + l_cube/2.0/)
-!vertices(2,:) = (/c_cube(1) + l_cube/2.0,c_cube(2) - l_cube/2.0,c_cube(3) + l_cube/2.0/)
-!vertices(3,:) = (/c_cube(1) + l_cube/2.0,c_cube(2) + l_cube/2.0,c_cube(3) - l_cube/2.0/)
 
 ! testeo con un punto arbitrario
 

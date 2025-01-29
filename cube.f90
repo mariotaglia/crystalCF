@@ -7,7 +7,6 @@ use const
 use chainsdat
 use molecules
 use channel
-use transform, only : MAT, IMAT
 use rotchain
 
 implicit none
@@ -16,15 +15,11 @@ integer npoints ! points per cell for numerical integration
 integer counter
 character*5 title
 logical flag
-integer j,ix,iy,iz
 real*8 l_cubeL, l_cubeS
-real pnumber
 real*8 area
 real*8 sumpolseg 
-real*8 sstemp,vvtemp, maxss
 real*8 cutarea
 real*8 temp
-real*8 temp2
 real*8 sumvoleps1, sumvolprot1, sumvolq1, sumvolx1
 integer ncha1
 real*8 volx1(maxvolx)
@@ -33,8 +28,6 @@ integer p1(maxvolx,3)
 integer i
 real*8 volxx1(dimx,dimy,dimz)
 real*8 volxx(dimx,dimy,dimz)
-real*8 x(3), v(3), hcyl
-integer nbands
 
 
 cutarea = 0.0 ! throw away cells that have less area than cutarea x area of the cell with largest area  
@@ -150,21 +143,11 @@ integer npoints
 real*8 l_cube
 real*8 c_cube(3)
 real*8 volprot(dimx,dimy,dimz)
-real*8 dr(3), dxr(3)
 integer ix,iy,iz,ax,ay,az
-real*8 vect
 logical flagin, flagout
 real*8 intcell_cube
-real*8 mmmult
-integer jx,jy, jz
 logical flag
-integer RdimZ
-real*8 box(4)
 real*8 x(3), v(3)
-integer xmin,xmax,ymin,ymax,zmin,zmax
-integer i,j
-
-logical flagsym
 real*8 voltemp
 
 volprot = 0.0
@@ -231,9 +214,7 @@ real*8 l_cube
 real*8 c_cube(3)
 integer ix,iy,iz,ax,ay,az
 integer cc
-real*8 vect
 integer n
-real*8 mmmult
 real*8 dr(3), dxr(3)
 
 cc = 0
@@ -271,26 +252,18 @@ implicit none
 real*8 sumvolx1
 integer l_pol, npoints
 integer indexvolx(dimx,dimy,dimz)
-integer listvolx(ncha,3)
 real*8 sep !separacion entre polimeros en una cara
 real*8 l_cube, c_cube(3)
 integer cubeR
-real*8 phi, dphi, tetha,dtetha, as, ds
-integer mphi, mtetha
-integer ix,iy,iz,jx,jy,jz
-real*8 x(3), v(3)
-integer i,j
-integer ncount
-real*8 comshift ! how far from the surface of the sphere the grafting point is
+integer ix,iy,jx,jy,jz
+real*8 x(3)
+integer j
 integer ncha1 ! count for current sphere
 real*8 volx1(maxvolx)
 real*8 com1(maxvolx,3)
 integer p1(maxvolx,3)
 real*8 volxx1(dimx,dimy,dimz)
-integer flagin
-integer dims(3), is(3), js(3)
-integer jjjz, jjjt, npointz, npointt
-integer RdimZ
+integer dims(3), js(3)
 
 pi=acos(-1.0)
 
