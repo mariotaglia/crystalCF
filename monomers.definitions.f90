@@ -4,7 +4,6 @@ use MPI
 use mparameters_monomer
 
 implicit none
-integer i
 
 N_poorsol = 1 ! number of different kais
 N_monomer = 1

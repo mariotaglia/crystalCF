@@ -19,10 +19,7 @@ use mmask
 use solventchains
 implicit none
 real*8 intq, intxh
-real*8 Nsolvtemp
 real*8 eta
-real*8 temp
-real*8 qtemp
 integer*4 ier2
 integer ncells
 real*8 x(*),f(*)
@@ -33,16 +30,7 @@ integer jx, jy, jz, jj
 real*8 xpot(dimx, dimy, dimz, 0:N_monomer) ! 0 is solvent
 real*8 xh_tosend(dimx,dimy,dimz)
 real*8 qsv_tosend(dimx,dimy,dimz)
-! Charge
-real*8 MV(3),MU(3),MW(3)
-real*8 MVV,MUU,MWW,MVU,MVW,MUW
 integer iii
-! ELECTRO
-!real*8 psitemp
-!real*8 psivv,psiuu,psiww, psivu,psivw,psiuw
-
-real*8 psiv(3), epsv(3)
-
 integer, external :: PBCSYMI, PBCREFI
 
 ! poor solvent 
@@ -54,16 +42,7 @@ integer err
 real*8 avpol_tosend(dimx,dimy,dimz,N_monomer)
 real*8 avpol_temp(dimx,dimy,dimz,N_monomer)
 real*8 q_tosend, sumtrans_tosend
-real*8 gradpsi2
 real*8 fv, fv2
-
-real*8 rhosvtemp(dimx,dimy,dimz)
-
-! hamiltonian inception
-real*8 hd
-real*8, allocatable :: hds(:)
-ALLOCATE(hds(100))
-hds = -1
 
 !-----------------------------------------------------
 ! Common variables

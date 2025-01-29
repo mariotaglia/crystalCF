@@ -24,13 +24,9 @@ integer ix, iy , iz, jx, jy, jz
 real*8 x,y,z, radio
 integer limit
 real*8,allocatable :: matriz(:,:,:)
-integer i
-real*8 rands
 real*8 suma
-real*8 or
 real*8 volume
 real*8 xx(3), vv(3)
-integer temp
 
 Xulimit = int(cutoff/delta)+1
 limit = Xulimit + 5 ! make it much larger, will check at the end.

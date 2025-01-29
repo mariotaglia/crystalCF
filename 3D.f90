@@ -33,7 +33,6 @@ integer ncells
 ! Volumen fraction
 real*8 xh(dimx, dimy, dimz), xtotal(dimx,dimy,dimz,N_poorsol)
 
-real*8 temp
 
 ! MPI
 integer tag, source

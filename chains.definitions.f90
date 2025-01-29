@@ -4,7 +4,6 @@ use chainsdat
 use MPI
 use branches
 implicit none
-integer i, ii
 ALLOCATE (segtype(long)) 
 
 segtype = 1

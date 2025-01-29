@@ -11,18 +11,11 @@ use kaist
 
 implicit none
 integer counter, counterr
-integer MCpoints
 integer saveevery 
-real*8 maxmove
-real*8 maxrot
-integer moves,rots
-real*8 rv(3)
-real*8 temp
-real*8 theta
 real*8, external :: rands
 logical flag
 character*10 filename
-integer j, i, ii, iii
+integer j, i, ii
 integer flagcrash
 real*8 stOK,kpOK
 

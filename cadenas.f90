@@ -8,12 +8,9 @@ use MPI
 use branches
 use solventchains
 implicit none
-integer i,il,ll
+integer i,il
 integer j
-real*8 indax, inday, indaz
 real*8 chains(3,200,100), transs(100)
-real*8 altx,alty,altz,x(200),y(200),xp(200),yp(200)
-real*8 theta,theta1
 integer iglobal
 integer nchas
 integer ii, jj
@@ -90,7 +87,7 @@ enddo
  if((readchains.eq.-1).and.(rank.eq.0))close(3113)
 
 
- 100 do jj = 1, cpp(rank+1)
+do jj = 1, cpp(rank+1)
   ii = cppini(rank+1)+jj
   write(9988,*)ii,newcuantas(ii)
 enddo
@@ -356,7 +353,7 @@ use const
 use MPI
 use ematrix
 implicit none
-integer ix,iy,iz,j
+integer j
 integer i
 
 cpp = 0

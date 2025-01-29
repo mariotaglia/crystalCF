@@ -4,10 +4,8 @@ use transform
 use cube
 
 implicit none
-real*8 x(3), xx(3), v(3), maxx(3)
-integer j, i
-real*8 vect
-real*8 mmmult
+real*8 x(3), v(3), maxx(3)
+integer i
 real, external :: PBCSYMR, PBCREFR
 real*8 dims(3)
 

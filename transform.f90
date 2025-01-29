@@ -8,7 +8,7 @@ use MPI
 implicit none
 real*8 beta
 real*8 temp(3,3)
-integer dimn, j
+integer dimn
 real*8 x(3),xx(3), vect1(3),vect2(3),vect3(3), vol
 real*8 vectc(3)
 real*8 fix

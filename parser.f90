@@ -25,7 +25,7 @@ character (len=100)  buffer,label
 integer pos
 integer, parameter :: fh = 15
 integer ios
-integer line, linemax
+integer line
 integer i, j
 character(len=50) :: filename = 'DEFINITIONS.txt'
 character basura

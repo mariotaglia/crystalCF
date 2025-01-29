@@ -51,7 +51,6 @@ use chainsdat
 
 use mparameters_monomer
 implicit none
-integer im
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Open common files
@@ -378,7 +377,7 @@ use const
 use kinsol
 use mparameters_monomer
 implicit none
-real*8 xh(dimx,dimy,dimz), psi(dimx,dimy,dimz)
+real*8 xh(dimx,dimy,dimz)
 real*8 xtotal(dimx,dimy,dimz,N_poorsol)
 integer ip
 integer ix,iy,iz

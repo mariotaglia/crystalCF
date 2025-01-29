@@ -12,9 +12,8 @@ use transform
 
 implicit none
     
-integer j, ii, jj,i
+integer j, ii, jj
 real*8 pxtemp(3,long)
-real*8 xx(3)
 real*8 x(3)
 real*8 v(3)
 integer testsystem

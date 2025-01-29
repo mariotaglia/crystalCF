@@ -8,25 +8,22 @@ use const
 use chainsdat
 use molecules
 use channel
-use transform, only : MAT, IMAT
+use transform, only : IMAT
 use rotchain
 
 implicit none
 
-real*8 rchannel2, rchannelL2, rchannelS2
+real*8 rchannel2
 real*8, external :: rands
 integer npoints ! points per cell for numerical integration 
 integer counter
 character*5 title
 logical flag
-integer j,ix,iy,iz
-real pnumber
+integer j
 real*8 area
 real*8 sumpolseg 
-real*8 sstemp,vvtemp, maxss
 real*8 cutarea
 real*8 temp
-real*8 temp2
 real*8 sumvoleps1, sumvolprot1, sumvolq1, sumvolx1
 integer ncha1
 real*8 volx1(maxvolx)
@@ -36,7 +33,6 @@ integer i
 real*8 volxx1(dimx,dimy,dimz)
 real*8 volxx(dimx,dimy,dimz)
 real*8 x(3), v(3), hcyl
-integer nbands
 
 
 call make_ellipsoid ! update matrixes for all particles

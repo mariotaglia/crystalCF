@@ -4,7 +4,7 @@ use const
 use branches
 implicit none
 real*8 chains(3,200,100), transs(100)
-integer i,state,statef,ii,j,ive,jve
+integer i,state,ii,j,ive,jve
 real*8 rn,state1,sitheta,cotheta,dista
 real*8 siphip,cophip
 character*1 test
@@ -13,7 +13,7 @@ real*8 x(3),xend(3,200), xendr(3,200)
 integer nchas
 real*8 rands
 integer ng
-integer kkk, bbb, lll
+integer kkk
 real*8 tol
 
 tol = 1.0d-4

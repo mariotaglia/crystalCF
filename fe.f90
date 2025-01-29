@@ -27,11 +27,10 @@ integer looped
 real*8  q_tosend(ncha), sumtrans_tosend(ncha)
 real*8  q0(ncha), sumtrans0(ncha)
 integer newcuantas0(ncha)
-real*8 F_Mix_s, F_Mix_pos
-real*8 F_Mix_neg, F_Mix_Hplus
-real*8 Free_energy2, sumpi, sumrho, sumel, sumdiel, suma, mupol, sumHS
+real*8 F_Mix_s
+real*8 Free_energy2, sumrho, suma, mupol, sumHS
 real*8 temp
-real*8 F_Mix_OHmin, F_trans, F_Conf, F_Eq, F_vdW, F_eps, F_electro, F_HS
+real*8 F_trans, F_Conf, F_vdW, F_eps, F_HS
 real*8 F_conf_sv, F_trans_sv
 real*8 Free_Energy_plusSv
 real*8 pro0(cuantas, maxcpp)
@@ -51,11 +50,7 @@ integer err
 integer ix, iy, iz, i, ii, ax, ay, az, jj
 integer jx, jy, jz,iii
 integer im, ip, ipp
-real*8 gradpsi2
 real*8 fv, fv2
-
-integer counter
-real*8 psiv(3)
 
 integer, external :: PBCSYMI, PBCREFI
 

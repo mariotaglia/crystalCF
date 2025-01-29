@@ -74,11 +74,11 @@ integer npoints ! points per cell for numerical integration
 integer counter
 character*5 title
 logical flag
-integer j,ix,iy,iz
+integer j
 real pnumber
 real*8 area
 real*8 sumpolseg 
-real*8 sstemp,vvtemp, maxss
+real*8 maxss
 real*8 cutarea
 real*8 temp
 real*8 temp2
@@ -671,16 +671,11 @@ real*8 sumvolx1
 integer npoints
 !real*8 AAA(3,3), AAAX(3,3)
 integer indexvolx(dimx,dimy,dimz)
-integer listvolx(ncha,3)
 real*8 Rell(3), Aell(3)
 real*8 radio
-real*8 phi, dphi, tetha,dtetha, as, ds
-integer mphi, mtetha
-integer ix,iy,iz,jx,jy,jz
+integer jx,jy,jz
 real*8 x(3), v(3)
 integer i,j
-integer ncount
-real*8 comshift ! how far from the surface of the sphere the grafting point is
 integer ncha1 ! count for current sphere
 real*8 volx1(maxvolx)
 real*8 com1(maxvolx,3)
