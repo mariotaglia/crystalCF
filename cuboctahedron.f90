@@ -7,7 +7,6 @@ use const
 use chainsdat
 use molecules
 !use channel
-use transform, only : MAT, IMAT
 use rotchain
 
 implicit none
@@ -16,16 +15,13 @@ integer npoints ! points per cell for numerical integration
 integer counter
 character*5 title
 logical flag
-integer j,ix,iy,iz
+integer j
 real*8 lcubeL, lcubeS, loctaL, loctaS
 real*8 center(3)
-real pnumber
 real*8 area
 real*8 sumpolseg 
-real*8 sstemp,vvtemp, maxss
 real*8 cutarea
 real*8 temp
-real*8 temp2
 real*8 sumvoleps1, sumvolprot1, sumvolq1, sumvolx1
 integer ncha1
 real*8 volx1(maxvolx)
@@ -34,8 +30,6 @@ integer p1(maxvolx,3)
 integer i
 real*8 volxx1(dimx,dimy,dimz)
 real*8 volxx(dimx,dimy,dimz)
-real*8 x(3), v(3), hcyl
-integer nbands
 real*8 COvol
 
 sumpolseg = 0.0
@@ -183,9 +177,7 @@ real*8 rotmatrix(3,3)
 integer npart
 integer ix,iy,iz,ax,ay,az
 integer cc
-real*8 vect
 integer n
-real*8 mmmult
 real*8 dr(3), dxr(3)
 logical test1, test2, test3, test4
 logical test5, test6, test7
@@ -250,25 +242,14 @@ real*8 rotmatrix(3,3)
 integer npart
 real*8 sumvolx1
 integer npoints
-!real*8 AAA(3,3), AAAX(3,3)
 integer indexvolx(dimx,dimy,dimz)
-integer listvolx(ncha,3)
-real*8 Rell(3), Aell(3)
-real*8 radio
-real*8 phi, dphi, tetha,dtetha, as, ds
-integer mphi, mtetha
-integer ix,iy,iz,jx,jy,jz
-real*8 x(3), v(3)
-integer i,j
-integer ncount
-real*8 comshift ! how far from the surface of the sphere the grafting point is
+real*8 x(3)
+integer i
 integer ncha1 ! count for current sphere
 real*8 volx1(maxvolx)
 real*8 com1(maxvolx,3)
 integer p1(maxvolx,3)
 real*8 volxx1(dimx,dimy,dimz)
-integer flagin
-integer dims(3), is(3), js(3)
 real*8 lcuber, pasoc, pasoo
 real*8 xx, yy, zz
 real*8 vector(3)
@@ -459,7 +440,7 @@ subroutine integrar_matrices(x, center, locta, indexvolx, ncha1, p1, volxx1, vol
 use system
 use const
 use ematrix
-use transform, only : MAT, IMAT
+use transform, only : MAT
 implicit none
 real*8 x(3), center(3)
 integer flagin
@@ -474,7 +455,7 @@ real*8 volxx1(dimx,dimy,dimz)
 real*8 com1(maxvolx,3)
 real*8 volx1(maxvolx)
 real*8 v(3)
-real*8 locta, lcube
+real*8 locta
 real*8 sumvolx1
 
 x(:) = x(:)*locta/2.0 + center(:)
@@ -560,19 +541,15 @@ implicit none
 real*8 sumvolprot
 integer npoints
 integer npart
-real*8 lcube, locta
+real*8 locta
 real*8 center(3)
 real*8 rotmatrix(3,3)
 real*8 volprot(dimx,dimy,dimz)
-real*8 dr(3), dxr(3)
 integer ix,iy,iz,ax,ay,az
-real*8 vect
 logical flagin, flagout
 real*8 intcell_cuboctahedron
-real*8 mmmult
 integer jx,jy, jz
 logical flag
-integer RdimZ
 real*8 box(4)
 real*8 x(3), v(3)
 integer xmin,xmax,ymin,ymax,zmin,zmax
@@ -583,6 +560,7 @@ real*8 voltemp
 real*8 Rpos(3)
 logical test1, test2, test3, test4
 logical test5, test6, test7
+real*8 lcube
 
 volprot = 0.0
 sumvolprot = 0.0 ! total volumen, including that outside the system
