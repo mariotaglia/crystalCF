@@ -42,10 +42,6 @@ integer  dimz
 integer PBC(6)
 integer vtkflag
 integer flagmu
-
-! ELECTRO
-!integer electroflag
-
 integer eqs ! number of set of equations 
 endmodule
 
@@ -206,14 +202,6 @@ real*8, ALLOCATABLE :: xpar(:)
 endmodule
 
 module const
-! ELECTRO
-!real*8 dielW, dielP, dielS
-!real*8 constqE
-!real*8 dielPr, dielSr
-!real*8 constq
-!real*8 lb
-!real*8 pKw, Kw
-
 real*8 pi 
 real*8, parameter :: Na = 6.02d23 
 integer seed

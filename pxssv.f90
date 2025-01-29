@@ -11,12 +11,9 @@ use solventchains
 implicit none
     
 integer j, ii, jj,i, il
-real*8 xx(3)
 real*8 x(3)
 real*8 v(3)
 integer testsystem
-integer testsystemr
-integer testsystemc
 integer testsystem_cylinder
 integer testsystem_superellipse
 integer testsystem_cube

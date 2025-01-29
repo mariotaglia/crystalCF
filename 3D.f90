@@ -1,22 +1,29 @@
 subroutine solve(flagcrash)
 
-use system
-use const
-use kai
-use chainsdat
-use molecules
-use results
-use kinsol
+! Subroutine solve
+!  
+! This routine sets the initial guess and calls to kinsol solver
+! 
+! MPI implementation 
+! The master process calls kinsol, which calls fkfun
+! Slaves process call fkfun directly
+! If the solver does not converge in that iteration, repeat
+! If a solution is found, stop and store solution
+!
+
+
+use system, only : dimx, dimy, dimz, eqs
+use const, only : error, stdout, infile
+use kinsol, only : ier, xflag, norma, iter
 use MPI
-use ellipsoid
-use ematrix
-use mparameters_monomer
+use mparameters_monomer, only : N_poorsol
+
 implicit none
 external fcn
 integer i, ix, iy, iz, ip
 integer flagcrash
 
-!-----  varables de la resolucion -----------
+!-----  kinsol solution variables -----------
 
 real*8 x1(eqs*dimx*dimy*dimz),xg1(eqs*dimx*dimy*dimz)
 real*8 f(eqs*dimx*dimy*dimz)
@@ -26,8 +33,6 @@ integer ncells
 ! Volumen fraction
 real*8 xh(dimx, dimy, dimz), xtotal(dimx,dimy,dimz,N_poorsol)
 
-!ELECTRO
-!real*8 psi(dimx, dimy, dimz) ! potencial
 real*8 temp
 
 ! MPI
@@ -38,11 +43,9 @@ integer ier_tosend
 double  precision norma_tosend
 
 ! number of equations
-
 ncells = dimx*dimy*dimz
 
 ! Initial guess
-
 if((infile.eq.2).or.(infile.eq.-1).or.(infile.eq.3)) then
   do i = 1, eqs*ncells  
       xg1(i) = xflag(i)     
@@ -60,23 +63,14 @@ if(infile.eq.0) then
     xg1(i)=0.1
     x1(i)=0.1
   enddo
-
-! ELECTRO
-!if(electroflag.eq.1) then
-!  do i=(N_poorsol+1)*ncells+1, (N_poorsol+2)*ncells
-!    xg1(i)=0.0d0
-!    x1(i)=0.0d0
-!  enddo
-!endif ! electroflag
-
 endif ! infile
 
 !--------------------------------------------------------------
 ! Solve               
 !--------------------------------------------------------------
 
-! JEFE
-if(rank.eq.0) then ! solo el jefe llama al solver
+! master process 
+if(rank.eq.0) then ! only master process calls kinsol solver
    iter = 0
    write(stdout,*) 'solve: Enter solver ', eqs*ncells, ' eqs'
 
@@ -90,34 +84,30 @@ if(rank.eq.0) then ! solo el jefe llama al solver
    CALL MPI_BCAST(flagsolver, 1, MPI_INTEGER, 0, MPI_COMM_WORLD,err)
 endif
   
-! Subordinados
-
+! Slave processes
 if(rank.ne.0) then
   do
      flagsolver = 0
      source = 0
      CALL MPI_BCAST(flagsolver, 1, MPI_INTEGER, 0, MPI_COMM_WORLD,err)
      if(flagsolver.eq.1) then
-        call call_fkfun(x1) ! todavia no hay solucion => fkfun 
+        call call_fkfun(x1) ! the solver hasn't converged yet => slaves call fkfun 
      endif ! flagsolver
-     if(flagsolver.eq.0) exit ! Detiene el programa para este nodo
+     if(flagsolver.eq.0) exit ! the solver has converged => slaves exit the loop
    enddo
 endif
 
-! Recupero el valor de ier y de la norma
-! Asi los subordinados se enteran si el solver convergio o si hay que
-! cambiar la   estrategia...
-! Jefe
+! Recover ier and norm, so the slaves know if the solver converged
 
+! Master
 if (rank.eq.0) then
    norma_tosend = norma
-   ier_tosend = ier ! distinto tipo de integer
+   ier_tosend = ier
    CALL MPI_BCAST(norma_tosend, 1, MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,err)
    CALL MPI_BCAST(ier_tosend,1, MPI_INTEGER,0,MPI_COMM_WORLD,err)
 endif
 
-! Subordinados
-
+! Slaves
 if (rank.ne.0) then
    CALL MPI_BCAST(norma_tosend, 1, MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,err)
    CALL MPI_BCAST(ier_tosend, 1, MPI_INTEGER,0,MPI_COMM_WORLD,err)
@@ -125,7 +115,7 @@ if (rank.ne.0) then
    ier = ier_tosend
 endif
 
-! Recupera xh y psi (NO SON COMMON!)
+! Recover xh and xtotal from x1 vector in last iteration of the solver (these variables are not global)
 do ix=1,dimx
    do iy=1,dimy
       do iz=1,dimz
@@ -134,44 +124,25 @@ do ix=1,dimx
        do ip=1, N_poorsol
           xtotal(ix,iy,iz,ip)=x1(ix+dimx*(iy-1)+dimx*dimy*(iz-1)+ip*ncells)
        enddo
-
-! ELECTRO       
-!       if(electroflag.eq.1)psi(ix,iy,iz)=x1(ix+dimx*(iy-1)+dimx*dimy*(iz-1)+(N_poorsol+1)*ncells)
       enddo
    enddo  
 enddo
 
-! Chequea si exploto... => Sistema anti-crash
-
+! Check if the solution converged, if not, try to recover
 if(infile.ne.-1) then
-  if((ier.lt.0).or.(.not.((norma.gt.0).or.(norma.lt.0))).or.(norma.gt.error)) then ! exploto...
+  if((ier.lt.0).or.(.not.((norma.gt.0).or.(norma.lt.0))).or.(norma.gt.error)) then ! not converged
     if(rank.eq.0)write(stdout,*) 'solve: Error in solver: ', ier
-    if(rank.eq.0)write(stdout,*) 'solve: norma ', norma
+    if(rank.eq.0)write(stdout,*) 'solve: norm ', norma
     flagcrash = 1
     return
   endif
 endif    
 
-! No exploto, guardo xflag
+! Converged, store xflag to be used in next call to the solver
 do i = 1, eqs*ncells
-  xflag(i) = x1(i) ! xflag sirve como input para la proxima iteracion
+  xflag(i) = x1(i) 
 enddo
-infile = 2 ! no vuelve a leer infile
-
-!----------------------------------------------------------
-!  OUTPUT
-!----------------------------------------------------------
-
-!if(rank.eq.0) then ! solo el jefe escribe a disco....
-  ! Guarda infile
-!  write(filename,'(A4, I3.3, A4)')'out.', cccc, '.dat'
-!  open(unit=45, file=filename)
-!   do i = 1, 2*n
-!    write(45, *)x1(i)
-!   enddo
-!  close(45)
-! endif
-
+infile = 2 ! use xflag in next call to the solver
 flagcrash = 0
 return
 
