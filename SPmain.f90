@@ -1,13 +1,11 @@
 !## Montecarlo - Molecular theory for the adsorption of a particle on a brush
 
-use system
 use MPI
-use ellipsoid
-use kinsol
-use const
-use montecarlo
-use ematrix
-use kaist
+use ellipsoid, only : NNN
+use const, only : infile, stdout
+use montecarlo, only : free_energy
+use ematrix, only : vscan, systemtype
+use kaist, only : nst, st, sts, kp, kps, nkp, sc, scs
 
 implicit none
 integer counter, counterr

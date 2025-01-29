@@ -11,7 +11,7 @@ SRC = modules.f90 SPmain.f90 channel.f90 PBC.f90 parser.f90 init.f90 allocation.
 HOST=$(shell hostname)
 $(info HOST is ${HOST})
 
-LFLAGS = -lm /usr/lib64/librt.so -L/projects/p31819/lib/lib -lsundials_fkinsol -lsundials_kinsol -lsundials_fnvecserial -lsundials_nvecserial      -Wl,-rpath,/projects/p31819/lib/lib
+LFLAGS = -lm -L/projects/p31819/lib/lib -lsundials_fkinsol -lsundials_kinsol -lsundials_fnvecserial -lsundials_nvecserial      -Wl,-rpath,/projects/p31819/lib/lib
 
 
 ifeq ($(HOST),leomisso)
@@ -21,7 +21,7 @@ endif
 
 # some definitions
 SHELL = /bin/bash
-FFLAGS= -Wunused # -O3#  -fbacktrace -fbounds-check # -O3
+FFLAGS= -Wunused  -O3#  -fbacktrace -fbounds-check # -O3
 
 GIT_VERSION := $(shell git describe --abbrev=6 --dirty --always --tags)
 GFLAGS=-cpp -D_VERSION=\"$(GIT_VERSION)\"
