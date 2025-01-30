@@ -238,18 +238,18 @@ Determines the type of system
 See below for the fixed formated required for each input
 
 *int* = 
-1 : Nanoparticles with continuous brush
-2 : Channel 3D with continuous brush
-3 : Not in use
-4 : Channel 3D with specific grafting points (includes reservoirs)
-41: Same as 4, but with only one row of polymers at the middle of the channel
-42: Same as 41, but with multiple rings
-52: Same as 42, but with a cylinder instead of channel
-6: Planar surface with polymers grafted in a rectangular array
-7: Single cube
-80: Same as 2, but for a rod instead of a cylinder
-81: Superellipse (in x,y plane; infinite in z)
-9: Cubooctahedral NPs with continuous brush
+1 : Nanoparticles with continuous brush  
+2 : Channel 3D with continuous brush  
+3 : Not in use  
+4 : Channel 3D with specific grafting points (includes reservoirs)  
+41: Same as 4, but with only one row of polymers at the middle of the channel  
+42: Same as 41, but with multiple rings  
+52: Same as 42, but with a cylinder instead of channel  
+6: Planar surface with polymers grafted in a rectangular array  
+7: Single cube  
+80: Same as 2, but for a rod instead of a cylinder  
+81: Superellipse (in x,y plane; infinite in z)  
+9: Cubooctahedral NPs with continuous brush  
 
 ----
 # Systemtype options:
