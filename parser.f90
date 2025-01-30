@@ -602,7 +602,7 @@ if(lsegkai.eq.ndr)call stopundef('lsegkai')
 
 if(vsol0.eq.ndr)call stopundef('vsol')
 if(benergy.eq.ndr)call stopundef('benergy')
-if(transform_type.eq.ndi)stopundef('transport_type')
+if(transform_type.eq.ndi)call stopundef('transform_type')
 if(transform_type.eq.1)then
  if(gama0.eq.ndr)call stopundef('gama')
  if(cdiva.eq.ndr)call stopundef('cdiva')

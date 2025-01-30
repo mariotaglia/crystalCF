@@ -57,7 +57,7 @@ see also nkp and vscan
 Average solvent volume fraction in the system (if flagmu = 0) or chemical potential (if flagmu = 1)
 Scans from *real1* to *real3* in steps of *real2*
 
-# nst *int*
+## nst *int*
 
 Controls hydrophobicity
 
@@ -95,7 +95,7 @@ only works for “branched 0”
 
 Adds an energy *real* for the gauche bonds (kBT per bond), real > 0 means that the gauche bonds are less stable than the trans ones.
 
-## Xucutoff *real*
+## xucutoff *real*
 
 Cutoff of hydrophobic interactions
 real is the cutoff radius of hydrophobic interactions in nm
@@ -169,7 +169,7 @@ Adds a random value of the surface coverage (can be used to generate noise for m
 *real* is the magnitude of the noise (in units of chains/nm^2)
 
 ---
-# Unit cell optins
+# Unit cell options
 
 ### dimx *int*
 ### dimy *int*
@@ -251,9 +251,10 @@ See below for the fixed formated required for each input
 81: Superellipse (in x,y plane; infinite in z)
 9: Cubooctahedral NPs with continuous brush
 
+----
+# Systemtype options:
 
-# SYSTEMTYPE OPTIONS
-systemtype 1: Nanoparticles with continuous brush 
+systemtype 1: Nanoparticles with continuous brush
 Coment line
 Number of particles (N) 
 Coment line
