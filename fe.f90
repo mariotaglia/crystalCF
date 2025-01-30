@@ -378,53 +378,6 @@ Free_Energy = Free_Energy + F_trans_sv
 
 endif ! solvent
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-
-!      
-!! ELECTRO
-!! 7. Chemical Equilibrium
-!      F_Eq = 0.0 
-!            
-!
-!      do ix  = 1, dimx
-!      do iy  = 1, dimy
-!      do iz  = 1, dimz
-!
-!      do im = 1, N_monomer
-!      
-!      fv=(1.0-volprot(ix,iy,iz))
-!
-!      if(zpol(im).ne.0) then
-!
-!      F_Eq = F_Eq + fdis(ix,iy,iz,im)*dlog(fdis(ix,iy,iz,im)) &
-!      *avpol(ix,iy,iz,im)/vpol*fv
-!
-!      F_Eq = F_Eq + (1.0-fdis(ix,iy,iz,im)) &
-!      *dlog(1.0-fdis(ix,iy,iz,im))*avpol(ix,iy,iz,im)/vpol*fv
-!
-!      F_Eq = F_Eq + (1.0-fdis(ix,iy,iz,im))*dlog(K0(im))*avpol(ix,iy,iz,im)/vpol*fv
-!
-!      select case (zpol(im))
-!      case (-1) ! acid
-!       F_Eq = F_Eq + (1.0-fdis(ix,iy,iz,im))*(-dlog(expmuHplus))*avpol(ix,iy,iz,im)/vpol*fv
-!      case (1) ! base
-!       F_Eq = F_Eq + (1.0-fdis(ix,iy,iz,im))*(-dlog(expmuOHmin))*avpol(ix,iy,iz,im)/vpol*fv
-!      end select
-!
-!      endif ! zpol
-!
-!      enddo ! im
-!   
-!      enddo
-!      enddo
-!      enddo
-!
-!      F_eq = F_eq *delta**3/vsol
-!
-!      Free_Energy = Free_Energy + F_Eq
-
-
 ! 8.vdW ! Ojo, los kai son negativos => atraccion
 
        F_vdW = 0.0
@@ -501,26 +454,6 @@ endif ! solvent
 
       Free_Energy = Free_Energy + F_vdW
 
-!! ELECTRO      
-!! 9. Electrostatic ! OJO
-!
-!      F_electro = 0.0    
-!
-!      do ix  = 1, dimx
-!      do iy  = 1, dimy
-!      do iz  = 1, dimz
-!
-!      F_electro = F_electro &
-!       + delta**3*psi(ix, iy, iz)*qtot(ix, iy, iz)/2.0/vsol
-!
-!      enddo
-!      enddo
-!      enddo
-!  
-!      print*, F_electro
-!
-!      Free_Energy = Free_Energy + F_electro
-!
 ! 10. Pol-prot
 
       F_eps = 0.0 

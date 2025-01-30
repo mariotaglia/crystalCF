@@ -13,7 +13,7 @@ subroutine readinput
 !
 !
 
-use molecules, only : benergy, vpol, vpol0, vsol0
+use molecules, only : benergy, vsol0
 use const, only : epstype, infile, randominput, seed, seed2, stdout
 use MPI
 use ellipsoid
@@ -91,7 +91,6 @@ dx = ndr
 dy = ndr
 dz = ndr
 cdiva = ndr
-vpol = ndr
 
 
 vsol0 = ndr
@@ -285,29 +284,12 @@ do while (ios == 0)
    read(buffer, *, iostat=ios) lsegkai
    if(rank.eq.0)write(stdout,*) 'parser:','Set ',trim(label),' = ',trim(buffer)
 
-! ELECTRO
-! case ('dielP')
-!   read(buffer, *, iostat=ios) dielP
-!   if(rank.eq.0)write(stdout,*) 'parser:','Set ',trim(label),' = ',trim(buffer)
-!
-! case ('dielS')
-!   read(buffer, *, iostat=ios) dielS
-!   if(rank.eq.0)write(stdout,*) 'parser:','Set ',trim(label),' = ',trim(buffer)
-!
-! case ('csalt')
-!   read(buffer, *, iostat=ios) csalt
-!   if(rank.eq.0)write(stdout,*) 'parser:','Set ',trim(label),' = ',trim(buffer)
-!
  case ('vsol')
    read(buffer, *, iostat=ios) vsol0
    if(rank.eq.0)write(stdout,*) 'parser:','Set ',trim(label),' = ',trim(buffer)
 
  case ('benergy')
    read(buffer, *, iostat=ios) benergy
-   if(rank.eq.0)write(stdout,*) 'parser:','Set ',trim(label),' = ',trim(buffer)
-
- case ('vpol')
-   read(buffer, *, iostat=ios) vpol
    if(rank.eq.0)write(stdout,*) 'parser:','Set ',trim(label),' = ',trim(buffer)
 
  case ('vscan')
@@ -317,11 +299,6 @@ do while (ios == 0)
  case ('sigmar')
    read(buffer, *, iostat=ios) sigmar
    if(rank.eq.0)write(stdout,*) 'parser:','Set ',trim(label),' = ',trim(buffer)
-
-! ELECTRO  
-! case ('pHbulk')
-!   read(buffer, *, iostat=ios) pHbulk
-!   if(rank.eq.0)write(stdout,*) 'parser:','Set ',trim(label),' = ',trim(buffer)
 
  case ('infile')
    read(buffer, *, iostat=ios) infile
@@ -689,7 +666,6 @@ if(dz.eq.ndr)call stopundef('dz')
 if(lseg.eq.ndr)call stopundef('lseg')
 if(lsegkai.eq.ndr)lsegkai=lseg
 
-if(vpol0.eq.ndr)call stopundef('vpol')
 if(vsol0.eq.ndr)call stopundef('vsol')
 if(benergy.eq.ndr)call stopundef('benergy')
 if(transform_type.eq.1)then

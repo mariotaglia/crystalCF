@@ -115,8 +115,6 @@ endmodule
 module molecules
 use system
 real*8 vsol
-real*8 vpol
-real*8 vpol0
 real*8 vsol0
 real*8 vsalt
 

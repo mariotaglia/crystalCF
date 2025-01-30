@@ -165,19 +165,6 @@ do j = 1, NNN
 
  maxss = 1.0d100
 
-! do i = 1, ncha1
-! vvtemp = (1.0-volprot1(ix,iy,iz))*(delta**3)/vpol/vsol
-! sstemp = volx1(i)/sigma(j)
-! if(sstemp.eq.0.0) then
-! vvtemp = 1.0d100
-! else
-! write(stdout,*) 'ellipsoid:', ix,iy,iz,(1.0-volprot1(ix,iy,iz)),volx1(ix,iy,iz)
-! vvtemp = vvtemp/sstemp
-! endif
-! if(vvtemp.lt.maxss)maxss=vvtemp
-! enddo
-! if(rank.eq.0)write(stdout,*) 'ellipsoid:', 'Maxsigma for ', j,'is ', maxss
-
  sumpolseg = sumpolseg + area*sigma(j)*long
 
 !! volume  
