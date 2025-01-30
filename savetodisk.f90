@@ -9,10 +9,8 @@ integer npoints
 integer ix, iy, iz, jx, jy, jz
 real*8 array(dimx, dimy, dimz)
 real*8 arraytemp(dimx, dimy, dimz)
-real*8 arrayz(dimz)
 integer counter
 character*5 title
-character*6 titlez
 character*21 filename, tempc
 real*4 singlepres
 real*8 v(3), x(3)
@@ -44,15 +42,6 @@ enddo
 
 
 if(vtkflag.eq.1) then
-
-!      write(filename,'(A5, A1,I3.3, A4)')title,'.', counter, '.vtk'
-!      open (unit=45, file=filename, access='stream',form='unformatted')
-!      write(45,'(A)')'# vtk DataFile Version 2.0'
-!      write(45,'(A)')title
-!      write(45,'(A)')'BINARY'
-!      write(45,'(A)')'DATASET STRUCTURED_GRID '
-!      write(45,'(A, I5, A1, I5, A1, I5)')'DIMENSIONS', scz*dimz+1, ' ', scy*dimy+1, ' ',scx*dimx+1
-!      write(45,'(A, I8, A)')'POINTS ',npoints,' float'
 
       write(filename,'(A5, A1,I3.3, A4)')title,'.', counter, '.vtk'
       open (unit=45, file=filename, access='stream',form='unformatted', convert='BIG_ENDIAN')
