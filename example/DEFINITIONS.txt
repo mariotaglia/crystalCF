@@ -32,7 +32,7 @@ nst 4
 !!! OUTPUT !!!
 
 !save vtk?
-vtkflag 0
+vtkflag 1
 
 ! supercell
 scx 1

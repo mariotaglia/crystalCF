@@ -254,7 +254,7 @@ See below for the fixed formated required for each input
 ----  
 # Systemtype options:  
   
-systemtype 1: Nanoparticles with continuous brush  
+**systemtype 1: Nanoparticles with continuous brush**  
 Coment line  
 Number of particles (N)   
 Coment line  
@@ -268,7 +268,7 @@ For each N, surface coverage (N lines)
 Coment line  
 For each N, surface-polymer attraction (N lines)  
   
-systemtype 2: Channel 3D with continuous brush  
+**systemtype 2: Channel 3D with continuous brush**  
 Comment line  
 Radius of the channel (in nm)  
 Comment line  
@@ -276,19 +276,7 @@ Surface coverage of the channel (in nm^-2)
 Comment line  
 Surface-polymer attraction strength   
   
-systemtype 4: Channel 3D with specific grafting points (includes reservoirs)  
-Comment line  
-Radius of the channel (in nm)  
-Comment line  
-Size of the reservoirs (in units of delta)  
-Comment line  
-Number of brushes in the tetha direction (program distributes in z direction to achieve same separation)  
-Comment line  
-Surface coverage of the channel (in nm^-2)  
-Comment line  
-Surface-polymer attraction strength   
-  
-systemtype 41: Same as 4, but with only one row of polymers at the middle of the channel  
+**systemtype 4: Channel 3D with specific grafting points (includes reservoirs)**  
 Comment line  
 Radius of the channel (in nm)  
 Comment line  
@@ -300,7 +288,19 @@ Surface coverage of the channel (in nm^-2)
 Comment line  
 Surface-polymer attraction strength   
   
-systemtype 42: Same as 41, but with multiple rings  
+**systemtype 41: Same as 4, but with only one row of polymers at the middle of the channel**  
+Comment line  
+Radius of the channel (in nm)  
+Comment line  
+Size of the reservoirs (in units of delta)  
+Comment line  
+Number of brushes in the tetha direction (program distributes in z direction to achieve same separation)  
+Comment line  
+Surface coverage of the channel (in nm^-2)  
+Comment line  
+Surface-polymer attraction strength   
+  
+**systemtype 42: Same as 41, but with multiple rings**  
 Comment line  
 Radius of the channel (in nm)  
 Comment line  
@@ -314,7 +314,7 @@ Position of the rings in the z direction (in delta units)
 Comment line  
 Surface-polymer attraction strength   
   
-systemtype 52: Same as 42, but with a cylinder instead of channel  
+**systemtype 52: Same as 42, but with a cylinder instead of channel**  
 Comment line  
 Radius of the rod (in nm)  
 Comment line  
@@ -328,13 +328,13 @@ Position of the rings in the z direction (in delta units)
 Comment line  
 Surface-polymer attraction strength   
   
-systemtype 6: Planar surface with polymers grafted in a rectangular array  
+**systemtype 6: Planar surface with polymers grafted in a rectangular array**  
 Comment line  
 Number of polymers in x and y dimensions  
 Comment line  
 Surface-polymer attraction strength   
   
-systemtype 60: Channel (same as 42) + single NP  
+**systemtype 60: Channel (same as 42) + single NP**  
 Comment line  
 Radius of the channel (in nm)  
 Comment line  
@@ -358,7 +358,7 @@ Surface coverage of the NP
 Coment line  
 Surface-polymer attraction of the NP  
   
-systemtype 7: Single cube  
+**systemtype 7: Single cube**  
 Comment line  
 Cube edge in nm  
 Comment line  
@@ -368,7 +368,7 @@ cubeR = use 0 for a whole cube, 1 for 1/3
 Comment line  
 Surface-polymer attraction strength   
   
-systemtype 80:  
+**systemtype 80:**  
 Comment line  
 Radius of the channel (in nm)  
 Comment line  
@@ -376,7 +376,7 @@ Surface coverage of the channel (in nm^-2)
 Comment line  
 Surface-polymer attraction strength   
   
-systemtype 81: Superellipse  
+**systemtype 81: Superellipse**  
 Comment line  
 Size in x and y directions  
 Comment line  
@@ -388,7 +388,7 @@ Surface coverage (in nm^-2)
 Comment line  
 Surface-polymer attraction strength   
   
-systemtype 9: Cubooctahedral nanoparticles with continuous brush   
+**systemtype 9: Cubooctahedral nanoparticles with continuous brush**   
 Coment line  
 Number of particles (N)   
 Coment line  
