@@ -72,10 +72,7 @@ readchains = ndi
 infile = ndi
 interaction_00 = ndi
 interaction_11 = ndi
-
-
-randominput = 0
-
+randominput = ndi
 cutoff = ndr
 lseg = ndr
 lsegkai = ndr
@@ -85,13 +82,11 @@ dx = ndr
 dy = ndr
 dz = ndr
 cdiva = ndr
-
 vsol0 = ndr
 gama0 = ndr
 benergy = ndr
-
-nsc = 1
-scs(1) = 1.0
+coordinate_system = ndi
+transform_type = ndi
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Control file variables
@@ -170,39 +165,43 @@ do while (ios == 0)
    read(buffer, *, iostat=ios) randominput
    if(rank.eq.0)write(stdout,*) 'parser:','Set ',trim(label),' = ',trim(buffer)
 
- case ('readchains')
+ case ('readchains') ! read chains from file?
    read(buffer, *, iostat=ios) readchains
    if(rank.eq.0)write(stdout,*) 'parser:','Set ',trim(label),' = ',trim(buffer)
 
- case ('dimx')
+ case ('dimx') ! cell dimensions
    read(buffer, *, iostat=ios) dimx
    if(rank.eq.0)write(stdout,*) 'parser:','Set ',trim(label),' = ',trim(buffer)
+ case ('dimy')
+   read(buffer, *, iostat=ios) dimy
+   if(rank.eq.0)write(stdout,*) 'parser:','Set ',trim(label),' = ',trim(buffer)
 
- case ('scx')
+ case ('dimz')
+   read(buffer, *, iostat=ios) dimz
+   if(rank.eq.0)write(stdout,*) 'parser:','Set ',trim(label),' = ',trim(buffer)
+
+
+ case ('scx') ! supercell for export
    read(buffer, *, iostat=ios) scx
    if(rank.eq.0)write(stdout,*) 'parser:','Set ',trim(label),' = ',trim(buffer)
-
- case ('scy')
+ case ('scy') 
    read(buffer, *, iostat=ios) scy
    if(rank.eq.0)write(stdout,*) 'parser:','Set ',trim(label),' = ',trim(buffer)
-
  case ('scz')
    read(buffer, *, iostat=ios) scz
    if(rank.eq.0)write(stdout,*) 'parser:','Set ',trim(label),' = ',trim(buffer)
 
 
- case ('delta')
+ case ('delta') ! discretization
    read(buffer, *, iostat=ios) delta
    if(rank.eq.0)write(stdout,*) 'parser:','Set ',trim(label),' = ',trim(buffer)
 
- case ('dx')
+ case ('dx') ! displacement of unit cell
    read(buffer, *, iostat=ios) dx
    if(rank.eq.0)write(stdout,*) 'parser:','Set ',trim(label),' = ',trim(buffer)
-
  case ('dy')
    read(buffer, *, iostat=ios) dy
    if(rank.eq.0)write(stdout,*) 'parser:','Set ',trim(label),' = ',trim(buffer)
-
  case ('dz')
    read(buffer, *, iostat=ios) dz
    if(rank.eq.0)write(stdout,*) 'parser:','Set ',trim(label),' = ',trim(buffer)
@@ -230,67 +229,59 @@ do while (ios == 0)
 
     endselect
 
- case ('dimy')
-   read(buffer, *, iostat=ios) dimy
-   if(rank.eq.0)write(stdout,*) 'parser:','Set ',trim(label),' = ',trim(buffer)
-
- case ('dimz')
-   read(buffer, *, iostat=ios) dimz
-   if(rank.eq.0)write(stdout,*) 'parser:','Set ',trim(label),' = ',trim(buffer)
-
- case ('long')
+case ('long') ! ligand chain length
    read(buffer, *, iostat=ios) long
    if(rank.eq.0)write(stdout,*) 'parser:','Set ',trim(label),' = ',trim(buffer)
 
- case ('longsv')
+ case ('longsv') ! solvent chain length
    read(buffer, *, iostat=ios) longsv
    if(rank.eq.0)write(stdout,*) 'parser:','Set ',trim(label),' = ',trim(buffer)
 
- case ('cuantas')
+ case ('cuantas') ! ligand conformations
    read(buffer, *, iostat=ios) cuantas
    if(rank.eq.0)write(stdout,*) 'parser:','Set ',trim(label),' = ',trim(buffer)
 
- case ('cuantassv')
+ case ('cuantassv') ! solvent conformations
    read(buffer, *, iostat=ios) cuantassv
    if(rank.eq.0)write(stdout,*) 'parser:','Set ',trim(label),' = ',trim(buffer)
 
- case ('lseg')
+ case ('lseg') ! segment length for ligand and solvent chains
    read(buffer, *, iostat=ios) lseg
    if(rank.eq.0)write(stdout,*) 'parser:','Set ',trim(label),' = ',trim(buffer)
 
- case ('lsegkai')
+ case ('lsegkai') ! segment length for LJ attractive term
    read(buffer, *, iostat=ios) lsegkai
    if(rank.eq.0)write(stdout,*) 'parser:','Set ',trim(label),' = ',trim(buffer)
 
- case ('vsol')
+ case ('vsol') ! bead volume
    read(buffer, *, iostat=ios) vsol0
    if(rank.eq.0)write(stdout,*) 'parser:','Set ',trim(label),' = ',trim(buffer)
 
- case ('benergy')
+ case ('benergy') ! enegy of gauche bonds
    read(buffer, *, iostat=ios) benergy
    if(rank.eq.0)write(stdout,*) 'parser:','Set ',trim(label),' = ',trim(buffer)
 
- case ('vscan')
+ case ('vscan') ! vscan: decides what to scan 
    read(buffer, *, iostat=ios) vscan
    if(rank.eq.0)write(stdout,*) 'parser:','Set ',trim(label),' = ',trim(buffer)
 
- case ('sigmar')
+ case ('sigmar') ! add random fluctuations to density
    read(buffer, *, iostat=ios) sigmar
    if(rank.eq.0)write(stdout,*) 'parser:','Set ',trim(label),' = ',trim(buffer)
 
- case ('infile')
-   read(buffer, *, iostat=ios) infile
+ case ('infile') ! read initial guess from file
+   read(buffer, *, iostat=ios) infile 
    if(rank.eq.0)write(stdout,*) 'parser:','Set ',trim(label),' = ',trim(buffer)
  
- case ('interaction_00')
+ case ('interaction_00') ! interaction between solvent beads to be use in st_matrix
    read(buffer, *, iostat=ios) interaction_00 
    if(rank.eq.0)write(stdout,*) 'parser:','Set ',trim(label),' = ',trim(buffer)
 
- case ('interaction_11')
+ case ('interaction_11') ! interaction between ligand beads to be used in st_matrix
    read(buffer, *, iostat=ios) interaction_11
    if(rank.eq.0)write(stdout,*) 'parser:','Set ',trim(label),' = ',trim(buffer)
 
- case ('nkp')
+ case ('nkp') ! solvent volume fraction or chemical potential, depending on flagmu
    read(buffer, *, iostat=ios) kpini, kpstep, kpfin
    if(rank.eq.0)write(stdout,*) 'parser:','Set ',trim(label),' = ',trim(buffer)
 
@@ -310,7 +301,7 @@ do while (ios == 0)
      enddo
    endif
 
- case ('nst')
+ case ('nst') ! number of st cases
    read(buffer, *, iostat=ios) nst
    if(rank.eq.0)write(stdout,*) 'parser:','Set ',trim(label),' = ',trim(buffer)
   
@@ -318,16 +309,7 @@ do while (ios == 0)
    read(fh,*)sts(i)
    enddo 
 
-
- case ('nsc')
-   read(buffer, *, iostat=ios) nsc
-   if(rank.eq.0)write(stdout,*) 'parser:','Set ',trim(label),' = ',trim(buffer)
-  
-   do i = 1, nsc
-   read(fh,*)scs(i)
-   enddo 
-
- case ('Xucutoff')
+ case ('Xucutoff') ! cut off for LJ attractions in nm
    read(buffer, *, iostat=ios) cutoff
    if(rank.eq.0)write(stdout,*) 'parser:','Set ',trim(label),' = ',trim(buffer)
 
@@ -346,8 +328,6 @@ do while (ios == 0)
      read(fh, *) basura
      read(fh, *) sigmac
      read(fh, *) basura
-     read(fh, *) echargec
-     read(fh, *) basura
      read(fh, *) eepsc
 
    case(81) ! superellipse
@@ -358,8 +338,6 @@ do while (ios == 0)
      read(fh, *) basura
      read(fh, *) sigmas
      read(fh, *) basura
-     read(fh, *) echarges
-     read(fh, *) basura
      read(fh, *) eepss
 
     case(3, 4, 41)
@@ -369,8 +347,6 @@ do while (ios == 0)
      read(fh, *) RdimZ
      read(fh, *) basura
      read(fh, *) NBRUSH ! number of brushes in the tetha direction
-     read(fh, *) basura
-     read(fh, *) echargec
      read(fh, *) basura
      read(fh, *) eepsc
 
@@ -390,8 +366,6 @@ do while (ios == 0)
      read(fh, *) l_pol ! numero de polimeros por lado (integer)
      read(fh, *) basura
      read(fh, *) cubeR! cubo entero = 0; tercio del cubo = 1
-     read(fh, *) basura
-     read(fh, *) echargec
      read(fh, *) basura
      read(fh, *) eepsc
      NNN = 0
@@ -436,12 +410,6 @@ do while (ios == 0)
 
      read(fh, *) basura
      do j = 1, NNN
-        read(fh, *) echarge(j)
-     if(rank.eq.0)write(stdout,*) 'parser:','Set particle',j,'charge to', echarge(j)
-     enddo
-
-     read(fh, *) basura
-     do j = 1, NNN
         read(fh, *) eeps(j)
      if(rank.eq.0)write(stdout,*) 'parser:','Set particle',j,'hydrophobicity to', eeps(j)
      enddo
@@ -466,8 +434,6 @@ do while (ios == 0)
      enddo
       ringpos = ringpos - 0.5
     
-     read(fh, *) basura
-     read(fh, *) echargec
      read(fh, *) basura
      read(fh, *) eepsc
 
@@ -520,11 +486,6 @@ do while (ios == 0)
 
      read(fh, *) basura
      do j = 1, NNN
-     read(fh, *) echarge(j)
-     if(rank.eq.0)write(stdout,*) 'parser:','Set particle',j,'charge to', echarge(j)
-     enddo
-     read(fh, *) basura
-     do j = 1, NNN
      read(fh, *) eeps(j)
      if(rank.eq.0)write(stdout,*) 'parser:','Set particle',j,'hydrophobicity to', eeps(j)
      enddo
@@ -565,11 +526,6 @@ do while (ios == 0)
      if(rank.eq.0)write(stdout,*) 'parser:','Set particle',j,'surface coverage to', sigma(j)
      enddo
 
-     read(fh, *) basura
-     do j = 1, NNN
-     read(fh, *) echarge(j)
-     if(rank.eq.0)write(stdout,*) 'parser:','Set particle',j,'charge to', echarge(j)
-     enddo
      read(fh, *) basura
      do j = 1, NNN
      read(fh, *) eeps(j)
@@ -624,12 +580,12 @@ if(infile.eq.ndi)call stopundef('infile')
 
 
 if(interaction_00.eq.ndi) then
-        print*, 'interaction_00 undefined, use default value of 1.0'
         interaction_00=1.0
+        print*, 'interaction_00 undefined, use default value of', interaction_00
 endif        
 if(interaction_11.eq.ndi) then
-        print*, 'interaction_11 undefined, use default value of 1.0'
         interaction_11=1.0
+        print*, 'interaction_11 undefined, use default value of',interaction_11
 endif        
 
 if(cutoff.eq.ndr)call stopundef('Xucutoff')
@@ -642,10 +598,11 @@ if(dx.eq.ndr)call stopundef('dx')
 if(dy.eq.ndr)call stopundef('dy')
 if(dz.eq.ndr)call stopundef('dz')
 if(lseg.eq.ndr)call stopundef('lseg')
-if(lsegkai.eq.ndr)lsegkai=lseg
+if(lsegkai.eq.ndr)call stopundef('lsegkai')
 
 if(vsol0.eq.ndr)call stopundef('vsol')
 if(benergy.eq.ndr)call stopundef('benergy')
+if(transform_type.eq.ndi)stopundef('transport_type')
 if(transform_type.eq.1)then
  if(gama0.eq.ndr)call stopundef('gama')
  if(cdiva.eq.ndr)call stopundef('cdiva')
@@ -680,7 +637,13 @@ if(sigmar.eq.ndr) then
    print*, 'sigmar undefined, used default:', sigmar
 endif
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+if(randominput.eq.ndi) then
+   randominput = 0
+   print*, 'randominput undefined, used default:', randominput
+endif
+
+
+if(coordinate_system.eq.ndi)call stopundef('coordinate_system')
 
 end subroutine
 

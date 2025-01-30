@@ -18,23 +18,10 @@ use mparameters_monomer
 implicit none
 pi = acos(-1.0)
 
-! ELECTRO
-!lb = 0.714 ! bjerrum lenght in nm
-!zpos = 1.0
-!zneg = -1.0
-!vsalt=((4.0/3.0)*pi*(0.2)**3)/vsol  ! volume salt in units of vsol 0.2=radius salt  
-!constq=delta*delta*4.0*pi*lb/vsol   ! multiplicative factor in poisson eq  
-!pKw = 14
-!Kw = 10**(-pKw)
-
 vsol = vsol0
 error = 1e-4 ! para comparar con la norma...
 errel=1d-6
 itmax=200
-
-! ELECTRO
-!if(electroflag.eq.0)eqs=(1+N_poorsol)
-!if(electroflag.eq.1)eqs=(2+N_poorsol)
 
 eqs=(1+N_poorsol)
 end subroutine
@@ -46,9 +33,6 @@ use MPI
 use ellipsoid
 use chainsdat
 
-! ELECTRO
-!use inputtemp
-
 use mparameters_monomer
 implicit none
 
@@ -57,18 +41,7 @@ implicit none
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
 
 if(rank.eq.0) then
-
-! ELECTRO
-!       open(unit=303, file='F_mixpos.dat',  access='APPEND')
-!       open(unit=304, file='F_mixneg.dat',  access='APPEND')
-!       open(unit=305, file='F_mixH.dat',  access='APPEND')
-!       open(unit=306, file='F_mixOH.dat',  access='APPEND')
-!       open(unit=308, file='F_eq.dat',  access='APPEND')
-!       open(unit=311, file='F_electro.dat',  access='APPEND')
-! 
-
        open(unit=301, file='F_tot_gcanon.dat', access='APPEND')
-
        open(unit=302, file='F_mixs.dat',  access='APPEND')
        open(unit=307, file='F_conf.dat',  access='APPEND')
        open(unit=3071, file='F_trans.dat',  access='APPEND')
@@ -90,14 +63,6 @@ implicit none
 !!!!!!!!!!!!!!!!!!!!!!
 ! Close common files
 !!!!!!!!!!!!!!!!!!!!!!
-
-! ELECTRO
-!close(303)
-!close(304)
-!close(305)
-!close(306)
-!close(308)
-!close(311)
 
 close(301)
 close(302)
@@ -177,38 +142,6 @@ if(rank.eq.0) then ! solo el jefe escribe a disco....
 
   title = 'avsol'
   call savetodisk(temp, title, cccc)
-! Cationes
-!  title = 'avpos'
-!  call savetodisk(xpos, title, cccc)
-! Aniones
-!  title = 'avneg'
-!  call savetodisk(xneg, title, cccc)
-! H+
-!  title = 'avHpl'
-!  call savetodisk(xHplus, title, cccc)
-! OH-
-!  title = 'avOHm'
-!  call savetodisk(xOHmin, title, cccc)
-
-
-!! ELECTRO
-!! fdis
-!  title = 'frdis'
-!  temp(1:dimx,1:dimy, 1:dimz) = fdis(1:dimx,1:dimy, 1:dimz,1)
-!  call savetodisk(temp, title, cccc)
-!
-!
-!! Potencial electrostatico
-!
-!  temp(1:dimx,1:dimy, 1:dimz) = psi(1:dimx,1:dimy, 1:dimz)
-!
-!  title = 'poten'
-!  call savetodisk(temp, title, cccc)
-!
-
-! Particle
-!  title = 'avpar'
-!  call savetodisk(volprot, title, cccc)
 
 ! save volprot for supercell
 if(rank.eq.0) then
@@ -236,18 +169,9 @@ endif
   write(310,*)'length seg  = ', lseg ! value see subroutine cadenas
   write(310,*)'delta       = ',delta
   write(310,*)'vsol        = ',vsol
-
-  ! ELECTRO  
-  ! write(310,*)'vsalt       = ',vsalt*vsol
-  ! write(310,*)'pKw         = ',pKw
-  ! write(310,*)'zpos        = ',zpos
-  ! write(310,*)'zneg        = ',zneg
-
-
   write(310,*)'long        = ',long
   write(310,*)'iterations  = ',iter
   write(310,*)'sigma cad/nm2 = ',ncha/(dimx*dimy*delta*delta)
-!  write(310,*)'kai =          ', Xu
   write(310,*)'musolv =    ', musolv
   write(310,*)'phisolv =    ', phisolv
   write(310,*)'Nsolv =       ', phisolv*(dimx*dimy*dimz)*(delta**3)/vsol/longsv
@@ -348,9 +272,6 @@ do ix=1,dimx
      xtotal(ix,iy,iz,ip) = xflag(ix+dimx*(iy-1)+dimx*dimy*(iz-1)+ip*ncells)
      enddo
 
-! ELECTRO
-!     if(electroflag.eq.1)psi(ix,iy,iz)=xflag(ix+dimx*(iy-1)+dimx*dimy*(iz-1)+(N_poorsol+1)*ncells)
-
   enddo
  enddo
 enddo 
@@ -369,13 +290,6 @@ do ix=1,int(dimx/2)
        xtotal(dimx-ix,iy,iz,ip) = temp
      enddo
 
-! ELECTRO
-!     if(electroflag.eq.1) then
-!     temp = psi(ix,iy,iz)
-!     psi(ix,iy,iz) = psi(dimx-ix,iy,iz)
-!     psi(dimx-ix,iy,iz) = temp
-!     endif
-  
   enddo
  enddo
 enddo
@@ -390,8 +304,6 @@ do ix=1,dimx
          xflag(ix+dimx*(iy-1)+dimx*dimy*(iz-1)+ip*ncells) =  xtotal(ix,iy,iz,ip)
         enddo
 
-! ELECTRO
-!        if(electroflag.eq.1)xflag(ix+dimx*(iy-1)+dimx*dimy*(iz-1)+(N_poorsol+1)*ncells)= psi(ix,iy,iz)
       enddo
    enddo
 enddo

@@ -11,7 +11,7 @@ use fields_fkfun, only : xtotal, sumprolnpro, sumprotrans, long, phisolv, musolv
 use kinsol, only : maxiters, iter, norma
 use conformations, only : px,py,pz, ntrans
 use ematrix, only : dimx, dimy, dimz, eqs, volprot, pbc, delta, flagmu
-use kaist, only : kp, sc, st
+use kaist, only : kp, st
 use mparameters_monomer, only : N_monomer, N_poorsol, hydroph, st_matrix
 use solventchains, only : pxsv, pysv, pzsv, ntranssv, longsv, cuantassv
 implicit none
@@ -349,7 +349,7 @@ do jj = 1, cpp(rank+1)
    im = segtype(j)
     avpol_temp(px(i,j, jj),py(i,j, jj),pz(i,j, jj), im)= &
     avpol_temp(px(i,j, jj),py(i,j, jj),pz(i,j, jj), im)+pro(i, jj)*vsol/(delta**3)/fv* &
-    ngpol(ii)*sc ! ngpol(ii) has the number of chains grafted to the point ii
+    ngpol(ii) ! ngpol(ii) has the number of chains grafted to the point ii
    enddo
 
    q_tosend=q_tosend+pro(i, jj)

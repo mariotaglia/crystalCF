@@ -96,14 +96,6 @@ Controls initial guess
 3 : same as 1 but mirrors the input in the x axis 
 
 
-## nst *int*
-
-Controls hydrophobicity
-
-*int* is the number of hydrophobic cases to solve
-expects a list with the hydrophobic strength following the "nst int" line
-
-
 ## benergy *real*
 
 Energy of Gauche bonds
@@ -170,23 +162,6 @@ Read conformations from file for faster initialization, only works for “branch
 1 : read chains from cadenas.dat
 0 : generate chain conformations before running
 		
-## systemtype *int*
-
-Determines the type of system
-
-See below for the formated required for each input
-
-*int* = 
-1 : Nanoparticles with continuous brush
-2 : Channel 3D with continuous brush
-3 : Not in use
-4 : Channel 3D with specific grafting points (includes reservoirs)
-41: Same as 4, but with only one row of polymers at the middle of the channel
-42: Same as 41, but with multiple rings
-52: Same as 42, but with a cylinder instead of channel
-6: Planar surface with polymers grafted in a rectangular array
-
-
 ## randominput *int*
 
 Shifts the positions of grafting points to favor microphase separation for systemtype 
@@ -207,23 +182,74 @@ Decides a scan based on chemical potential or volume fraction of the solvent
 
 see also nkp and vscan 
 
+## vscan *int*
 
---------------------------------------------------------------------------------------------------------------------
-vscan int	scan flag
-	what to scan: 1, hamiltonian inception parameter kp, 2, attraction strength st. If 1 then the system will use the first st value.
-hguess int	Hamiltonian inception for nanochannel	int is the rotational symmetry, use int = 0 for no inception
-hring int	Hamiltonian inception for nanochannel	hring: int is the initial attractive zone’s distance to the wall (in xy plane)
-oval real	Hamiltonian inception for nanochannel	oval: 3D shape of the growing zone 1 means spherical
-nkp int	Strnght of Hamiltonian Inception loop. Followed by list.	int is the number of cases to stuy
---------------------------------------------------------------------------------------------------------------------
+Decides what to scan:
+
+*int* =
+
+1: Solvent volume fraction or chemical potential, see kp and flagmu
+   It will use the first value of st
+2: Attraction strength st, see nst
+   It will use the first value of knp
+
+## nst *int*
+
+Controls hydrophobicity
+
+*int* is the number of hydrophobic cases to solve
+expects a list with the hydrophobic strength following the "nst int" line
+
+## nkp *real1* *real2* *real3*
+
+Average solvent volume fraction in the system (if flagmu = 0) or chemical potential (if flagmu = 1)
+Scans from *real1* to *real3* in steps of *real2*
+
+## transform_type *int*
+
+Flag that defines the definition of the geometry of the unit cell:
+
+*int* = 
+1: Only for cubic, orthorhombic and monoclinic unit cells, expects to read:
+Comment line
+c/a *real*
+Comment line
+Angle(beta) *real*
+2: For any cell, use a transformation matrix between tranformed cell to a cell of 90,90,90 angles, expects to read:
+Comment line
+3x3 Transformation matrix
+
+## coordinate_system
+
+Format of coordinates used to input NP positions:
+
+1: real coordinates in nm 
+2: fractional coordinates in the cell 
+3: fractional x,y + real z
+
+## systemtype *int*
+
+Determines the type of system
+
+See below for the fixed formated required for each input
+
+*int* = 
+1 : Nanoparticles with continuous brush
+2 : Channel 3D with continuous brush
+3 : Not in use
+4 : Channel 3D with specific grafting points (includes reservoirs)
+41: Same as 4, but with only one row of polymers at the middle of the channel
+42: Same as 41, but with multiple rings
+52: Same as 42, but with a cylinder instead of channel
+6: Planar surface with polymers grafted in a rectangular array
+7: Single cube
+80: Same as 2, but for a rod instead of a cylinder
+81: Superellipse (in x,y plane; infinite in z)
+9: Cubooctahedral NPs with continuous brush
 
 
---------------------------------------------------------------------------------------------------------------------
 # SYSTEMTYPE OPTIONS
-
-
-systemtype = 1
-Fixed format:
+systemtype 1: Nanoparticles with continuous brush 
 Coment line
 Number of particles (N) 
 Coment line
@@ -231,26 +257,21 @@ For each N, position x, position y, position z (N lines)
 Coment line
 For each N, radius x, radius y, radius z (N lines)
 Coment line
-For each N, 3x3 rotation matrix (Nx3 lines)
+For each N, 3x3 rotation matrix (3xN lines)
 Coment line
 For each N, surface coverage (N lines)
 Coment line
-For each N, charge (N lines)
-Coment line
 For each N, surface-polymer attraction (N lines)
 
-systemtype 2:
+systemtype 2: Channel 3D with continuous brush
 Comment line
 Radius of the channel (in nm)
 Comment line
 Surface coverage of the channel (in nm^-2)
 Comment line
-Surface charge of the channel inner wall (in charges/nm^-2_
-Comment line
 Surface-polymer attraction strength 
 
-
-systemtype 41:
+systemtype 4: Channel 3D with specific grafting points (includes reservoirs)
 Comment line
 Radius of the channel (in nm)
 Comment line
@@ -260,11 +281,21 @@ Number of brushes in the tetha direction (program distributes in z direction to 
 Comment line
 Surface coverage of the channel (in nm^-2)
 Comment line
-Surface charge of the channel inner wall (in charges/nm^-2_
+Surface-polymer attraction strength 
+
+systemtype 41: Same as 4, but with only one row of polymers at the middle of the channel
+Comment line
+Radius of the channel (in nm)
+Comment line
+Size of the reservoirs (in units of delta)
+Comment line
+Number of brushes in the tetha direction (program distributes in z direction to achieve same separation)
+Comment line
+Surface coverage of the channel (in nm^-2)
 Comment line
 Surface-polymer attraction strength 
 
-systemtype 42:
+systemtype 42: Same as 41, but with multiple rings
 Comment line
 Radius of the channel (in nm)
 Comment line
@@ -276,13 +307,9 @@ Number of rings in the z direcction
 Comment line
 Position of the rings in the z direction (in delta units)
 Comment line
-Surface charge of the channel inner wall (in charges/nm^-2_
-Comment line
 Surface-polymer attraction strength 
 
-
-
-systemtype 52:
+systemtype 52: Same as 42, but with a cylinder instead of channel
 Comment line
 Radius of the rod (in nm)
 Comment line
@@ -294,15 +321,81 @@ Number of rings in the z direcction
 Comment line
 Position of the rings in the z direction (in delta units)
 Comment line
-Surface charge of the channel inner wall (in charges/nm^-2_
-Comment line
 Surface-polymer attraction strength 
 
-systemtype 6:
+systemtype 6: Planar surface with polymers grafted in a rectangular array
 Comment line
 Number of polymers in x and y dimensions
 Comment line
 Surface-polymer attraction strength 
 
+systemtype 60: Channel (same as 42) + single NP
+Comment line
+Radius of the channel (in nm)
+Comment line
+Size of the reservoirs (in units of delta)
+Comment line
+Number of brushes in the tetha direction (program distributes in z direction to achieve same separation)
+Comment line
+Number of rings in the z direcction
+Comment line
+Position of the rings in the z direction (in delta units)
+Comment line
+Surface-polymer attraction strength 
+Coment line
+Position x, position y, position z of the NP
+Coment line
+radius x, radius y, radius z of the NP
+Coment line
+3x3 rotation matrix (3 lines) of the NP
+Coment line
+Surface coverage of the NP
+Coment line
+Surface-polymer attraction of the NP
 
+systemtype 7: Single cube
+Comment line
+Cube edge in nm
+Comment line
+x,y,z position of the center of cuve
+Comment line
+cubeR = use 0 for a whole cube, 1 for 1/3
+Comment line
+Surface-polymer attraction strength 
+
+systemtype 80:
+Comment line
+Radius of the channel (in nm)
+Comment line
+Surface coverage of the channel (in nm^-2)
+Comment line
+Surface-polymer attraction strength 
+
+systemtype 81: Superellipse
+Comment line
+Size in x and y directions
+Comment line
+pfactor (curvadure of superellipse corner)
+Comment line
+Surface-polymer attraction strength 
+Comment line
+Surface coverage (in nm^-2)
+Comment line
+Surface-polymer attraction strength 
+
+systemtype 9: Cubooctahedral nanoparticles with continuous brush 
+Coment line
+Number of particles (N) 
+Coment line
+For each N, position x, position y, position z (N lines)
+Coment line
+For each N, octahedron size in nm (N lines)
+Coment line
+For each N, truncating cube size in nm (N lines)
+Coment line
+For each N, 3x3 rotation matrix (3xN lines)
+Coment line
+For each N, surface coverge (N lines)
+Coment line
+For each N, surface-polymer attraction (N lines)
 

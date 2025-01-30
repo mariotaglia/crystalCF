@@ -26,7 +26,7 @@ real*8 sstemp,vvtemp, maxss
 real*8 cutarea 
 real*8 temp 
 real*8 temp2 
-real*8 sumvoleps1, sumvolprot1, sumvolq1, sumvolx1 
+real*8 sumvoleps1, sumvolprot1, sumvolx1 
 integer ncha1 
 real*8 volx1(maxvolx) 
 real*8 com1(maxvolx,3) 
@@ -46,7 +46,6 @@ rchannelS2 = (rchannel - delta)**2
 ! clear all 
 voleps = 0.0 
 volprot = 0.0 
-volq = 0.0 
 volx = 0.0 
 volxx = 0.0 
 com = 0.0 
@@ -79,16 +78,6 @@ ncha = 0
   volprot1(:,:,iz) = 1.0 
  enddo 
  volprot1 = 1.0-volprot1 
- 
- call integrate_c(rchannelS2,RdimZ+1,originc,npoints, volq1, sumvolq1, flag) 
- do iz = 1, RdimZ+1 
-  volq1(:,:,iz) = 1.0 
- enddo 
- do iz = dimz-RdimZ, dimz 
-  volq1(:,:,iz) = 1.0 
- enddo 
- volq1 = 1.0-volq1 
-
 
 !rchannel2 = (rchannel+delta)**2 
 ! grafting positions on channel surface are OK because first segment is not fixed to (0,0,0) 
@@ -97,11 +86,6 @@ call newintegrateg_c_4(rchannel2,RdimZ,originc,npoints,volx1,sumvolx1, com1, p1,
 !! eps 
  voleps1 = voleps1-volprot1 
  voleps1 = voleps1*eepsc 
- 
-!! charge 
- volq1 = volprot1-volq1 
- temp = sum(volq1) 
- volq1 = volq1/temp*echargec/(delta**3) ! sum(volq) is echarge 
  
 !! grafting 
  
@@ -123,7 +107,6 @@ area = 2.0*pi*rchannel*hcyl
  volprot = volprot+volprot1 
  
  voleps = voleps + voleps1 
- volq = volq + volq1  
  
 ! add com1 and volx to list 
  
@@ -157,10 +140,6 @@ endif
 title = 'aveps' 
 counter = 1 
 call savetodisk(voleps, title, counter) 
- 
-title = 'avcha' 
-counter = 1 
-call savetodisk(volq, title, counter) 
  
 title = 'avgrf' 
 counter = 1 

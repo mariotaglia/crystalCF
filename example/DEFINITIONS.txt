@@ -9,9 +9,6 @@ electroflag 0
 
 readchains 0
 
-!verbose
-verbose 5
-
 !system size
 dimx 23
 dimy 23
@@ -34,7 +31,7 @@ PBC 1 1 1 1 1 1
 
 !infile
 infile 0
-!what to scan: 1, hamiltonian inception parameter kp, 2, attraction strength st. If 1 then the system will use the first st value.
+!what to scan: 1, solvent volume fraction or chemical potential, use kp and flagmy; 2, attraction strength st. If 1 then the system will use the first st value.
 vscan 2
 
 !hamiltonian inception
@@ -115,9 +112,6 @@ systemtype 9
 ! coverage
 5.85
 5.85
-!Charge
-0.0
-0.0
 !Surface-polymer atraction
 0.0
 0.0

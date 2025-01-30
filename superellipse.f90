@@ -22,7 +22,7 @@ real*8 maxss
 real*8 cutarea
 real*8 temp
 real*8 temp2
-real*8 sumvoleps1, sumvolprot1, sumvolq1, sumvolx1
+real*8 sumvoleps1, sumvolprot1, sumvolx1
 integer ncha1
 real*8 volx1(maxvolx)
 real*8 com1(maxvolx,3)
@@ -46,7 +46,6 @@ sizeYS = sizeY - delta
 ! clear all
 voleps = 0.0
 volprot = 0.0
-volq = 0.0
 volx = 0.0
 volxx = 0.0
 com = 0.0
@@ -70,18 +69,11 @@ flag = .false. ! not a problem if eps lays outside boundaries
 
 call integrate_superellipse(sizeX, sizeY, pfactor, originc, npoints, volprot1, sumvolprot1, flag)
 
-call integrate_superellipse(sizeXL, sizeYL, pfactor, originc, npoints, volq1, sumvolq1, flag)
-
 call newintegrateg_superellipse(sizeX, sizeY, pfactor, originc, npoints, volx1, sumvolx1, com1, p1, ncha1, volxx1)
 
 !! eps
 voleps1 = voleps1-volprot1
 voleps1 = voleps1*eepss
-
-!! charge
-volq1 = volprot1-volq1
-temp = sumvolprot1-sumvolq1
-volq1 = volq1/temp*echarges/(delta**3) ! sum(volq) is echarge
 
 !! grafting
 nPerimeter = 5000000
@@ -116,7 +108,6 @@ if(maxval(volprot).gt.1.0) then ! collision
 endif
  
 voleps = voleps + voleps1
-volq = volq + volq1 
 
 ! add com1 and volx to list
 
@@ -144,10 +135,6 @@ endif
 title = 'aveps'
 counter = 1
 call savetodisk(voleps, title, counter)
-
-title = 'avcha'
-counter = 1
-call savetodisk(volq, title, counter)
 
 title = 'avgrf'
 counter = 1

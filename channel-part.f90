@@ -24,7 +24,7 @@ real*8 area
 real*8 sumpolseg 
 real*8 cutarea
 real*8 temp
-real*8 sumvoleps1, sumvolprot1, sumvolq1, sumvolx1
+real*8 sumvoleps1, sumvolprot1, sumvolx1
 integer ncha1
 real*8 volx1(maxvolx)
 real*8 com1(maxvolx,3)
@@ -44,7 +44,6 @@ rchannel2 = rchannel**2
 ! clear all
 voleps = 0.0
 volprot = 0.0
-volq = 0.0
 volx = 0.0
 volxx = 0.0
 com = 0.0
@@ -83,7 +82,6 @@ area = 2.0*pi*rchannel*hcyl
 
 
  voleps = voleps + voleps1
- volq = volq + volq1 
 
 ! add com1 and volx to list
 
@@ -125,7 +123,6 @@ do j = 1, NNN
  flag = .false. ! not a problem if eps lays outside boundaries
 
  call integrate(AAA(:,:,j),Aell(:,j), Rell(:,j),npoints, volprot1, sumvolprot1, flag)
- call integrate(AAAS(:,:,j),AellS(:,j), Rell(:,j),npoints, volq1, sumvolq1, flag)
 
  npoints = 100000000
  call newintegrateg(Aell(:,j),Rell(:,j),npoints,volx1,sumvolx1, com1, p1, ncha1, volxx1)
@@ -141,34 +138,7 @@ do j = 1, NNN
  voleps1 = voleps1-volprot1
  voleps1 = voleps1*eeps(j)
 
-!! charge
- volq1 = volprot1-volq1
- temp = sumvolprot1-sumvolq1
- volq1 = volq1/temp*echarge(j)/(delta**3) ! sum(volq) is echarge
-
-!! grafting
-! pnumber = 1.6075
-
-! area = (Aell(1,j)*Aell(2,j))**pnumber
-! area = area+(Aell(1,j)*Aell(3,j))**pnumber
-! area = area+(Aell(2,j)*Aell(3,j))**pnumber
-! area = 4.0*pi*(area/3.0)**(1.0/pnumber) ! approximate (< 1% error) area of elipsoid, see wikipedia
-
-! temp2 = maxval(volx1)
-
-! where(volx1<temp2*cutarea) ! remove cells with very little area
-! volx1 = 0.0
-! end where
-
-! volx1 = volx1/sumvolx1*area*sigma(j)
-! volxx1 = volxx1/sumvolx1*area*sigma(j)
-
-! maxss = 1.0d100
-! sumpolseg = sumpolseg + area*sigma(j)*long
-
 !! volume  
-
-
  volprot1 = volprot1 * 0.99
  volprot = volprot+volprot1 ! sum particle to channel
 
@@ -180,7 +150,6 @@ do j = 1, NNN
  endif
 
  voleps = voleps + voleps1
- volq = volq + volq1
 
 enddo ! j
 
@@ -188,9 +157,6 @@ if (rank.eq.0) then
 title = 'aveps'
 counter = 1
 call savetodisk(voleps, title, counter)
-title = 'avcha'
-counter = 1
-call savetodisk(volq, title, counter)
 title = 'avpro'
 counter = 1
 call savetodisk(volprot, title, counter)

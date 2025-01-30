@@ -16,10 +16,6 @@ integer N_monomer ! number of different monomer types
 real*8, allocatable :: st_matrix(:,:) ! interaction between monomer types in fraction of st, scaled by st-scale during running....
 integer, allocatable :: hydroph(:) ! 0: hydrophilic, 1 < x < N_poorsol, type of poor solvent
 real*8 interaction_00, interaction_11
-
-! ELECTRO
-!integer, allocatable :: zpol(:)  ! charge of monomer segment: 1: base, -1: acid, 0:neutral
-!real*8, allocatable ::  pKa(:), Ka(:), K0(:)
 endmodule mparameters_monomer
 
 module branches
@@ -51,8 +47,6 @@ real*8, allocatable :: volprot(:,:,:)
 real*8, allocatable :: volprot1(:,:,:)
 real*8, allocatable :: voleps(:,:,:)
 real*8, allocatable :: voleps1(:,:,:)
-real*8, allocatable :: volq(:,:,:)
-real*8, allocatable :: volq1(:,:,:)
 integer, parameter :: maxvolx = 50000
 real*8 volx(maxvolx)
 real*8 com(maxvolx,3)
@@ -67,7 +61,7 @@ endmodule
 module channel
 real*8 rchannel
 real*8 originc(2)
-real*8 echargec, sigmac, eepsc, sigmar
+real*8 sigmac, eepsc, sigmar
 integer NBRUSH
 integer RdimZ ! size of reservoirs in delta units
 integer Nrings ! number of rings for systemtype = 42
@@ -79,7 +73,7 @@ module superellipse
 real*8 sizeX, sizeY, pfactor
 real*8 originc(2)
 real*8 voriginc(3)
-real*8 echarges, eepss, sigmas, sigmars
+real*8 eepss, sigmas, sigmars
 endmodule
 
 module s2d
@@ -117,10 +111,6 @@ use system
 real*8 vsol
 real*8 vsol0
 real*8 vsalt
-
-! ELECTRO
-!real*8 zpos,zneg
-
 real*8 benergy
 endmodule
 
@@ -146,20 +136,12 @@ real*8 kps(1000)
 integer nst
 real*8 st
 real*8 sts(100)
-
-integer nsc
-real*8 sc
-real*8 scs(100)
-
 endmodule
 
 module fields_fkfun
 use system
 use chainsdat
 real*8, allocatable :: xtotal(:, :, :, :) ! xtotal para poor solvent
-
-! ELECTRO
-!real*8, allocatable :: psi(:, :, :) 
 real*8 musolv ! solvent chem pot
 real*8, allocatable :: q(:)
 real*8, allocatable :: qsv(:,:,:)
@@ -222,16 +204,6 @@ module results
 use system
 real*8, allocatable :: avpol(:,:,:,:) ! avpol ix iy iz im
 real*8, allocatable :: xtotalsum(:,:,:)
-
-! ELECTRO
-!real*8, allocatable :: epsfcn(:,:,:)
-!real*8, allocatable :: Depsfcn(:,:,:)
-!real*8, allocatable :: xpos(:,:,:) ! pos ion
-!real*8, allocatable :: xneg(:,:,:) ! neg ioni
-!real*8, allocatable :: qtot(:,:,:) ! Carga total
-!real*8, allocatable :: xHplus(:,:,:) ! H+
-!real*8, allocatable :: xOHmin(:,:,:) ! OH-
-!real*8, allocatable :: fdis(:,:,:,:)
 endmodule
 
 
@@ -249,7 +221,6 @@ real*8, allocatable :: AAAX(:,:,:)
 real*8, allocatable :: Rell(:,:)
 real*8, allocatable :: Rellf(:,:)
 real*8, allocatable :: orient(:,:)
-real*8, allocatable :: echarge(:)
 real*8, allocatable :: sigma(:)
 real*8, allocatable :: eeps(:)
 
@@ -285,15 +256,6 @@ real*8, allocatable :: plane7(:,:)
 
 end module
 
-!! ELECTRO
-!module inputtemp
-!real*8 xsalt
-!real*8 pHbulk
-!real*8 pOHbulk
-!real*8 csalt
-!real*8 cHplus, cOHmin
-!end module
-!
 module transform
 real*8 gama0
 real*8 MAT(3,3)

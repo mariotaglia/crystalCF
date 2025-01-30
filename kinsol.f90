@@ -51,15 +51,8 @@ enddo
 
 do i = ncells+1, (N_poorsol+1)*ncells
 !   pp(i) = 0.1 / (1.0+exp(1.0-udata(i)))
-pp(i) = 1.0 !0.1 / (1.0+exp(1.0-udata(i)))
+pp(i) = 1.0 
 enddo
-
-! ELECTRO
-!if(electroflag.eq.1) then
-!do i = ncells*(N_poorsol+1), ncells*(N_poorsol+2)
-!   pp(i) = 1.0
-!enddo
-!endif
 
    ier = 0
 return
@@ -156,13 +149,6 @@ enddo
 do i = ncells+1, (N_poorsol+1)*ncells
    constr(i) = 1.0 ! xtotal >= 0
 enddo
-
-! ELECTRO
-!if(electroflag.eq.1) then
-!do i = ncells*(N_poorsol+1), ncells*(N_poorsol+2)  !constraint vector
-!   constr(i) = 0.0 ! no contraint for psi
-!enddo
-!endif
 
 call fkinsetvin('CONSTR_VEC', constr, ier) ! constraint vector
 ! CALL FKINSPTFQMR (MAXL, IER)

@@ -25,7 +25,6 @@ ALLOCATE (AAAX(3,3, NNN))
 ALLOCATE (Rell(3, NNN))
 ALLOCATE (Rellf(3, NNN))
 ALLOCATE (orient(3, NNN))
-ALLOCATE (echarge(NNN))
 ALLOCATE (sigma(NNN))
 ALLOCATE (eeps(NNN))
 end subroutine

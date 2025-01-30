@@ -21,8 +21,7 @@ real*8 center(3)
 real*8 area
 real*8 sumpolseg 
 real*8 cutarea
-real*8 temp
-real*8 sumvoleps1, sumvolprot1, sumvolq1, sumvolx1
+real*8 sumvoleps1, sumvolprot1, sumvolx1
 integer ncha1
 real*8 volx1(maxvolx)
 real*8 com1(maxvolx,3)
@@ -39,7 +38,6 @@ cutarea = 0.0 ! throw away cells that have less area than cutarea x area of the 
 ! clear all (variables for the sum from all CO)
 voleps = 0.0
 volprot = 0.0
-volq = 0.0
 volx = 0.0
 volxx = 0.0
 com = 0.0
@@ -68,21 +66,12 @@ loctaS = Loctall(j) - delta
  npoints = 50
  call integrate_cuboctahedron(Lcubell(j),Loctall(j),center,rotmatCO(:,:,j),j,npoints,volprot1,sumvolprot1,flag)
 
- npoints = 50
- call integrate_cuboctahedron(lcubeS,loctaS,center,rotmatCO(:,:,j),j,npoints,volq1,sumvolq1,flag)
-
  npoints = 200
  call newintegrateg_cuboctahedron(Lcubell(j),Loctall(j),center,rotmatCO(:,:,j),j,npoints,volx1,sumvolx1,com1,p1,ncha1,volxx1)
 
 !! eps
  voleps1 = voleps1-volprot1
  voleps1 = voleps1*eeps(j)
-
-!! charge
- volq1 = volprot1-volq1
- temp = sum(volq1)
-
- if(temp.ne.0.0)volq1 = volq1/temp*echarge(j)/(delta**3) ! sum(volq) is echarge
 
  area =  3.0**(1.0/2.0)*Loctall(j)**2 + 3.0*(1.0-3.0**(1.0/2.0))*(Loctall(j) - Lcubell(j))**2.0 ! MARIO
 
@@ -105,7 +94,6 @@ loctaS = Loctall(j) - delta
  endif
  
  voleps = voleps + voleps1
- volq = volq + volq1 
 
 ! add com1 and volx to list
 
@@ -149,10 +137,6 @@ enddo
 title = 'aveps'
 counter = 1
 call savetodisk(voleps, title, counter)
-
-title = 'avcha'
-counter = 1
-call savetodisk(volq, title, counter)
 
 title = 'avgrf'
 counter = 1

@@ -22,7 +22,7 @@ real*8 area
 real*8 sumpolseg 
 real*8 cutarea
 real*8 temp
-real*8 sumvoleps1, sumvolprot1, sumvolq1, sumvolx1
+real*8 sumvoleps1, sumvolprot1, sumvolx1
 integer ncha1
 real*8 volx1(maxvolx)
 real*8 com1(maxvolx,3)
@@ -43,7 +43,6 @@ rchannelS2 = (rchannel + delta)**2
 ! clear all
 voleps = 0.0
 volprot = 0.0
-volq = 0.0
 volx = 0.0
 volxx = 0.0
 com = 0.0
@@ -84,17 +83,8 @@ endif
  enddo
  volprot1 = 1.0-volprot1
 
- call integrate_c(rchannelS2,RdimZ+1,originc,npoints, volq1, sumvolq1, flag)
- do iz = 1, RdimZ+1
-  volq1(:,:,iz) = 1.0
- enddo
- do iz = dimz-RdimZ, dimz
-  volq1(:,:,iz) = 1.0
- enddo
- volq1 = 1.0-volq1
  case default
  call integrate_c(rchannel2,RdimZ, originc,npoints, volprot1, sumvolprot1, flag)
- call integrate_c(rchannelS2,RdimZ,originc,npoints, volq1, sumvolq1, flag)
  end select
 
  call newintegrateg_c_4(rchannel2,RdimZ,originc,npoints,volx1,sumvolx1, com1, p1, ncha1, volxx1, NBRUSH)
@@ -102,11 +92,6 @@ endif
 !! eps
  voleps1 = voleps1-volprot1
  voleps1 = voleps1*eepsc
-
-!! charge
- volq1 = volprot1-volq1
- temp = sum(volq1)
- volq1 = volq1/temp*echargec/(delta**3) ! sum(volq) is echarge
 
 !! grafting
 
@@ -127,13 +112,12 @@ area = 2.0*pi*rchannel*hcyl
  volprot1 = volprot1 * 0.9999
  volprot = volprot+volprot1
 
-! CHECK COLLISION HERE...
+! CHECK COLLISION HERE.
  if(maxval(volprot).gt.1.0) then ! collision
    flag=.true. 
  endif
  
  voleps = voleps + voleps1
- volq = volq + volq1 
 
 ! add com1 and volx to list
 
@@ -168,10 +152,6 @@ title = 'aveps'
 counter = 1
 call savetodisk(voleps, title, counter)
 
-title = 'avcha'
-counter = 1
-call savetodisk(volq, title, counter)
-
 title = 'avgrf'
 counter = 1
 call savetodisk(volxx, title, counter)
@@ -202,7 +182,7 @@ real*8 area
 real*8 sumpolseg 
 real*8 cutarea
 real*8 temp
-real*8 sumvoleps1, sumvolprot1, sumvolq1, sumvolx1
+real*8 sumvoleps1, sumvolprot1, sumvolx1
 integer ncha1
 real*8 volx1(maxvolx)
 real*8 com1(maxvolx,3)
@@ -222,7 +202,6 @@ rchannelS2 = (rchannel + delta)**2
 ! clear all
 voleps = 0.0
 volprot = 0.0
-volq = 0.0
 volx = 0.0
 volxx = 0.0
 com = 0.0
@@ -243,18 +222,11 @@ ncha = 0
 
  call integrate_c(rchannel2, RdimZ, originc,npoints, volprot1, sumvolprot1, flag)
 
- call integrate_c(rchannelS2,RdimZ, originc,npoints, volq1, sumvolq1, flag)
-
  call newintegrateg_c_3(rchannel2,RdimZ, originc,npoints,volx1,sumvolx1, com1, p1, ncha1, volxx1, NBRUSH)
 
 !! eps
  voleps1 = voleps1-volprot1
  voleps1 = voleps1*eepsc
-
-!! charge
- volq1 = volprot1-volq1
- temp = sumvolprot1-sumvolq1
- volq1 = volq1/temp*echargec/(delta**3) ! sum(volq) is echarge
 
 !! grafting
 
@@ -281,7 +253,6 @@ area = 2.0*pi*rchannel*hcyl
  endif
  
  voleps = voleps + voleps1
- volq = volq + volq1 
 
 ! add com1 and volx to list
 
@@ -315,10 +286,6 @@ title = 'aveps'
 counter = 1
 call savetodisk(voleps, title, counter)
 
-title = 'avcha'
-counter = 1
-call savetodisk(volq, title, counter)
-
 title = 'avgrf'
 counter = 1
 call savetodisk(volxx, title, counter)
@@ -350,7 +317,7 @@ real*8 maxss
 real*8 cutarea
 real*8 temp
 real*8 temp2
-real*8 sumvoleps1, sumvolprot1, sumvolq1, sumvolx1
+real*8 sumvoleps1, sumvolprot1,  sumvolx1
 integer ncha1
 real*8 volx1(maxvolx)
 real*8 com1(maxvolx,3)
@@ -370,7 +337,6 @@ rchannelS2 = (rchannel + delta)**2
 ! clear all
 voleps = 0.0
 volprot = 0.0
-volq = 0.0
 volx = 0.0
 volxx = 0.0
 com = 0.0
@@ -392,18 +358,11 @@ ncha = 0
 
  call integrate_c(rchannel2, RdimZ, originc,npoints, volprot1, sumvolprot1, flag)
 
- call integrate_c(rchannelS2,RdimZ, originc,npoints, volq1, sumvolq1, flag)
-
  call newintegrateg_c(rchannel2,RdimZ,originc,npoints,volx1,sumvolx1, com1, p1, ncha1, volxx1)
 
 !! eps
  voleps1 = voleps1-volprot1
  voleps1 = voleps1*eepsc
-
-!! charge
- volq1 = volprot1-volq1
- temp = sumvolprot1-sumvolq1
- volq1 = volq1/temp*echargec/(delta**3) ! sum(volq) is echarge
 
 !! grafting
 
@@ -434,7 +393,6 @@ ncha = 0
  endif
  
  voleps = voleps + voleps1
- volq = volq + volq1 
 
 ! add com1 and volx to list
 
@@ -462,10 +420,6 @@ endif
 title = 'aveps'
 counter = 1
 call savetodisk(voleps, title, counter)
-
-title = 'avcha'
-counter = 1
-call savetodisk(volq, title, counter)
 
 title = 'avgrf'
 counter = 1
@@ -1091,14 +1045,12 @@ real*8 spacex, spacey
 ! clear all
 voleps = 0.0
 volprot = 0.0
-volq = 0.0
 volx = 0.0
 volxx = 0.0
 com = 0.0
 ncha = 0
 
 voleps(:,:,1) = eepsc ! polymer-wall interaction only for segments in the first layer
-volq = 0.0 ! charge not implemented for planar surfaces yet
 
 !! grafting
 
@@ -1136,10 +1088,6 @@ call savetodisk(volprot, title, counter)
 title = 'aveps'
 counter = 1
 call savetodisk(voleps, title, counter)
-
-!title = 'avcha'
-!counter = 1
-!call savetodisk(volq, title, counter)
 
 title = 'avgrf'
 counter = 1

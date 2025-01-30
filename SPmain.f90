@@ -5,7 +5,7 @@ use ellipsoid, only : NNN
 use const, only : infile, stdout
 use montecarlo, only : free_energy
 use ematrix, only : vscan, systemtype
-use kaist, only : nst, st, sts, kp, kps, nkp, sc, scs
+use kaist, only : nst, st, sts, kp, kps, nkp
 
 implicit none
 integer counter, counterr
@@ -119,7 +119,6 @@ if(infile.ne.0) then
 
 endif
  ii = 1
- sc = scs(ii)
 
 select case (vscan)
 
