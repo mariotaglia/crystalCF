@@ -198,6 +198,15 @@ Shifts the positions of grafting points to favor microphase separation for syste
 Random number generator for randominput only
 *int* is the seed for the random number generator used for randominput = 1
 
+## flagmu *int*
+
+Decides a scan based on chemical potential or volume fraction of the solvent
+*int* = 
+0 scan volume fraction
+1 scan chemical potential
+
+see also nkp and vscan 
+
 
 --------------------------------------------------------------------------------------------------------------------
 vscan int	scan flag

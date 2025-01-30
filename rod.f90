@@ -35,7 +35,6 @@ integer i
 real*8 volxx1(dimx,dimy,dimz) 
 real*8 volxx(dimx,dimy,dimz) 
 real*8 x(3), v(3), hcyl 
-integer nbands 
  
 cutarea = 0.0 ! throw away cells that have less area than cutarea x area of the cell with largest area   
 sumpolseg = 0.0 
@@ -98,17 +97,6 @@ call newintegrateg_c_4(rchannel2,RdimZ,originc,npoints,volx1,sumvolx1, com1, p1,
 !! eps 
  voleps1 = voleps1-volprot1 
  voleps1 = voleps1*eepsc 
- 
-! epstype 
-select case (epstype) 
-case (1) 
-nbands = dimz/8 
-do iz = 1, dimz 
-if (mod(int((iz-1)/nbands),2).eq.1) then 
-voleps1(:,:,iz) = 0.0 
-endif 
-enddo 
-endselect 
  
 !! charge 
  volq1 = volprot1-volq1 

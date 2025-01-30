@@ -16,7 +16,6 @@ integer npoints ! points per cell for numerical integration
 integer counter
 character*5 title
 logical flag
-integer iz
 real*8 perimeter, area
 real*8 sumpolseg 
 real*8 maxss
@@ -31,7 +30,6 @@ integer p1(maxvolx,3)
 integer i
 real*8 volxx1(dimx,dimy,dimz)
 real*8 volxx(dimx,dimy,dimz)
-integer nbands
 integer nPerimeter
 real*8 superellipse_perimeter
 real*8 superellipse_area
@@ -79,20 +77,6 @@ call newintegrateg_superellipse(sizeX, sizeY, pfactor, originc, npoints, volx1, 
 !! eps
 voleps1 = voleps1-volprot1
 voleps1 = voleps1*eepss
-
-! epstype
-
-select case (epstype)
-
-case (1)
-nbands = dimz/8
-do iz = 1, dimz
-if (mod(int((iz-1)/nbands),2).eq.1) then
-voleps1(:,:,iz) = 0.0
-endif
-enddo
-
-endselect
 
 !! charge
 volq1 = volprot1-volq1

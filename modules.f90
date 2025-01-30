@@ -203,13 +203,11 @@ module const
 real*8 pi 
 real*8, parameter :: Na = 6.02d23 
 integer seed
-integer seed2
 real*8 error  ! para comparar con la norma...
 real*8 errel
 integer itmax
 integer infile
 integer randominput
-integer epstype
 integer stdout
 endmodule
 

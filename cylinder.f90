@@ -15,7 +15,6 @@ integer npoints ! points per cell for numerical integration
 integer counter
 character*5 title
 logical flag
-integer iz
 real*8 area
 real*8 sumpolseg 
 real*8 maxss
@@ -30,7 +29,6 @@ integer p1(maxvolx,3)
 integer i
 real*8 volxx1(dimx,dimy,dimz)
 real*8 volxx(dimx,dimy,dimz)
-integer nbands
 
 
 cutarea = 0.0 ! throw away cells that have less area than cutarea x area of the cell with largest area  
@@ -71,20 +69,6 @@ ncha = 0
 !! eps
  voleps1 = voleps1-volprot1
  voleps1 = voleps1*eepsc
-
-! epstype
-
-select case (epstype)
-
-case (1)
-nbands = dimz/8
-do iz = 1, dimz
-if (mod(int((iz-1)/nbands),2).eq.1) then
-voleps1(:,:,iz) = 0.0
-endif
-enddo
-
-endselect
 
 !! charge
 volq1 = volprot1-volq1

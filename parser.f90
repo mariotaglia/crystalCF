@@ -7,14 +7,9 @@ subroutine readinput
 ! Checks that all required inputs are entered
 ! In some cases, assigns defaults values if the input is absent
 !
-!
-!
-!
-!
-!
 
 use molecules, only : benergy, vsol0
-use const, only : epstype, infile, randominput, seed, seed2, stdout
+use const, only : infile, randominput, seed, stdout
 use MPI
 use ellipsoid
 use chainsdat
@@ -44,12 +39,11 @@ integer ndi
 real*8 ndr
 real*8 kpini, kpfin, kpstep, ikp
 
-! not defined variables, change if any variable can take the value
 stdout = 6
 
+! not defined variables, change if any variable can take the value
 ndi = -1e5
 ndr = -1.0d10
-
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !
@@ -57,12 +51,10 @@ ndr = -1.0d10
 !
 
 seed = ndi
-seed2 = ndi
 PBC = ndi
 branched = ndi
 sigmar = ndr
 flagmu = ndi
-
 vscan = ndi
 scx = ndi
 scy = ndi
@@ -80,8 +72,10 @@ readchains = ndi
 infile = ndi
 interaction_00 = ndi
 interaction_11 = ndi
+
+
 randominput = 0
-epstype = 0
+
 cutoff = ndr
 lseg = ndr
 lsegkai = ndr
@@ -92,7 +86,6 @@ dy = ndr
 dz = ndr
 cdiva = ndr
 
-
 vsol0 = ndr
 gama0 = ndr
 benergy = ndr
@@ -101,8 +94,6 @@ nsc = 1
 scs(1) = 1.0
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-
 ! Control file variables
 
 line = 0
@@ -129,10 +120,9 @@ do while (ios == 0)
  label = buffer(1:pos)
  buffer = buffer(pos+1:)
 
-
  select case (label)
 
- case ('PBC')
+ case ('PBC') ! periodic boundary conditions
    read(buffer, *, iostat=ios) PBC(1),PBC(2),PBC(3),PBC(4),PBC(5),PBC(6)
    if(rank.eq.0)write(stdout,*) 'parser:','Set ',trim(label),' = ',trim(buffer)
 
@@ -147,29 +137,23 @@ do while (ios == 0)
     endif
    enddo
 
- case ('seed')
-   read(buffer, *, iostat=ios) seed2
+ case ('seed') ! random seed 
+   read(buffer, *, iostat=ios) seed
    if(rank.eq.0)write(stdout,*) 'parser:','Set ',trim(label),' = ',trim(buffer)
 
-
- case ('stdout')
+ case ('stdout') ! output device, default 6 (stdout)
    read(buffer, *, iostat=ios) stdout
    if(rank.eq.0)write(stdout,*) 'parser:','Set ',trim(label),' = ',trim(buffer)
 
- case ('vtkflag')
+ case ('vtkflag') ! save vtk?
    read(buffer, *, iostat=ios) vtkflag
    if(rank.eq.0)write(stdout,*) 'parser:','Set ',trim(label),' = ',trim(buffer)
 
- case ('flagmu')
+ case ('flagmu') ! flagmu = 0, scan solvent volume fraction; flagmu = 1, scan solvent chemical potential
    read(buffer, *, iostat=ios) flagmu
    if(rank.eq.0)write(stdout,*) 'parser:','Set ',trim(label),' = ',trim(buffer)
 
-! ELECTRO   
-! case ('electroflag')
-!   read(buffer, *, iostat=ios) electroflag
-!   if(rank.eq.0)write(stdout,*) 'parser:','Set ',trim(label),' = ',trim(buffer)
-
- case ('branched')
+ case ('branched') ! used for branched chains 
    read(buffer, *, iostat=ios) branched
     
  if(branched.eq.1) then
@@ -182,15 +166,9 @@ do while (ios == 0)
    read(fh, *)longb(1), longb(2)
  endif
 
-
- case ('randominput')
+ case ('randominput') ! randomly shift explicit GP 
    read(buffer, *, iostat=ios) randominput
    if(rank.eq.0)write(stdout,*) 'parser:','Set ',trim(label),' = ',trim(buffer)
-
- case ('epstype')
-   read(buffer, *, iostat=ios) epstype
-   if(rank.eq.0)write(stdout,*) 'parser:','Set ',trim(label),' = ',trim(buffer)
-
 
  case ('readchains')
    read(buffer, *, iostat=ios) readchains
@@ -684,17 +662,6 @@ if(seed.eq.ndi) then
    seed = 938121
    print*, 'seed undefined, used default:', seed
 endif
-
-if(seed2.eq.ndi) then
-   seed2 = 938121
-   print*, 'seed2 undefined, used default:', seed
-endif
-
-if(seed2.eq.ndi) then
-   seed2 = 938121
-   print*, 'seed2 undefined, used default:', seed2
-endif
-
 
 if(PBC(1).eq.ndi)call stopundef('PBC')
 

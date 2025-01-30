@@ -18,7 +18,6 @@ integer npoints ! points per cell for numerical integration
 integer counter
 character*5 title
 logical flag
-integer iz
 real*8 area
 real*8 sumpolseg 
 real*8 cutarea
@@ -28,11 +27,10 @@ integer ncha1
 real*8 volx1(maxvolx)
 real*8 com1(maxvolx,3)
 integer p1(maxvolx,3)
-integer i
+integer i, iz
 real*8 volxx1(dimx,dimy,dimz)
 real*8 volxx(dimx,dimy,dimz)
 real*8 x(3), v(3), hcyl
-integer nbands
 
 
 cutarea = 0.0 ! throw away cells that have less area than cutarea x area of the cell with largest area  
@@ -104,20 +102,6 @@ endif
 !! eps
  voleps1 = voleps1-volprot1
  voleps1 = voleps1*eepsc
-
-! epstype
-
-
-select case (epstype)
-case (1)
-nbands = dimz/8
-do iz = 1, dimz
-if (mod(int((iz-1)/nbands),2).eq.1) then
-voleps1(:,:,iz) = 0.0
-endif
-enddo
-endselect
-
 
 !! charge
  volq1 = volprot1-volq1
@@ -360,7 +344,6 @@ integer npoints ! points per cell for numerical integration
 integer counter
 character*5 title
 logical flag
-integer iz
 real*8 area
 real*8 sumpolseg 
 real*8 maxss
@@ -375,7 +358,6 @@ integer p1(maxvolx,3)
 integer i
 real*8 volxx1(dimx,dimy,dimz)
 real*8 volxx(dimx,dimy,dimz)
-integer nbands
 
 
 cutarea = 0.0 ! throw away cells that have less area than cutarea x area of the cell with largest area  
@@ -417,21 +399,6 @@ ncha = 0
 !! eps
  voleps1 = voleps1-volprot1
  voleps1 = voleps1*eepsc
-
-! epstype
-
-select case (epstype)
-
-case (1)
-nbands = dimz/8
-do iz = 1, dimz
-if (mod(int((iz-1)/nbands),2).eq.1) then
-voleps1(:,:,iz) = 0.0
-endif
-enddo
-
-endselect
-
 
 !! charge
  volq1 = volprot1-volq1
@@ -710,8 +677,8 @@ select case (randominput)
 
  case(1)
 
- rtetha = (2.0*pi*rchannel)/float(npointt)*(rands(seed2)-0.5)*0.02 
- rz = disp/delta*hcyl/float(dimz-2*RdimZ)/2.0*(rands(seed2)-1.0)
+ rtetha = (2.0*pi*rchannel)/float(npointt)*(rands(seed)-0.5)*0.02 
+ rz = disp/delta*hcyl/float(dimz-2*RdimZ)/2.0*(rands(seed)-1.0)
 
  case(2)
  rtetha = 0.0
@@ -934,8 +901,8 @@ do jjjz = 1, npointz
 do jjjt = 1, npointt
 
 if(sigmar.ne.0.0) then
- rtetha = delta/2.0/(2.0*pi*rchannel)*(rands(seed2)-1.0)
- rz = hcyl/float(dimz-2*RdimZ)/2.0*(rands(seed2)-1.0)
+ rtetha = delta/2.0/(2.0*pi*rchannel)*(rands(seed)-1.0)
+ rz = hcyl/float(dimz-2*RdimZ)/2.0*(rands(seed)-1.0)
 endif
 
 x(1) = cos(float(jjjt-1)/float(npointt)*2.0*pi+rtetha)*rchannel + originc(1)
