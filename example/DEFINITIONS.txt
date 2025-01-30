@@ -1,14 +1,77 @@
-branched 0
+!!!! GENERAL OPTIONS !!!
 
 ! stdout to file
 stdout 6
-
+! random grafting density
 sigmar 0.0
+!seed
+seed 938121
 
-electroflag 0
 
+!!! SCAN !!!
+
+!infile
+infile 0
+!what to scan: 1, solvent volume fraction or chemical potential, use kp and flagmu
+!2, attraction strength st. If 1 then the system will use the first st value.
+vscan 2
+
+! flagmu, set = 1 for solvent chemical potential scan or = 0 for solvent volume fraction scan
+flagmu 1
+
+! scan of chemical pot/volume fraction, format: ini step last
+nkp -20.0 0.01 -20.0
+
+!hydroph: list values of st, if vcan = 1, only the first value is used
+nst 4
+0.0
+0.2
+0.4
+0.5019
+
+!!! OUTPUT !!!
+
+!save vtk?
+vtkflag 0
+
+! supercell
+scx 1
+scy 1
+scz 1
+
+!!! CHAIN PROPERTIES !!!
+
+!gauche energy
+benergy -0.65
+
+! xu cut off
+Xucutoff 2.0
+
+!properties of ligand chains
+long 12
+cuantas 100000
+
+! segment lengths
+lseg 0.154
+lsegkai 0.4
+
+! properties of solvent chains
+longsv 6
+cuantassv 100
+
+!readchains, -1: save chains, 1: load chains
 readchains 0
 
+! branched chains=
+branched 0
+
+!randominput, not in use
+randominput 0
+
+!volume
+vsol 0.008
+
+!!! UNIT CELL !!!
 !system size
 dimx 23
 dimy 23
@@ -29,65 +92,8 @@ transform_type 1
 !PBC PBC xmin xmax ymin ymax zmin zmax, 1=yes, 2=wall, 0=bulk
 PBC 1 1 1 1 1 1
 
-!infile
-infile 0
-!what to scan: 1, solvent volume fraction or chemical potential, use kp and flagmy; 2, attraction strength st. If 1 then the system will use the first st value.
-vscan 2
-
-!hamiltonian inception
-!hguess: rotational symmetry, hring: initial attractive zone distance to the wall (in xy plane), oval: 3D shape of the growing zone 1 means spherical
-hguess 0
-hring 6
-oval 0.8
-
-flagmu 1
-
-nkp -20.0 0.01 -20.0
-
-!hydroph
-nst 4
-0.0
-0.2
-0.4
-0.5019
-
-!gauche
-benergy -0.65
-
-! xu cut off
-Xucutoff 2.0
-
-!chains
-long 12
-lseg 0.154
-lsegkai 0.4
-cuantas 100000
-
-! solvent
-longsv 6
-cuantassv 100
-
-!solution
-csalt  0.00001
-pHbulk 7.0
-
-!volume
-vpol 0.008
-vsol 0.008
-
-!output
-
-!save vtk?
-vtkflag 0
-
-! supercell
-scx 1
-scy 1
-scz 1
-
-!dielectric
-dielP 78.54
-dielS 10.0
+! coordinate_system: 1: real coordinates in nm, 2: fractional coordinates
+coordinate_system 2
 
 !systemtype
 systemtype 9
@@ -116,15 +122,4 @@ systemtype 9
 0.0
 0.0
 
-
-!readchains, -1: save chains, 1: load chains
-readchains 0
-
-coordinate_system 2
-
-!randominput, not in use
-randominput 0
-
-!seed
-seed 938121
 

@@ -6,84 +6,21 @@ MOLT-CF code for nanoparticle superlattices (originally vacuum_solv branch in cr
 
 Keywords for DEFINITIONS.txt
 
-
-## branched *int*
-
-Defines if chains are linear or branched 
-
-*int* =
-0 : linear chains
-1 : branched chains type 1: three ramifications following the initial segment of length long (see long below)
-
-Expects to read a comment line and then 3 integers corresponding to the length of each of the three ramifications
-
-2 : branched chains type 2: adds branches of one segment to part of the chain
-
-Expects to read a comment line and then 2 integers corresponding to the first and last segment of the backbone (of length long) that have branches
-
+----
+# General options
 
 ## stdout *int*
 
 Redirects output to fort.*int*
 (use *int*=6 for standard output)
 
+## seed *int*
 
-## sigmar *real*
+Random number generator for randominput only
+*int* is the seed for the random number generator used for randominput = 1
 
-Adds a random value of the surface coverage (can be used to generate noise for microphase separation)
-*real* is the magnitude of the noise (in units of chains/nm^2)
-
-### dimx *int*
-### dimy *int*
-### dimz *int*
-#
-
-Controls system size
-*int* determines the size in units of delta
-
-
-## delta *real*
-
-Lattice discretization size
-*real* is the lattice discretization size in nm
-
-### dx *real*
-### dy *real*
-### dz *real*
-#
-
-Shift the lattice 
-
-Use it to check that free energy differences are tranlationally invariant
-*real* is the fraction of delta to shift the lattice
-
-
-## gama *real*
-
-Use a non-cubic cell with angle gama. 
-*real* is the angle in degrees (e.g. use gama = 60.0 and cdiva = 1.633 for hexagonal)
-
-
-## cdiva *real*
-
-Non cubic cell.
-Expands the c-axis of the cell by a factor *real*
-
-
-## PBC *int1 int2 int3 int4 int5 int6*
-
-Establishes the type of boundary conditions
-
-*int1-int2* for x 
-*int3-int4* for y 
-*int5-int6* for z 
-
-Possible values: 
-
-2: Impenetrable wall
-1: Periodic boundary
-0: Bulk
-3: Reflective boundary
+---
+# Scan options
 
 ## infile *int*
 
@@ -95,46 +32,41 @@ Controls initial guess
 -1 : reads input from in.txt, but does not solve (just does one iteration and writes to disk)
 3 : same as 1 but mirrors the input in the x axis 
 
+## vscan *int*
 
-## benergy *real*
+Decides what to scan:
 
-Energy of Gauche bonds
-only works for “branched 0”
+*int* =
 
-Adds an energy *real* for the gauche bonds (kBT per bond), real > 0 means that the gauche bonds are less stable than the trans ones.
+1: Solvent volume fraction or chemical potential, see kp and flagmu
+   It will use the first value of st
+2: Attraction strength st, see nst
+   It will use the first value of knp
 
+## flagmu *int*
 
+Decides a scan based on chemical potential or volume fraction of the solvent
+*int* = 
+0 scan volume fraction
+1 scan chemical potential
 
-## Xucutoff *real*
+see also nkp and vscan 
 
-Cutoff of hydrophobic interactions
-real is the cutoff radius of hydrophobic interactions in nm
+## nkp *real1* *real2* *real3*
 
+Average solvent volume fraction in the system (if flagmu = 0) or chemical potential (if flagmu = 1)
+Scans from *real1* to *real3* in steps of *real2*
 
-## long *int*
+# nst *int*
 
-Ligand chain length
+Controls hydrophobicity
 
-*int* is the chain length pf the ligands
+*int* is the number of hydrophobic cases to solve
+expects a list with the hydrophobic strength following the "nst int" line
 
+---
 
-## lseg *real*
-
-Segment length of the ligands
-*real* is the segment length in nm
-Used for chain generation
-
-
-## cuantas  *int*
-
-Number of conformations of the ligands
-*int* is the number of conformations per grafting point
-
-
-## vpol *real*
-
-Segment volume
-*real* is the volume of a segment in nm^3
+# Output options
 
 ## vtkflag *int*
 
@@ -153,6 +85,54 @@ Save vtk?
 Supercell
 Supercell for vtk file, *int* is the number of copies to expand the cell
 
+---
+# Chain options
+
+## benergy *real*
+
+Energy of Gauche bonds
+only works for “branched 0”
+
+Adds an energy *real* for the gauche bonds (kBT per bond), real > 0 means that the gauche bonds are less stable than the trans ones.
+
+## Xucutoff *real*
+
+Cutoff of hydrophobic interactions
+real is the cutoff radius of hydrophobic interactions in nm
+
+## long *int*
+
+Ligand chain length
+
+*int* is the chain length of the ligands
+
+## cuantas  *int*
+
+Number of conformations of the ligands
+*int* is the number of conformations per grafting point
+
+## lseg *real*
+
+Segment length of the ligands
+*real* is the segment length in nm
+Used for chain generation
+
+## lsegkai *real*
+
+Segment length of the ligands
+*real* is the segment length in nm
+Used for LJ interactions
+
+## longsv *int*
+
+Solvent chain length
+
+*int* is the chain length of the solvent
+
+## cuantassv  *int*
+
+Number of conformations of the solvent
+*int* is the number of conformations per lattice site
 
 ## readchains *int*
 
@@ -161,49 +141,58 @@ Read conformations from file for faster initialization, only works for “branch
 -1 : save chains to cadenas.dat and exit
 1 : read chains from cadenas.dat
 0 : generate chain conformations before running
-		
+
+## branched *int*
+
+Defines if chains are linear or branched
+
+*int* = 
+0 : linear chains 
+1 : branched chains type 1: three ramifications following the initial segment of length long (see long)
+    Expects to read a comment line and then 3 integers corresponding to the length of each of the three ramifications
+2 : branched chains type 2: adds branches of one segment to part of the chain
+    Expects to read a comment line and then 2 integers corresponding to the first and last segment of the backbone (of length long) that have branches	
+
 ## randominput *int*
 
 Shifts the positions of grafting points to favor microphase separation for systemtype 
 4 different shifts are implemented (see program)
 
+## vsol *real*
 
-## seed *int*
+Segment volume
+*real* is the volume of a segment in nm^3
 
-Random number generator for randominput only
-*int* is the seed for the random number generator used for randominput = 1
+## sigmar *real*
 
-## flagmu *int*
+Adds a random value of the surface coverage (can be used to generate noise for microphase separation)
+*real* is the magnitude of the noise (in units of chains/nm^2)
 
-Decides a scan based on chemical potential or volume fraction of the solvent
-*int* = 
-0 scan volume fraction
-1 scan chemical potential
+---
+# Unit cell optins
 
-see also nkp and vscan 
+### dimx *int*
+### dimy *int*
+### dimz *int*
+#
 
-## vscan *int*
+Controls system size
+*int* determines the size in units of delta
 
-Decides what to scan:
+## delta *real*
 
-*int* =
+Lattice discretization size
+*real* is the lattice discretization size in nm
 
-1: Solvent volume fraction or chemical potential, see kp and flagmu
-   It will use the first value of st
-2: Attraction strength st, see nst
-   It will use the first value of knp
+### dx *real*
+### dy *real*
+### dz *real*
+#
 
-## nst *int*
+Shift the lattice 
 
-Controls hydrophobicity
-
-*int* is the number of hydrophobic cases to solve
-expects a list with the hydrophobic strength following the "nst int" line
-
-## nkp *real1* *real2* *real3*
-
-Average solvent volume fraction in the system (if flagmu = 0) or chemical potential (if flagmu = 1)
-Scans from *real1* to *real3* in steps of *real2*
+Use it to check that free energy differences are tranlationally invariant
+*real* is the fraction of delta to shift the lattice
 
 ## transform_type *int*
 
@@ -219,6 +208,21 @@ Angle(beta) *real*
 Comment line
 3x3 Transformation matrix
 
+## PBC *int1 int2 int3 int4 int5 int6*
+
+Establishes the type of boundary conditions
+
+*int1-int2* for x 
+*int3-int4* for y 
+*int5-int6* for z 
+
+Possible values: 
+
+2: Impenetrable wall
+1: Periodic boundary
+0: Bulk
+3: Reflective boundary
+	
 ## coordinate_system
 
 Format of coordinates used to input NP positions:
