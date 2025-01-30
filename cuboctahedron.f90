@@ -127,9 +127,6 @@ call savetodisk(volprot, title, counter)
 
 !stop
 
-! print information summary 
-if (verbose.ge.2) then
-
 !temp = volume of cuboctahedron
 COvol = 0.0
 do j = 1, NNN
@@ -140,7 +137,6 @@ if (rank.eq.0) then
 write(stdout,*) 'cuboctahedron:', 'Total nanocuboct volumen real space= ', COvol
 write(stdout,*) 'cuboctahedron:', 'Total discretized volumen =', (sum(volprot))*delta**3
 write(stdout,*) 'cuboctahedron:', 'total number of segments in system =', sumpolseg
-endif
 endif
 
 do j = 1, NNN

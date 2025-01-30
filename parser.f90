@@ -1,12 +1,23 @@
-
 subroutine readinput
-use molecules
-use const
+
+        
+! subroutine readinput
+!
+! Reads input from DEFINITIONS.txt
+! Checks that all required inputs are entered
+! In some cases, assigns defaults values if the input is absent
+!
+!
+!
+!
+!
+!
+
+use molecules, only : benergy, vpol, vpol0, vsol0
+use const, only : epstype, infile, randominput, seed, seed2, stdout
 use MPI
 use ellipsoid
 use chainsdat
-! ELECTRO
-!use inputtemp
 use transform
 use system
 use kai
@@ -34,38 +45,24 @@ real*8 ndr
 real*8 kpini, kpfin, kpstep, ikp
 
 ! not defined variables, change if any variable can take the value
-
-seed = 938121
-seed2 = 938121
-PBC = 1
+stdout = 6
 
 ndi = -1e5
 ndr = -1.0d10
 
-verbose = 5
-stdout = 6
-
-! ELECTRO
-!electroflag = 1 ! system with electrostatics?
-
-branched = 0 ! branched chains?
-
-sigmar = 0.0 ! random sigma
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !
 ! Check validity of input
 !
 
+seed = ndi
+seed2 = ndi
+PBC = ndi
+branched = ndi
+sigmar = ndr
+flagmu = ndi
 
-
-! ELECTRO
-!dielS = ndr
-!pHbulk = ndr
-!dielP = ndr
-!csalt = ndr
-
-flagmu = 0 ! default, calculate fixed phi
 vscan = ndi
 scx = ndi
 scy = ndi
@@ -150,10 +147,6 @@ do while (ios == 0)
       stop
     endif
    enddo
-
- case ('verbose')
-   read(buffer, *, iostat=ios) verbose
-   if(rank.eq.0)write(stdout,*) 'parser:','Set ',trim(label),' = ',trim(buffer)
 
  case ('seed')
    read(buffer, *, iostat=ios) seed2
@@ -693,14 +686,8 @@ if(delta.eq.ndr)call stopundef('delta')
 if(dx.eq.ndr)call stopundef('dx')
 if(dy.eq.ndr)call stopundef('dy')
 if(dz.eq.ndr)call stopundef('dz')
-
-! ELECTRO
-!if(dielS.eq.ndr)call stopundef('dielS')
-!if(dielP.eq.ndr)call stopundef('dielP')
 if(lseg.eq.ndr)call stopundef('lseg')
 if(lsegkai.eq.ndr)lsegkai=lseg
-!if(csalt.eq.ndr)call stopundef('csalt')
-!if(pHbulk.eq.ndr)call stopundef('pHbulk')
 
 if(vpol0.eq.ndr)call stopundef('vpol')
 if(vsol0.eq.ndr)call stopundef('vsol')
@@ -715,6 +702,39 @@ if(transform_type.eq.2)then
    if(MAT(i,j).eq.ndr)call stopundef('MAT')
   enddo
  enddo
+endif
+
+if(seed.eq.ndi) then
+   seed = 938121
+   print*, 'seed undefined, used default:', seed
+endif
+
+if(seed2.eq.ndi) then
+   seed2 = 938121
+   print*, 'seed2 undefined, used default:', seed
+endif
+
+if(seed2.eq.ndi) then
+   seed2 = 938121
+   print*, 'seed2 undefined, used default:', seed2
+endif
+
+
+if(PBC(1).eq.ndi)call stopundef('PBC')
+
+if(flagmu.eq.ndi) then
+   flagmu = 0
+   print*, 'flagmu undefined, used default:', flagmu
+endif
+
+if(branched.eq.ndi) then
+   branched = 0
+   print*, 'branched undefined, used default:', branched
+endif
+
+if(sigmar.eq.ndr) then
+   sigmar = 0.0
+   print*, 'sigmar undefined, used default:', sigmar
 endif
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

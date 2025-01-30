@@ -33,10 +33,6 @@ Redirects output to fort.*int*
 Adds a random value of the surface coverage (can be used to generate noise for microphase separation)
 *real* is the magnitude of the noise (in units of chains/nm^2)
 
-## verbose *int*
-
-Level of output detail, *int* from 1 to 5 (higher values, more detail). Partially obsolete.
-
 ### dimx *int*
 ### dimy *int*
 ### dimz *int*

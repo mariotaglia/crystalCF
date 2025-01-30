@@ -150,14 +150,11 @@ title = 'avpro'
 counter = 1
 call savetodisk(volprot, title, counter)
 
-if (verbose.ge.2) then
 temp = superellipse_area(sizeX, sizeY, pFactor)*float(dimz)*delta
-
 if (rank.eq.0) then
 write(stdout,*) 'superellipse:', 'update_matrix: Total superellipse volumen real space= ', temp
 write(stdout,*) 'superellipse:', 'update_matrix: Total discretized volumen =', (sum(volprot))*delta**3
 write(stdout,*) 'superellipse:', 'number of monomers in system =', sumpolseg 
-endif
 endif
 
 title = 'aveps'

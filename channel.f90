@@ -169,11 +169,7 @@ call savetodisk(volprot, title, counter)
 
 sumpolseg = ncha
 
-if (verbose.ge.2) then
 temp = pi*rchannel2*float(dimz)*delta
-!do j = 1, NNN
-!temp = temp + 4.0/3.0*pi*Aell(1,j)*Aell(2,j)*Aell(3,j)
-!enddo
 if (rank.eq.0) then
 write(stdout,*) 'channel:', 'update_matrix: Total nanochannel volumen real space= ', temp
 write(stdout,*) 'channel:', 'update_matrix: Total discretized volumen =', (dimx*dimy*dimz-sum(volprot))*delta**3
@@ -182,7 +178,6 @@ write(stdout,*) 'channel:', 'surface area =', area
 write(stdout,*) 'channel:', 'surface density =', sumpolseg/area
 write(stdout,*) 'channel:', 'surface density expected from input =', &
  float(NBRUSH)/(2.0*pi*rchannel)/cos(30.0/180.0*pi)/(2.0*pi*rchannel/float(NBRUSH))
-endif
 endif
 
 title = 'aveps'
@@ -322,11 +317,7 @@ call savetodisk(volprot, title, counter)
 
 sumpolseg = ncha
 
-if (verbose.ge.2) then
 temp = pi*rchannel2*float(dimz)*delta
-!do j = 1, NNN
-!temp = temp + 4.0/3.0*pi*Aell(1,j)*Aell(2,j)*Aell(3,j)
-!enddo
 if (rank.eq.0) then
 write(stdout,*) 'channel:', 'update_matrix: Total nanochannel volumen real space= ', temp
 write(stdout,*) 'channel:', 'update_matrix: Total discretized volumen =', (dimx*dimy*dimz-sum(volprot))*delta**3
@@ -334,7 +325,6 @@ write(stdout,*) 'channel:', 'number of polymers in system =', sumpolseg
 write(stdout,*) 'channel:', 'surface area =', area
 write(stdout,*) 'channel:', 'surface density =', sumpolseg/area
 write(stdout,*) 'channel:', 'surface density expected from input =', 1.0/(((2.0*pi*rchannel)/float(NBRUSH))**2)
-endif
 endif
 
 title = 'aveps'
@@ -495,16 +485,11 @@ title = 'avpro'
 counter = 1
 call savetodisk(volprot, title, counter)
 
-if (verbose.ge.2) then
 temp = pi*rchannel2*float(dimz)*delta
-!do j = 1, NNN
-!temp = temp + 4.0/3.0*pi*Aell(1,j)*Aell(2,j)*Aell(3,j)
-!enddo
 if (rank.eq.0) then
 write(stdout,*) 'channel:', 'update_matrix: Total nanochannel volumen real space= ', temp
 write(stdout,*) 'channel:', 'update_matrix: Total discretized volumen =', (dimx*dimy*dimz-sum(volprot))*delta**3
 write(stdout,*) 'channel:', 'number of monomers in system =', sumpolseg 
-endif
 endif
 
 title = 'aveps'

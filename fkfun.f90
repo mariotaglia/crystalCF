@@ -1,7 +1,7 @@
 subroutine fkfun(x,f,ier2)
 
 use molecules, only : benergy, vsol
-use const, only : stdout, verbose
+use const, only : stdout
 use results, only : xtotalsum, avpol
 use kai, only : Xu, Xulimit
 use MPI
@@ -538,9 +538,7 @@ do i = 1, eqs*ncells
 enddo
 
 iter = iter + 1
-if(verbose.ge.3) then
 if(rank.eq.0)write(stdout,*)'fkfun:', iter, norma, q(1)
-endif
 
 if(isnan(norma)) then
     if(rank.eq.0)write(stdout,*)'Norma is NaN, stop'

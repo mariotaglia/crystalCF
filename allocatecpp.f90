@@ -1,4 +1,13 @@
 subroutine allocatecpp
+
+!
+! Subroutine allocatecpp
+!
+! This routine allocates variables depedent on maxcpp 
+! maxcpp is the maximum grafting points per process
+!
+        
+        
 use fields_fkfun
 use conformations
 use chainsdat

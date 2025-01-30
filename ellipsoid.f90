@@ -210,7 +210,6 @@ title = 'avpro'
 counter = 1
 call savetodisk(volprot, title, counter)
 
-if (verbose.ge.2) then
 temp = 0
 do j = 1, NNN
 temp = temp + 4.0/3.0*pi*Aell(1,j)*Aell(2,j)*Aell(3,j)
@@ -219,7 +218,6 @@ if (rank.eq.0) then
 write(stdout,*) 'ellipsoid:', 'update_matrix: Total volumen real space= ', temp
 write(stdout,*) 'ellipsoid:', 'update_matrix: Total discretized volumen =', sum(volprot)*delta**3
 write(stdout,*) 'ellipsoid:', 'number of monomers in system =', sumpolseg 
-endif
 endif
 
 title = 'aveps'

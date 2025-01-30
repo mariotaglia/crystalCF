@@ -1,5 +1,12 @@
 subroutine allocateellCO
 
+! subroutine allocateellCO
+!
+! Allocates variables for CO particles that depend on NNN
+! NNN: Number of particles in the system
+!
+!
+
 use system 
 use ellipsoid
 use COrotmod

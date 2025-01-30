@@ -553,9 +553,7 @@ endif ! solvent
 
       Free_Energy = Free_Energy + F_HS
 
-      if (verbose.ge.1) then
       write(stdout,*) 'Free_Energy_Calc: Free energy(1) = ', Free_energy
-      endif
 
 ! Calculation of Omega + muSolv*NSolv
 
@@ -647,9 +645,7 @@ enddo
 
          Free_Energy2 = Free_Energy2 + suma - F_vdW
 
-      if (verbose.ge.1) then
       write(stdout,*) 'Free_Energy_Calc: Free energy(2) = ', Free_energy2
-      endif
 
 ! Guarda energia libre
 

@@ -137,14 +137,12 @@ title = 'avpro'
 counter = 1
 call savetodisk(volprot, title, counter)
 
-if (verbose.ge.2) then
 temp = pi*rchannel2*float(dimz)*delta
 
 if (rank.eq.0) then
 write(stdout,*) 'cylinder:', 'update_matrix: Total nanocylinder volumen real space= ', temp
 write(stdout,*) 'cylinder:', 'update_matrix: Total discretized volumen =', (sum(volprot))*delta**3
 write(stdout,*) 'cylinder:', 'number of monomers in system =', sumpolseg 
-endif
 endif
 
 title = 'aveps'

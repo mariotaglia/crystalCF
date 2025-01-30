@@ -105,18 +105,13 @@ call savetodisk(volprot, title, counter)
 
 sumpolseg = ncha
 
-if (verbose.ge.2) then
 temp = l_cube**3
-!do j = 1, NNN
-!temp = temp + 4.0/3.0*pi*Aell(1,j)*Aell(2,j)*Aell(3,j)
-!enddo
 if (rank.eq.0) then
 write(stdout,*) 'channel:', 'update_matrix: Total nanocube volumen real space= ', temp
 write(stdout,*) 'channel:', 'update_matrix: Total discretized volumen =', (sum(volprot))*delta**3
 write(stdout,*) 'channel:', 'number of polymers in system =', sumpolseg
 write(stdout,*) 'channel:', 'surface area =', area
 write(stdout,*) 'channel:', 'surface density =', sumpolseg/area
-endif
 endif
 
 title = 'aveps'

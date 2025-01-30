@@ -374,7 +374,6 @@ cppini(j)=cppini(j-1)+cpp(j-1)
 enddo
 
 if(rank.eq.0) then
-if(verbose.ge.1) then
  write(stdout,*) 'creador:', 'graftingpoints:'
  write(stdout,*) 'creador:', 'ncha = ', ncha
  do j = 1, size
@@ -383,7 +382,6 @@ if(verbose.ge.1) then
  write(stdout,*) 'creador:', ' cppfin ', j, ' = ', cppini(j)+cpp(j)
  write(stdout,*) 'creador:', '!!!!!!!!!!!!!!!!!!!!!!!!!'
  enddo
-endif
 endif
 
 call allocatecpp
