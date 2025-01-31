@@ -2,9 +2,38 @@
   
 MOLT-CF code for nanoparticle superlattices (originally vacuum_solv branch in crystal)  
   
+# Installation
+
+1. Clone the CrystalCF code from GITHUB using 'git clone https://github.com/mariotaglia/crystalCF.git'  
+
+MOLT-CF requires KINSOL 2.9 (please do not use newer versions since they are incompatible with the code). To install the library, follow these instructions:  
+
+1. Download KINSOL from https://github.com/LLNL/sundials/releases/tag/v2.7.0  
+2. Be sure that gfortran, OpenMPI and ccmake are installed. If they are not installed, they can be installed under linux using:  
+sudo apt-get install gfortran  
+sudo apt-get install libopenmpi_dev  
+sudo apt-get install cmake-curses-gui  
+
+3. Extract KINSOL using tar -xzf  
+4. Under the kinsol2.7.0 folder, make a build subdir.  
+5. In the build subdir, do:  
+cmake ..  
+ccmake .  
+6. In the configuration menu, enable Fortran, FCMIX_ENABLE  
+7. Press 'c' to configure.  
+8. Set the instalation folder CMAKE_INSTALL_PREFIX and the example folder EXAMPLES_INSTALL_PATH.  
+9. Press 'c' and 'g'  
+10. Install using 'make install' or 'sudo make install' if the instalation folder require sudo privileges.  
+11. Change to the CrystalCF folder and install with 'make' 
+12. Run the example by doing:
+cd example  
+mpirun -np 8 ../crystalCF  
+
+Important: During configuration, do not enable MPI_ENABLE.
+
+----  
   
-  
-Keywords for DEFINITIONS.txt  
+#Keywords for DEFINITIONS.txt  
   
 ----  
 # General options  
