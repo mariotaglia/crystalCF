@@ -23,7 +23,7 @@ MOLT-CF requires KINSOL 2.7 (please do not use newer versions since they are inc
 7. Press 'c' to configure.  
 8. Set the instalation folder CMAKE_INSTALL_PREFIX and the example folder EXAMPLES_INSTALL_PATH.  
 9. Press 'c' and 'g'  
-10. Install using `make install` or `sudo make install` if the instalation folder require sudo privileges.  
+10. Install using `make install` (or `sudo make install` if the instalation folder requires sudo privileges).  
 11. Change to the CrystalCF folder and install with `make` 
 12. Run the example by doing:  
 `cd example`  
