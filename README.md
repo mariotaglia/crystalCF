@@ -33,7 +33,7 @@ Important: During configuration, do not enable MPI_ENABLE.
 
 ----  
   
-#Keywords for DEFINITIONS.txt  
+# Keywords for DEFINITIONS.txt  
   
 ----  
 # General options  
