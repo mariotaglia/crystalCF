@@ -268,18 +268,18 @@ for gamma_folder in gamma_folder_list:
 	df = pd.concat([df, pd.DataFrame([[""] * len(df.columns)], columns=df.columns)], ignore_index=True)
 	dfs.append(df)
 
-#datos alex:
-ref_alex = pd.read_excel(os.path.join(dir_script,"references","ref_alex.xlsx"), engine="openpyxl")
-ref_alex = ref_alex.loc[ref_alex.iloc[:, 0] == name_bin]
-gamma_alex = ref_alex[ref_alex.columns[1]]
-F_alex = ref_alex[ref_alex.columns[2:]]
+#datos MD:
+ref_MD = pd.read_excel(os.path.join(dir_script,"references","ref_MD_backup.xlsx"), engine="openpyxl")
+ref_MD = ref_MD.loc[ref_MD.iloc[:, 0] == name_bin]
+gamma_MD = ref_MD[ref_MD.columns[1]]
+F_MD = ref_MD[ref_MD.columns[2:]]
 y_label = [r'$\Delta$U (k$_{\text{b}}$T)',r'$-T\Delta$S (k$_{\text{b}}$T)',r'$\Delta$F (k$_{\text{b}}$T)']
 
 F_plot = [DU_values[3],DS_values[3],DF_values[3]]
 for i, (lista, F) in enumerate(zip(F_plot,["ΔU", "-TΔS", "ΔF"])):
 	plt.figure(figsize=(8, 6))
 	plt.plot(gamma_value,F_plot[i],ls='none',marker='s',color='red',ms=7,label='MoltCF')
-	plt.scatter(gamma_alex,F_alex[F],marker='o',color='purple',s=50,label='MD (Alex)',zorder=10)
+	plt.scatter(gamma_MD,F_MD[F],marker='o',color='purple',s=50,label='MD (MD)',zorder=10)
 
 	plt.axhline(0,ls='--',c='darkgray',zorder=-3)
 	plt.xticks(fontsize=14)
