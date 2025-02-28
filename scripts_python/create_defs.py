@@ -5,9 +5,9 @@ import numpy as np
 import shutil
 from collections import defaultdict
 from transform_refs import calculate_center_ref, process_positions
-from function import run_command, read_DEF, write_DEF, extract_definitions, extract_references
+from function import run_command, read_DEF, write_DEF, extract_references, extract_definitions
 
-def process_principal_binario(reference_DEF, delta_list, aL, n, k_bin, tosubmit, dir_fuente, dims_sum_bin):
+def process_principal_binario(reference_DEF, delta_list, aL, n_k_bin, tosubmit, dir_fuente, dims_sum_bin):
     structure = os.getcwd()
     DEF =  os.path.join(structure, "DEFINITIONS.txt")
     lines = read_DEF(DEF)
@@ -39,19 +39,19 @@ def process_principal_binario(reference_DEF, delta_list, aL, n, k_bin, tosubmit,
             lines = read_DEF("DEFINITIONS.txt")
 
             output_DEF_ref = os.path.join(dir_fuente,"binary_ref")
-            process_secundario_binario(lines, output_DEF_ref, delta, dim, n, k_bin, dir_fuente, delta_list)
+            process_secundario_binario(lines, output_DEF_ref, delta, dim, n_k_bin, dir_fuente, delta_list)
             os.chdir(dir_fuente)
             os.chdir(structure)
 
-def process_secundario_binario(lines, output_folder, delta, dim, n, k_bin, dir_fuente, delta_bin):
-    n1 = n["part1"]; n2 = n["part2"]
+def process_secundario_binario(lines, output_folder, delta, dim, n_k_bin, dir_fuente, delta_bin):
+    n1_k_bin = n_k_bin["part1"]; n2_k_bin = n_k_bin["part2"]
     sections_info = [
         ("! number of particles", 1, 1),
-        ("!Center", 1, k_bin*(n1+n2)),
-        ("!particle semiaxis x y z in nm", 1, k_bin*(n1+n2)),
-        ("! Rotation", 3, k_bin*(n1+n2)),
-        ("! coverage", 1, k_bin*(n1+n2)),
-        ("!Surface-polymer atraction", 1, k_bin*(n1+n2))
+        ("!Center", 1, n1_k_bin+n2_k_bin),
+        ("!particle semiaxis x y z in nm", 1, n1_k_bin+n2_k_bin),
+        ("! Rotation", 3, n1_k_bin+n2_k_bin),
+        ("! coverage", 1, n1_k_bin+n2_k_bin),
+        ("!Surface-polymer atraction", 1, n1_k_bin+n2_k_bin)
     ]
 
     sections_found = []
@@ -64,7 +64,7 @@ def process_secundario_binario(lines, output_folder, delta, dim, n, k_bin, dir_f
         else:
             print(f"Advertencia: No se encontró la sección {key}.")
 
-    configs = [("part1", 0, k_bin*n1), ("part2", k_bin*n1, k_bin*n2)]  # (Name, Offset, number of particles)
+    configs = [("part1", 0, n1_k_bin), ("part2", n1_k_bin, n2_k_bin)]  # (Name, Offset, number of particles)
 
     for label, offset, num_particles in configs:
         modified_lines = lines.copy()
@@ -135,7 +135,7 @@ def process_secundario_binario(lines, output_folder, delta, dim, n, k_bin, dir_f
             file.writelines(new_lines)
         generate_references_csv(references, os.getcwd(), delta, dim, label)
 
-def process_terciario_binario(output_folder, references, tosubmit, dir_fuente, n, k_bin):
+def process_terciario_binario(output_folder, references, tosubmit, dir_fuente, n_k_bin):
     '''
     From the references file, separates each particle and create a folder delta/dim/sub
     for each equivalent relative position to estimate the energy of a particle isolated.
@@ -194,7 +194,7 @@ def process_terciario_binario(output_folder, references, tosubmit, dir_fuente, n
                 file.write(content)
             
             lines = read_DEF(os.path.join(sub_folder, "DEFINITIONS.txt"))
-            definitions_ref_edit(lines, sub_folder, *pos_tuple, n[label]*k_bin)
+            definitions_ref_edit(lines, sub_folder, *pos_tuple, n_k_bin[label])
 
 def generate_references_csv(references, output_folder, delta_value, dim_value, label):
     references_path = os.path.join(output_folder, "tot_references.csv")

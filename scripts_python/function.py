@@ -1,10 +1,12 @@
 import subprocess
 import csv
 import os
+import shutil
 import pandas as pd
 import glob
 import re
 import numpy as np
+from references.dependecies_init import edit_def_bin, extract_definitions
 
 def run_command(command):
     """Run the command on the terminal and return it's output."""
@@ -28,7 +30,8 @@ def extract_params_init(params_init):
         "gamma list": [], "list delta bin": [], "list sum dim bin": {},
         "cell part": [], "list delta part": {}, "num cell part": {},
         "num cell bin": None, "aL cell bin factor": None, 
-        "aL cell part factor": {}, "flag generate energy vs aL curves": None
+        "aL cell part factor": {}, "flag generate energy vs aL curves": None,
+        "flag reflexion": None
     }
 
     lines = read_DEF(params_init)
@@ -117,8 +120,27 @@ def extract_params_init(params_init):
             else:
                 data["flag generate energy vs aL curves"] = False
             i += 1
+        elif line == "!flag use reflexion planes":
+            value = lines[i + 1].strip("\n")
+            if value == "True":
+                data["flag reflexion"] = True
+            else:
+                data["flag reflexion"] = False
+            i += 1
 
         i += 1
+
+    if data["flag reflexion"] == True:
+        DEF = "DEFINITIONS.txt"
+        if os.path.exists('DEFINITIONS_backup.txt'):
+            shutil.copy('DEFINITIONS_backup.txt', os.path.join(os.getcwd(), "DEFINITIONS.txt"))
+        else:
+            shutil.copy(DEF, os.path.join(os.getcwd(), "DEFINITIONS_backup.txt"))
+        DEF = "DEFINITIONS.txt"
+        n1 = data['n1']; n2 = data['n2']
+        k_bin = data['num cell bin']; name = data['name']
+        edit_def_bin(DEF, n1, n2, k_bin, name)
+
     return data
 
 def extract_definitions(definitions_path):
@@ -261,7 +283,7 @@ def update_particle_sizes(lines, gamma, R_np, n1_k_bin, n2_k_bin):
         except (ValueError, IndexError):
             print("Find an error in reading or updating the NP size")
     else:
-        print("Couldn`t find the NP size seccion in DEFINTIONS lines.")
+        print("Couldn`t find the NP size seccion in DEFINITIONS lines.")
     
     return lines
 
