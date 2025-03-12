@@ -44,7 +44,6 @@ def process_principal_binario(reference_DEF, name_bin, delta_list, aL, n_k_bin, 
 
             write_DEF("DEFINITIONS.txt", content)
             lines = read_DEF("DEFINITIONS.txt")
-
             output_DEF_ref = os.path.join(dir_fuente,"binary_ref")
             process_secundario_binario(lines, name_bin, output_DEF_ref, delta, dim, n_k_bin, dir_fuente, delta_list)
             os.chdir(dir_fuente)
@@ -203,7 +202,7 @@ def process_terciario_binario(output_folder, name_bin, references, tosubmit, dir
             if name_bin == 'MgZn2':
                 k = 2
             content = content.replace("dimx _DIM_", f'dimx {str(N_ref)}').replace("dimy _DIM_", f'dimy {str(N_ref)}')
-            content = content.replace("dimz _DIM_", f'dimz {str(N_ref*k)}')
+            content = content.replace("dimz _DIM_", f'dimz {str(N_ref*k)}').replace("_delta_", str(delta_num))
 
             with open(os.path.join(sub_folder, "DEFINITIONS.txt"), "w") as file:
                 file.write(content)
