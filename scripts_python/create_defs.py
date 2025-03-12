@@ -7,7 +7,7 @@ from collections import defaultdict
 from transform_refs import calculate_center_ref, process_positions
 from function import run_command, read_DEF, write_DEF, extract_references, extract_definitions
 
-def process_principal_binario(reference_DEF, delta_list, aL, n_k_bin, tosubmit, dir_fuente, dims_sum_bin):
+def process_principal_binario(reference_DEF, name_bin, delta_list, aL, n_k_bin, tosubmit, dir_fuente, dims_sum_bin):
     structure = os.getcwd()
     DEF =  os.path.join(structure, "DEFINITIONS.txt")
     lines = read_DEF(DEF)
@@ -34,16 +34,23 @@ def process_principal_binario(reference_DEF, delta_list, aL, n_k_bin, tosubmit, 
             
             with open("DEFINITIONS.txt", "r") as file:
                 content = file.read()
-            content = content.replace("_DIM_", str(dim)).replace("_delta_", str(delta))
+            
+            k = 1
+            if name_bin == 'MgZn2':
+                k = 2
+
+            content = content.replace("dimx _DIM_", f'dimx {str(dim)}').replace("dimy _DIM_", f'dimy {str(dim)}')
+            content = content.replace("dimz _DIM_", f'dimz {str(dim*k)}').replace("_delta_", str(delta))
+
             write_DEF("DEFINITIONS.txt", content)
             lines = read_DEF("DEFINITIONS.txt")
 
             output_DEF_ref = os.path.join(dir_fuente,"binary_ref")
-            process_secundario_binario(lines, output_DEF_ref, delta, dim, n_k_bin, dir_fuente, delta_list)
+            process_secundario_binario(lines, name_bin, output_DEF_ref, delta, dim, n_k_bin, dir_fuente, delta_list)
             os.chdir(dir_fuente)
             os.chdir(structure)
 
-def process_secundario_binario(lines, output_folder, delta, dim, n_k_bin, dir_fuente, delta_bin):
+def process_secundario_binario(lines, name_bin, output_folder, delta, dim, n_k_bin, dir_fuente, delta_bin):
     n1_k_bin = n_k_bin["part1"]; n2_k_bin = n_k_bin["part2"]
     sections_info = [
         ("! number of particles", 1, 1),
@@ -125,7 +132,10 @@ def process_secundario_binario(lines, output_folder, delta, dim, n_k_bin, dir_fu
             elif line.startswith("dimy"):
                 new_lines.append(f"dimy {N_ref}\n")
             elif line.startswith("dimz"):
-                new_lines.append(f"dimz {N_ref}\n")
+                k = 1
+                if name_bin == 'MgZn2':
+                    k = 2
+                new_lines.append(f"dimz {N_ref*k}\n")
             elif line.startswith("delta"):
                 new_lines.append("delta _delta_\n")
             else:
@@ -135,7 +145,7 @@ def process_secundario_binario(lines, output_folder, delta, dim, n_k_bin, dir_fu
             file.writelines(new_lines)
         generate_references_csv(references, os.getcwd(), delta, dim, label)
 
-def process_terciario_binario(output_folder, references, tosubmit, dir_fuente, n_k_bin):
+def process_terciario_binario(output_folder, name_bin, references, tosubmit, dir_fuente, n_k_bin):
     '''
     From the references file, separates each particle and create a folder delta/dim/sub
     for each equivalent relative position to estimate the energy of a particle isolated.
@@ -189,7 +199,12 @@ def process_terciario_binario(output_folder, references, tosubmit, dir_fuente, n
 
             with open(DEF_ref, "r") as file:
                 content = file.read()
-            content = content.replace("_DIM_", N_ref).replace("_delta_", str(delta_num))
+            k = 1
+            if name_bin == 'MgZn2':
+                k = 2
+            content = content.replace("dimx _DIM_", f'dimx {str(N_ref)}').replace("dimy _DIM_", f'dimy {str(N_ref)}')
+            content = content.replace("dimz _DIM_", f'dimz {str(N_ref*k)}')
+
             with open(os.path.join(sub_folder, "DEFINITIONS.txt"), "w") as file:
                 file.write(content)
             

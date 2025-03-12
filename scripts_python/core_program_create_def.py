@@ -7,7 +7,7 @@ from collections import defaultdict
 from transform_refs import calculate_center_ref, process_positions
 from references.dependecies_init import list_reflexion
 from function import run_command, read_DEF, write_DEF, path_carpeta, extract_params_init
-from function import extract_R_bin, extract_references, update_particle_sizes, extract_definitions
+from function import extract_R_bin, extract_references, update_particle_sizes, update_cdiva, extract_definitions
 from function_part import generate_references_part_csv, extract_R_part, process_principal_part, process_secundario_part
 from function_part import process_terciario_part
 from create_defs import process_principal_binario, process_secundario_binario, process_terciario_binario, definitions_ref_edit
@@ -32,11 +32,14 @@ cell_part = params_init["cell part"]
 k_part = params_init["num cell part"]
 gamma_folder_list = ["{:.3f}".format(g).replace('.','_') for g in gamma_list]
 
+# Not implemented yet
 if flag_reflexion == True:
 	n_k_list = list_reflexion(name_bin)
 	n_k_bin = {"part1": n_k_list[0], "part2": n_k_list[1]}
 else:
 	n_k_bin = {"part1": n1*k_bin, "part2": n2*k_bin}
+#
+update_cdiva("DEFINITIONS.txt", name_bin)
 
 for gamma_folder in gamma_folder_list:
 	os.makedirs(f'gamma_{gamma_folder}', exist_ok=True)
@@ -78,12 +81,12 @@ for gamma_folder in gamma_folder_list:
 	R1_np, R2_np = extract_R_bin(DEF, n1*k_bin)
 
 	aL = float(run_command(f"python3 {dir_script}/references/aL_estimate_bin.py {name_bin} {R1_np} {R2_np}"))
-	process_principal_binario(DEF, delta_bin, aL, n_k_bin, tosubmit, dir_fuente, dims_sum_bin[gamma])
+	process_principal_binario(DEF, name_bin, delta_bin, aL, n_k_bin, tosubmit, dir_fuente, dims_sum_bin[gamma])
 	os.chdir(dir_fuente)
 
 	os.chdir("binary_ref")
 	references_delta = extract_references("tot_references.csv")
-	process_terciario_binario(os.getcwd(), references_delta[1:], tosubmit, dir_fuente, n_k_bin)
+	process_terciario_binario(os.getcwd(), name_bin, references_delta[1:], tosubmit, dir_fuente, n_k_bin)
 	os.chdir(dir_fuente)
 
 	DEF_part = {}

@@ -123,7 +123,7 @@ def extract_params_init(params_init):
         elif line == "!flag use reflexion planes":
             value = lines[i + 1].strip("\n")
             if value == "True":
-                data["flag reflexion"] = True
+                data["flag reflexion"] = False # Not implemented yet
             else:
                 data["flag reflexion"] = False
             i += 1
@@ -286,6 +286,23 @@ def update_particle_sizes(lines, gamma, R_np, n1_k_bin, n2_k_bin):
         print("Couldn`t find the NP size seccion in DEFINITIONS lines.")
     
     return lines
+
+def update_cdiva(DEF, name_bin):
+    if os.path.exists('DEFINITIONS_backup.txt'):
+        shutil.copy('DEFINITIONS_backup.txt', os.path.join(os.getcwd(), "DEFINITIONS.txt"))
+    else:
+        shutil.copy(DEF, os.path.join(os.getcwd(), "DEFINITIONS_backup.txt"))
+    DEF = "DEFINITIONS.txt"
+    lines = read_DEF(DEF)
+    if name_bin == 'MgZn2':
+        for i, line in enumerate(lines):
+            if line == "!cdiva\n":
+                size_index = i + 1
+                cdiva = float(lines[size_index].split()[0])
+                lines[size_index] = f"{str(cdiva/2)}\n"
+                break
+
+    write_DEF("DEFINITIONS.txt", lines)
 
 def generate_references_csv(references, output_folder, delta_value, dim_value, label):
     references_path = os.path.join(output_folder, "tot_references.csv")
