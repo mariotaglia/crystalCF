@@ -1,5 +1,6 @@
 import os
 import subprocess
+import time
 from function import extract_params_init
 
 def editar_tosubmit(base_path, name_bin, gamma):
@@ -25,7 +26,7 @@ def run_process_final(gamma_list, name_bin):
         else:
             search_path = os.walk(base_path)
 
-        for root, _, files in directorios_a_buscar:
+        for root, _, files in search_path:
             if 'tosubmit.sh' in files:
                 print(root)
                 paths.append(root)
@@ -34,10 +35,11 @@ def run_process_final(gamma_list, name_bin):
             editar_tosubmit(dir1, name_bin, gamma)
             os.chdir(dir1)
             os.system("sbatch tosubmit.sh")
+            time.sleep(0.5)
 
 ################### START ##################
 dir_origin = os.getcwd()
-dir_script = os.path.join(dir_origin,'modulos')
+dir_script = os.path.expanduser("~/develop/crystalCF/scripts_python")
 
 params_init = extract_params_init('init_params.txt')
 name_bin = params_init['name']
