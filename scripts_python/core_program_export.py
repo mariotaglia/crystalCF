@@ -75,7 +75,7 @@ while True:
 				R1_np, R2_np = extract_R_bin(DEF, n1*k_bin)
 				
 				gamma = float(gamma_folder.replace('_','.'))
-				aL = float(run_command(f"python3 {dir_script}/references/aL_min_{name_bin}.py {R1_np} {R2_np}"))
+				aL = float(run_command(f"python3 {dir_script}/references/aL_estimate_bin.py {name_bin} {R1_np} {R2_np}"))
 				process_principal(output_file, delta_bin, aL, f_name, dims_sum_bin[gamma])
 				os.chdir(dir_fuente)
 

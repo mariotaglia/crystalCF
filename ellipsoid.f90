@@ -720,7 +720,7 @@ select case (PBC((j-1)*2+2))
   case (1)
     js(j)=mod(is(j)+dims(j)-1,dims(j))+1
   case (3)
-    if(v(j).gt.float(dims(j))*delta)flagin=0
+    if(v(j).ge.float(dims(j))*delta)flagin=0
 endselect
 enddo
 jx = js(1)
