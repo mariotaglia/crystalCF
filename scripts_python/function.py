@@ -27,7 +27,7 @@ def write_DEF(file_path, lines):
 def extract_params_init(params_init):
     data = {
         "name": None, "n1": None, "n2": None, "R1": None,
-        "gamma list": [], "list delta bin": [], "list sum dim bin": {},
+        "gamma list": [], "list delta bin": [], "list gamma delta sum dim": [],
         "cell part": [], "list delta part": {}, "num cell part": {},
         "num cell bin": None, "aL cell bin factor": None, 
         "aL cell part factor": {}, "flag generate energy vs aL curves": None,
@@ -57,18 +57,37 @@ def extract_params_init(params_init):
             i += 1
         elif line == "!point sum dims bin":
             j = i + 1
+            ref = [-1, 0, 1]
+            delta_ref = data["list delta bin"] 
             while j < len(lines) and not lines[j].startswith("!"):
-                parts = lines[j].split(maxsplit=2)  # ["gamma", value, list]
-                if len(parts) == 3:
+                parts = lines[j].split(maxsplit=2)  # ["gamma", value, list] o ["gamma", value, list, "delta", delta_value]
+                
+                if len(parts) >= 3 and parts[0] == "gamma":
                     gamma_value = float(parts[1])
-                    values = [float(x) for x in parts[2].strip("[]\n").replace(",", " ").split()]
-                    data["list sum dim bin"][gamma_value] = values
+                    if "delta" in parts[2]:
+                        sum_dim_part, delta_part = parts[2].split("delta")
+                        sum_dim_values = [int(x) for x in sum_dim_part.strip("[] \n").replace(",", " ").split()]
+                        delta_value = float(delta_part.strip())
+                    else:
+                        delta_value = None  # No hay delta explícito
+                        sum_dim_values = [int(x) for x in parts[2].strip("[]\n").replace(",", " ").split()]
+                    
+                    if delta_value is None:
+                        for delta in delta_ref:
+                            data["list gamma delta sum dim"].append((gamma_value, delta, sum_dim_values))
+                    else:
+                        data["list gamma delta sum dim"].append((gamma_value, delta_value, sum_dim_values))
+                
                 j += 1
-            i = j - 1
-            ref = [-1,0,1]
+            i = j - 1 
+
             for gamma in data["gamma list"]:
-                data["list sum dim bin"].setdefault(gamma, ref.copy())
-            data["list sum dim bin"] = dict(sorted(data["list sum dim bin"].items()))
+                for delta in delta_ref:
+                    if not any(g == gamma and d == delta for g, d, _ in data["list gamma delta sum dim"]):
+                        data["list gamma delta sum dim"].append((gamma, delta, ref.copy()))
+
+            data["list gamma delta sum dim"] = [{"gamma": g, "delta": d, "dim": dims} for g, d, dims in data["list gamma delta sum dim"]]
+            data["list gamma delta sum dim"].sort(key=lambda x: (x["gamma"], x["delta"]))
 
         elif line == "!num cell bin":
             data["num cell bin"] = int(lines[i+1].split()[1])

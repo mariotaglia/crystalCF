@@ -22,8 +22,7 @@ n1 = params_init['n1']; n2 = params_init['n2']
 R1_np = params_init['R1']
 
 gamma_list = params_init['gamma list']
-delta_bin = params_init['list delta bin']
-dims_sum_bin = params_init['list sum dim bin']
+gamm_delta_dim = params_init['list gamma delta sum dim']
 k_bin = params_init['num cell bin']
 flag_reflexion = params_init["flag reflexion"]
 
@@ -74,21 +73,21 @@ for gamma_folder in gamma_folder_list:
 	lines = update_particle_sizes(lines, gamma, R1_np, n_k_bin["part1"], n_k_bin["part2"])
 	output_DEF = os.path.join("binary", "DEFINITIONS.txt")
 	write_DEF(output_DEF, lines)
-	print(f"Archivo {output_DEF} generado correctamente con gamma = {gamma}")
 
 	os.chdir("binary")
 	DEF = os.path.join(os.getcwd(), "DEFINITIONS.txt")
 	R1_np, R2_np = extract_R_bin(DEF, n1*k_bin)
 
 	aL = float(run_command(f"python3 {dir_script}/references/aL_estimate_bin.py {name_bin} {R1_np} {R2_np}"))
-	process_principal_binario(DEF, name_bin, delta_bin, aL, n_k_bin, tosubmit, dir_fuente, dims_sum_bin[gamma])
+	delta_dim_bin = [entry for entry in gamm_delta_dim if entry["gamma"] == gamma]
+	process_principal_binario(DEF, name_bin, delta_dim_bin, aL, n_k_bin, tosubmit, dir_fuente)
 	os.chdir(dir_fuente)
 
 	os.chdir("binary_ref")
 	references_delta = extract_references("tot_references.csv")
 	process_terciario_binario(os.getcwd(), name_bin, references_delta[1:], tosubmit, dir_fuente, n_k_bin)
 	os.chdir(dir_fuente)
-
+	print(f"created binary gamma = {gamma}")
 	DEF_part = {}
 	for cell in cell_part:
 		DEF_part[cell] = os.path.join(dir_script,"references", f"DEFINITIONS_{cell}.txt")
@@ -123,3 +122,4 @@ for gamma_folder in gamma_folder_list:
 	        process_terciario_part(os.getcwd(), references_delta[1:], DEF, tosubmit)
 	        os.chdir(dir_fuente)
 
+	print(f"created parts gamma = {gamma}")

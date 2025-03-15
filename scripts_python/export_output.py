@@ -11,15 +11,17 @@ def run_command(command):
     result = subprocess.run(command, shell=True, text=True, capture_output=True)
     return result.stdout.strip()
 
-def process_principal(output_file, delta_list, aL, F, dims_sum_bin):
+def process_principal(output_file, delta_dim_bin, aL, F):
     structure = os.getcwd()
     if not os.path.isfile(output_file):
         with open(output_file, "w") as out_file:
             out_file.write("delta,dim,F_value\n")
 
+    delta_list = sorted({entry["delta"] for entry in delta_dim_bin if entry["delta"] is not None})
     for delta in delta_list:
         round_value = int(np.round(float(aL) / float(delta)))
         dims = []
+        dims_sum_bin = [entry["dim"] for entry in delta_dim_bin if entry["delta"] == delta][0]
         for sum_dim in dims_sum_bin:
             dims.append(round_value + int(sum_dim))
         delta_folder = str(delta).replace('.', '_')

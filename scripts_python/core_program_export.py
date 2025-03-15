@@ -24,9 +24,8 @@ n1 = params_init['n1']; n2 = params_init['n2']
 n = {"part1": n1, "part2": n2}
 
 gamma_list = params_init['gamma list']
-delta_bin = params_init['list delta bin']
 k_bin = params_init['num cell bin']
-dims_sum_bin = params_init['list sum dim bin']
+gamm_delta_dim = params_init['list gamma delta sum dim']
 factor_aL_bin = params_init['aL cell bin factor']
 
 delta_part = params_init["list delta part"]
@@ -76,7 +75,8 @@ while True:
 				
 				gamma = float(gamma_folder.replace('_','.'))
 				aL = float(run_command(f"python3 {dir_script}/references/aL_estimate_bin.py {name_bin} {R1_np} {R2_np}"))
-				process_principal(output_file, delta_bin, aL, f_name, dims_sum_bin[gamma])
+				delta_dim_bin = [entry for entry in gamm_delta_dim if entry["gamma"] == gamma]
+				process_principal(output_file, delta_dim_bin, aL, f_name)
 				os.chdir(dir_fuente)
 
 				output_file = os.path.join(dir_fuente, "data_analysis", f"{name_bin}_references_{f_name}.csv")

@@ -7,14 +7,16 @@ from collections import defaultdict
 from transform_refs import calculate_center_ref, process_positions
 from function import run_command, read_DEF, write_DEF, extract_references, extract_definitions
 
-def process_principal_binario(reference_DEF, name_bin, delta_list, aL, n_k_bin, tosubmit, dir_fuente, dims_sum_bin):
+def process_principal_binario(reference_DEF, name_bin, delta_dim_bin, aL, n_k_bin, tosubmit, dir_fuente):
     structure = os.getcwd()
     DEF =  os.path.join(structure, "DEFINITIONS.txt")
     lines = read_DEF(DEF)
 
+    delta_list = sorted({entry["delta"] for entry in delta_dim_bin if entry["delta"] is not None})
     for delta in delta_list:
         round_value = int(np.round(float(aL) / float(delta)))
         dims = []
+        dims_sum_bin = [entry["dim"] for entry in delta_dim_bin if entry["delta"] == delta][0]
         for sum_dim in dims_sum_bin:
             dims.append(round_value + int(sum_dim))
         delta_folder = str(delta).replace('.','_')
