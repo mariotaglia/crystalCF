@@ -7,7 +7,7 @@ from collections import defaultdict
 from transform_refs import calculate_center_ref, process_positions
 from references.dependecies_init import list_reflexion
 from function import run_command, read_DEF, write_DEF, path_carpeta, extract_params_init
-from function import extract_R_bin, extract_references, update_particle_sizes, update_cdiva, extract_definitions
+from function import extract_R_bin, extract_references, update_particle_sizes, update_cdiva, update_R1, extract_definitions
 from function_part import generate_references_part_csv, extract_R_part, process_principal_part, process_secundario_part
 from function_part import process_terciario_part
 from create_defs import process_principal_binario, process_secundario_binario, process_terciario_binario, definitions_ref_edit
@@ -38,6 +38,7 @@ if flag_reflexion == True:
 else:
 	n_k_bin = {"part1": n1*k_bin, "part2": n2*k_bin}
 #
+update_R1("DEFINITIONS.txt", n_k_bin["part1"], R1_np)
 update_cdiva("DEFINITIONS.txt", name_bin)
 
 for gamma_folder in gamma_folder_list:

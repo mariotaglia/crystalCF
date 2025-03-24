@@ -197,10 +197,10 @@ def estimate_bin_contrib(name, factor_bin_cell, k_bin, n1, n2, F, aL_array, aL_m
 
     return F_calc
 
-def delta_energy_F(dict_delta, cell):
+def delta_energy_F(dict_delta, cell, n1, n2):
     df_delta = pd.DataFrame.from_dict(dict_delta)
-    F_part1 = df_delta.loc[df_delta["#part"] == "part1", "ΔF_min"].tolist()
-    F_part2 = df_delta.loc[df_delta["#part"] == "part2", "ΔF_min"].tolist()
+    F_part1 = (df_delta.loc[df_delta["#part"] == "part1", "ΔF_min"]*n1).tolist()
+    F_part2 = (df_delta.loc[df_delta["#part"] == "part2", "ΔF_min"]*n2).tolist()
     F_min_bin = df_delta.loc[df_delta["#part"] == "binary", "ΔF_min"].values[0]  # Tomar único valor binario
     struc_part_min = []
     for i, part in enumerate(["part1", "part2"]):
@@ -219,16 +219,16 @@ def delta_energy_F(dict_delta, cell):
             min_part_sum += min_part_value
     return DF, struc_part_min
 
-def delta_energy_US(dict_delta, US, cell_min):
+def delta_energy_US(dict_delta, US, cell_min, n1, n2):
     df_delta = pd.DataFrame.from_dict(dict_delta)
     F_part1 = df_delta.loc[(df_delta["#part"] == "part1") & (df_delta["cell"] == cell_min[0]), f"{US}_min"].values[0]
     F_part2 = df_delta.loc[(df_delta["#part"] == "part2") & (df_delta["cell"] == cell_min[1]), f"{US}_min"].values[0]
     F_min_bin = df_delta.loc[df_delta["#part"] == "binary", f"{US}_min"].values[0]  # Tomar único valor binario
-    DF = F_min_bin - F_part1 - F_part2
+    DF = F_min_bin - F_part1*n1 - F_part2*n2
 
     return DF
 
-def delta_energy_contrib(dict_contrib, File_name, cell_min):
+def delta_energy_contrib(dict_contrib, File_name, cell_min, n1, n2):
     DF_calc = []
     df_contrib = pd.DataFrame.from_dict(dict_contrib)
     for i, F in enumerate(File_name):
@@ -236,7 +236,7 @@ def delta_energy_contrib(dict_contrib, File_name, cell_min):
         F_part2 = df_contrib.loc[(df_contrib["#part"] == "part2") & (df_contrib["cell"] == cell_min[1]), f"{F}"].values[0]
         F_min_bin = df_contrib.loc[df_contrib["#part"] == "binary", f"{F}"].values[0]  # Tomar único valor binario
 
-        DF_calc.append(F_min_bin - F_part1 - F_part2)
+        DF_calc.append(F_min_bin - F_part1*n1 - F_part2*n2)
 
     return DF_calc
 

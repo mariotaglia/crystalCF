@@ -194,10 +194,10 @@ for gamma_folder in gamma_folder_list:
 	for key in dict_delta:
 		dict_delta[key].append("")
 
-	result = delta_energy_F(dict_delta, cell_part)
+	result = delta_energy_F(dict_delta, cell_part, n1, n2)
 	DF = result[0]
-	DU = delta_energy_US(dict_delta, "ΔU", cell_min=result[1])
-	DS = delta_energy_US(dict_delta, "-ΔST", cell_min=result[1])
+	DU = delta_energy_US(dict_delta, "ΔU", cell_min=result[1], n1=n1, n2=n2)
+	DS = delta_energy_US(dict_delta, "-ΔST", cell_min=result[1], n1=n1, n2=n2)
 	dict_delta["#part"].append("gamma")
 	dict_delta["cell"].append(gamma)
 	dict_delta["aL_min"].append("Global")

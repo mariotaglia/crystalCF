@@ -15,7 +15,7 @@ R1 2
 [0.25]
 
 !point sum dims bin
-
+gamma 0.6 [0] delta 0.23
 
 !num cell bin
 k_bin 4

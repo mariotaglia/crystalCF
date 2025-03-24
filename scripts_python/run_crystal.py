@@ -35,7 +35,7 @@ def run_process_final(gamma_list, name_bin):
             editar_tosubmit(dir1, name_bin, gamma)
             os.chdir(dir1)
             os.system("sbatch tosubmit.sh")
-            time.sleep(0.5)
+            time.sleep(0.1)
 
 ################### START ##################
 dir_origin = os.getcwd()

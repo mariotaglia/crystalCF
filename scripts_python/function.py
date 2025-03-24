@@ -323,6 +323,22 @@ def update_cdiva(DEF, name_bin):
 
     write_DEF("DEFINITIONS.txt", lines)
 
+def update_R1(DEF, n1_k_bin, R1):
+    DEF = "DEFINITIONS.txt"
+    lines = read_DEF(DEF)
+
+    size_index = None
+    for i, line in enumerate(lines):
+        if line.strip() == "!particle semiaxis x y z in nm":
+            size_index = i + 1
+            break
+    for n in np.arange(0,n1_k_bin):
+        try:
+            lines[size_index+n] = f"{R1} {R1} {R1}\n"
+        except (ValueError, IndexError):
+            print("Find an error in reading or updating the NP size")
+    write_DEF("DEFINITIONS.txt", lines)
+
 def generate_references_csv(references, output_folder, delta_value, dim_value, label):
     references_path = os.path.join(output_folder, "tot_references.csv")
 
