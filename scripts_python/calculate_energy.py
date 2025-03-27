@@ -27,8 +27,8 @@ def estimate_part_F(part, part_cell, factor_aL_part, ni, k_part, n1, n2, gen_cur
     df_tot_cell = mean_al(data_part_cell)
 
     aL_cell = df_cell['aL'].to_numpy()
-    F_tot = df_cell["F_tot_gcanon"].to_numpy()/ni/k_part
-    F_norm_cell = df_cell['F_norm'].to_numpy()/ni/k_part
+    F_tot = df_cell["F_tot_gcanon"].to_numpy()/k_part
+    F_norm_cell = df_cell['F_norm'].to_numpy()/k_part
 
     x_cell =  np.arange(aL_cell[0], aL_cell[-1], 0.001)
     y_cell = CubicSpline(aL_cell, F_norm_cell)(x_cell)
@@ -72,7 +72,7 @@ def estimate_part_contrib(part, part_cell, factor_aL_part, ni, k_part, n1, n2, F
 
         df_cell = mean_al(data_part_cell)
         aL_cell = df_cell['aL'].to_numpy()
-        F_cell.append(df_cell['F_norm'].to_numpy()/ni/k_part)
+        F_cell.append(df_cell['F_norm'].to_numpy()/k_part)
 
     F_norm_cell = np.sum(F_cell, axis=0)
     y_cell = CubicSpline(aL_cell, F_norm_cell)(aL_array)
