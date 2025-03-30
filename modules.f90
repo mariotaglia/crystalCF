@@ -185,6 +185,7 @@ module const
 real*8 pi 
 real*8, parameter :: Na = 6.02d23 
 integer seed
+integer seed_lig
 real*8 error  ! para comparar con la norma...
 real*8 errel
 integer itmax

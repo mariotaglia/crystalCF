@@ -20,6 +20,8 @@ integer ii, jj
 !  
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+seed = seed_lig ! Updates seed so the initial seed of the ligands set of conformations can be controlled independently
+
 indexncha = 1
 newcuantas = 0
 

@@ -9,7 +9,7 @@ subroutine readinput
 !
 
 use molecules, only : benergy, vsol0
-use const, only : infile, randominput, seed, stdout
+use const, only : infile, randominput, seed, seed_lig, stdout
 use MPI
 use ellipsoid
 use chainsdat
@@ -51,6 +51,7 @@ ndr = -1.0d10
 !
 
 seed = ndi
+seed_lig = ndi
 PBC = ndi
 branched = ndi
 sigmar = ndr
@@ -135,6 +136,11 @@ do while (ios == 0)
  case ('seed') ! random seed 
    read(buffer, *, iostat=ios) seed
    if(rank.eq.0)write(stdout,*) 'parser:','Set ',trim(label),' = ',trim(buffer)
+
+ case ('seed_lig') ! random seed_lig
+   read(buffer, *, iostat=ios) seed_lig
+   if(rank.eq.0)write(stdout,*) 'parser:','Set ',trim(label),' = ',trim(buffer)
+
 
  case ('stdout') ! output device, default 6 (stdout)
    read(buffer, *, iostat=ios) stdout
@@ -618,6 +624,11 @@ endif
 if(seed.eq.ndi) then
    seed = 938121
    print*, 'seed undefined, used default:', seed
+endif
+
+if(seed_lig.eq.ndi) then
+   seed_lig = 14258825
+   print*, 'seed_lig undefined, used default:', seed_lig
 endif
 
 if(PBC(1).eq.ndi)call stopundef('PBC')
