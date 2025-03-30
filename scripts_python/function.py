@@ -324,6 +324,8 @@ def update_cdiva(DEF, name_bin):
     write_DEF("DEFINITIONS.txt", lines)
 
 def update_R1(DEF, n1_k_bin, R1):
+    if os.path.exists('DEFINITIONS_backup.txt'):
+        shutil.copy('DEFINITIONS_backup.txt', os.path.join(os.getcwd(), "DEFINITIONS.txt"))
     DEF = "DEFINITIONS.txt"
     lines = read_DEF(DEF)
 
@@ -333,11 +335,10 @@ def update_R1(DEF, n1_k_bin, R1):
             size_index = i + 1
             break
     for n in np.arange(0,n1_k_bin):
-        try:
-            lines[size_index+n] = f"{R1} {R1} {R1}\n"
-        except (ValueError, IndexError):
-            print("Find an error in reading or updating the NP size")
-    write_DEF("DEFINITIONS.txt", lines)
+        lines[size_index+n] = f"{R1} {R1} {R1}\n"
+
+    write_DEF(DEF, lines)
+    shutil.copy(DEF, os.path.join(os.getcwd(), "DEFINITIONS_backup.txt"))
 
 def generate_references_csv(references, output_folder, delta_value, dim_value, label):
     references_path = os.path.join(output_folder, "tot_references.csv")
