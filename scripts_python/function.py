@@ -58,7 +58,9 @@ def extract_params_init(params_init):
         elif line == "!point sum dims bin":
             j = i + 1
             ref = [-1, 0, 1]
-            delta_ref = data["list delta bin"] 
+            delta_ref = data["list delta bin"]
+            gamma_delta_map = {(g, d): dims for g, d, dims in data["list gamma delta sum dim"]}  # Mapeo para evitar duplicados
+            
             while j < len(lines) and not lines[j].startswith("!"):
                 parts = lines[j].split(maxsplit=2)  # ["gamma", value, list] o ["gamma", value, list, "delta", delta_value]
                 
@@ -74,19 +76,20 @@ def extract_params_init(params_init):
                     
                     if delta_value is None:
                         for delta in delta_ref:
-                            data["list gamma delta sum dim"].append((gamma_value, delta, sum_dim_values))
+                            gamma_delta_map[(gamma_value, delta)] = sum_dim_values  # Reemplazo si existe
                     else:
-                        data["list gamma delta sum dim"].append((gamma_value, delta_value, sum_dim_values))
+                        gamma_delta_map[(gamma_value, delta_value)] = sum_dim_values  # Reemplazo si existe
                 
                 j += 1
-            i = j - 1 
+            i = j - 1
 
             for gamma in data["gamma list"]:
                 for delta in delta_ref:
-                    if not any(g == gamma and d == delta for g, d, _ in data["list gamma delta sum dim"]):
-                        data["list gamma delta sum dim"].append((gamma, delta, ref.copy()))
-
-            data["list gamma delta sum dim"] = [{"gamma": g, "delta": d, "dim": dims} for g, d, dims in data["list gamma delta sum dim"]]
+                    if (gamma, delta) not in gamma_delta_map:
+                        gamma_delta_map[(gamma, delta)] = ref.copy()
+            
+            # Convertir el diccionario de nuevo en la lista con la estructura adecuada
+            data["list gamma delta sum dim"] = [{"gamma": g, "delta": d, "dim": dims} for (g, d), dims in gamma_delta_map.items()]
             data["list gamma delta sum dim"].sort(key=lambda x: (x["gamma"], x["delta"]))
 
         elif line == "!num cell bin":
