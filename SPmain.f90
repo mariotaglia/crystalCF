@@ -6,6 +6,7 @@ use const, only : infile, stdout
 use montecarlo, only : free_energy
 use ematrix, only : vscan, systemtype
 use kaist, only : nst, st, sts, kp, kps, nkp
+use clusters, only : dumpcluster
 
 implicit none
 integer counter, counterr

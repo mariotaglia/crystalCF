@@ -48,7 +48,9 @@ integer, allocatable :: listcluster(:,:,:) ! matrix saving the clusters
                                                 ! first index is type of particle, cellx, celly and cellz
                                                 ! second index is the size of the cluster
                                                 ! third index is the number of cluster
-integer, allocatable tmpcluster(:,:)
+integer, allocatable :: tmpcluster(:,:)
+integer indexcluster
+integer, parameter :: maxcluster = 1e6 ! maximum number of clusters in list
 endmodule
 
 
