@@ -8,7 +8,7 @@ use clusters
 use MPI, only : rank
 implicit none
 integer, parameter :: Nlat = 7 ! number of lattices to scan around central cell
-integer j,i
+integer j
 integer Nlatx, Nlaty, Nlatz ! periodic images to scan in each direction, may be different due to PBC
 real*8 co
 integer depth
@@ -45,7 +45,7 @@ endif
 ! loop over cell indexes 
 
 
-indexcluster = 1
+indexcluster = 0 
 
 do j = 1, NNN ! loop over all particles in central cell 
    tmpcluster(1,1) = j
@@ -61,7 +61,7 @@ if(rank.eq.0) then
 print*,'Found ', indexcluster, ' clusters'
 print*,'List:'
 do j = 1, indexcluster
-   print*, (i, listcluster(1,i,indexcluster), i=1,dumpcluster)
+   print*, listcluster(:,:,j)
 enddo
 endif
 
@@ -81,15 +81,15 @@ integer i,ix,iy,iz
 integer j,jx,jy,jz
 real*8 vect1T(3), vect1R(3),vect2T(3),vect2R(3),vectdiff(3)
 integer Nlatx,Nlaty,Nlatz
-
+real*8, external :: posx, posy, posz
 integer depth
 real*8 dist
 
 
 ! Find coordinates of first particle in real space
- vect1T(1) = Rellf(1,j)*delta*dfloat(dimx)+dfloat(dimx*jx)*delta
- vect1T(2) = Rellf(2,j)*delta*dfloat(dimy)+dfloat(dimy*jy)*delta
- vect1T(3) = Rellf(3,j)*delta*dfloat(dimz)+dfloat(dimz*jz)*delta
+ vect1T(1) = posx(j,jx) 
+ vect1T(2) = posy(j,jy)
+ vect1T(3) = posz(j,jz)
 
  vect1R = MATMUL(IMAT,vect1T) ! coordinates of particle in real space
  
@@ -101,9 +101,9 @@ real*8 dist
  do iz = -Nlatz,Nlatz 
    do i = 1, NNN ! loop over all particles in cell ix,iy,iz
 
-      vect2T(1) = Rellf(1,i)*delta*dfloat(dimx)+dfloat(dimx*ix)*delta
-      vect2T(2) = Rellf(2,i)*delta*dfloat(dimy)+dfloat(dimy*iy)*delta
-      vect2T(3) = Rellf(3,i)*delta*dfloat(dimz)+dfloat(dimz*iz)*delta
+      vect2T(1) = posx(i,ix)
+      vect2T(2) = posy(i,iy)
+      vect2T(3) = posz(i,iz)
       vect2R = MATMUL(IMAT,vect2T) ! coordinates of particle in real space
 
       vectdiff = vect1R-vect2R
@@ -111,24 +111,28 @@ real*8 dist
 
       if((dist.ne.0.0).and.(dist.le.co)) then ! found a particle within co distance and it's not the same particle
 
+!      print*, 'found', ix,iy,iz, depth, dist
+              
       tmpcluster(1,depth) = i
       tmpcluster(2,depth) = ix
       tmpcluster(3,depth) = iy
       tmpcluster(4,depth) = iz
 
       if (depth.eq.dumpcluster) then ! we are done
+      indexcluster = indexcluster + 1
 
       listcluster(:,:,indexcluster)=tmpcluster(:,:)
+
+
+
       if(indexcluster.eq.maxcluster) then
               if(rank.eq.0)print*, 'maximum number of clusters reached, increase maxcluster'
              call endall
       endif  
-      indexcluster = indexcluster + 1
 
       else
 
-       depth = depth + 1 ! increase depth
-       call findneighbors(i,ix,iy,iz, Nlatx,Nlaty,Nlatz,co, depth) ! find neighbors for this particle
+       call findneighbors(i,ix,iy,iz, Nlatx,Nlaty,Nlatz,co, depth+1) ! find neighbors for this particle
       endif ! depth
         
       endif ! dist
@@ -139,6 +143,33 @@ real*8 dist
   enddo ! iz
 end
 
+
+double precision function posx(j,jx)
+use ellipsoid
+use transform
+use system
+implicit none
+integer j, jx
+posx =  Rellf(1,j)*delta*dfloat(dimx)+dfloat(dimx*jx)*delta
+end
+
+double precision function posy(j,jy)
+use ellipsoid
+use transform
+use system
+implicit none
+integer j, jy
+posy =  Rellf(2,j)*delta*dfloat(dimy)+dfloat(dimy*jy)*delta
+end
+
+double precision function posz(j,jz)
+use ellipsoid
+use transform
+use system
+implicit none
+integer j, jz
+posz =  Rellf(3,j)*delta*dfloat(dimz)+dfloat(dimz*jz)*delta
+end
 
 
 

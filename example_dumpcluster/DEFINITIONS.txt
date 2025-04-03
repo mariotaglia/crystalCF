@@ -114,8 +114,8 @@ systemtype 1
 
 
 ! dumpcluster
-dumpcluster 2
+dumpcluster 3
 
 ! cutoff
-cutoffcluster 4.2
+cutoffcluster 6.0
 

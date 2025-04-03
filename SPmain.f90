@@ -43,7 +43,7 @@ call initconst
 call inittransf ! Create transformation matrixes
 call initellpos ! calculate real positions for ellipsoid centers
 
-if(dumpcluster.ne.0) then
+if(dumpcluster.gt.1) then
         call dumpclusterinfo
         call endall
 endif
