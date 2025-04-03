@@ -3,6 +3,7 @@ import shutil
 import csv
 import numpy as np
 import subprocess
+import hashlib
 from collections import defaultdict
 from transform_refs import extract_definitions, calculate_center_ref, process_positions
 
@@ -50,18 +51,18 @@ def extract_references(csv_path):
 
 def generate_references_part_csv(references, output_folder, delta_value, dim_value):
     references_path = os.path.join(output_folder, "tot_references.csv")
-    # Verifica si el archivo ya existe, si no lo crea
     if not os.path.exists(references_path):
         with open(references_path, mode='w', newline='') as file:
             writer = csv.writer(file)
-            writer.writerow(references[0] + ['delta', 'dim'])  # Agregar encabezado
-            for row in references[1:]:
-                writer.writerow(row + [delta_value, dim_value])
-    else:
-        with open(references_path, mode='a', newline='') as file:
-            writer = csv.writer(file)
-            for row in references[1:]:
-                writer.writerow(row + [delta_value, dim_value])
+            writer.writerow(references[0] + ['delta', 'dim', 'key'])
+    
+    with open(references_path, mode='a', newline='') as file:
+        writer = csv.writer(file)
+        for row in references[1:]:
+            pos_tuple = tuple(row[1:4])
+            key_value = f'key_{hashlib.md5(f"{pos_tuple}".encode()).hexdigest()[:8]}' 
+            
+            writer.writerow(row + [delta_value, dim_value, key_value])
 
 def path_carpeta(folder_init,n):
     x = os.path.dirname(folder_init)
@@ -156,36 +157,33 @@ def process_terciario_part(output_folder, references, DEF, tosubmit):
         pos_tuple = (reference[1], reference[2], reference[3])  # Tupla única de posiciones
         delta = str(reference[4]).replace('.', '_')  # Formato correcto de delta
         dim = reference[5]  # Dimensión
-        delta_map[delta][pos_tuple].add(dim)
+        key = reference[6]
+        delta_map[delta][pos_tuple].add(key)
 
     # Segunda fase: creación de carpetas y archivos
     for delta, pos_map in delta_map.items():
         delta_folder = os.path.join(output_folder, f"delta_{delta}")  
         os.makedirs(delta_folder, exist_ok=True)
-        sub_folder_counter = defaultdict(int)  # Contador para subcarpetas
 
-        for pos_tuple, dims in pos_map.items():
-            sorted_dims = sorted(dims, key=lambda x: float(x))  # Asegurar orden numérico 
-            dim_folder_name = "_".join(f"dim_{dim}" for dim in sorted_dims)
-            dim_folder = os.path.join(delta_folder, dim_folder_name)
-            os.makedirs(dim_folder, exist_ok=True)
+        for pos_tuple,key_value in pos_map.items():
+            sorted_key_value = sorted(key_value, key=lambda x: str(x))  
+            key_folder_name = "_".join(f"{key_value}" for key_value in sorted_key_value)
+            key_folder = os.path.join(delta_folder, key_folder_name)
+            os.makedirs(key_folder, exist_ok=True)
             
-            sub_folder_counter[dim_folder] += 1  # Contador por carpeta de dimensiones
-            sub_folder_name = f"sub_{sub_folder_counter[dim_folder]}"
-            sub_folder = os.path.join(dim_folder, sub_folder_name)
-            os.makedirs(sub_folder, exist_ok=True)
-
             # Copiar y modificar tosubmit.sh
-
-            shutil.copy(tosubmit, os.path.join(sub_folder, "tosubmit.sh"))
-            with open(os.path.join(sub_folder, "tosubmit.sh"), "r") as file:
+            shutil.copy(tosubmit, os.path.join(key_folder, "tosubmit.sh"))
+            with open(os.path.join(key_folder, "tosubmit.sh"), "r") as file:
                 content = file.read()
-            content = content.replace("_NOMBRE", sub_folder)
-            with open(os.path.join(sub_folder, "tosubmit.sh"), "w") as file:
+            content = content.replace("_NOMBRE", key_folder)
+            with open(os.path.join(key_folder, "tosubmit.sh"), "w") as file:
                 file.write(content)
 
-            # Modificar y escribir DEFINITIONS.txt
-            delta_num = delta.replace('_', '.')  # Restaurar el formato de delta
+            if not os.path.exists(DEF_ref):
+                print(f"ERROR: {DEF_ref} not found.")
+                continue
+            
+            delta_num = delta.replace('_', '.')
             lines = read_DEF(DEF_ref)
             for i, line in enumerate(lines):
                 line = lines[i].strip()
@@ -195,36 +193,24 @@ def process_terciario_part(output_folder, references, DEF, tosubmit):
 
             with open(DEF_ref, "r") as file:
                 content = file.read()
-            content = content.replace("_DIM_", N_ref).replace("_delta_", str(delta_num))
-            with open(os.path.join(sub_folder, "DEFINITIONS.txt"), "w") as file:
+            k = 1
+            content = content.replace("dimx _DIM_", f'dimx {str(N_ref)}').replace("dimy _DIM_", f'dimy {str(N_ref)}')
+            content = content.replace("dimz _DIM_", f'dimz {str(N_ref*k)}').replace("_delta_", str(delta_num))
+
+            with open(os.path.join(key_folder, "DEFINITIONS.txt"), "w") as file:
                 file.write(content)
             
-            # Editar DEFINITIONS.txt con referencias de posiciones
-            with open(os.path.join(sub_folder, "DEFINITIONS.txt"), "r") as file:
+            with open(os.path.join(key_folder, "DEFINITIONS.txt"), "r") as file:
                 lines = file.readlines()
 
             pos1, pos2, pos3 = pos_tuple
-            definitions_ref_edit(lines, sub_folder, pos1, pos2, pos3)
-
-def generate_references_part_csv(references, output_folder, delta_value, dim_value):
-    references_path = os.path.join(output_folder, "tot_references.csv")
-    # Verifica si el archivo ya existe, si no lo crea
-    if not os.path.exists(references_path):
-        with open(references_path, mode='w', newline='') as file:
-            writer = csv.writer(file)
-            writer.writerow(references[0] + ['delta', 'dim'])  # Agregar encabezado
-            for row in references[1:]:
-                writer.writerow(row + [delta_value, dim_value])
-    else:
-        with open(references_path, mode='a', newline='') as file:
-            writer = csv.writer(file)
-            for row in references[1:]:
-                writer.writerow(row + [delta_value, dim_value])
+            definitions_ref_edit(lines, key_folder, pos1, pos2, pos3)
 
 def definitions_ref_edit(lines, ref_folder, pos1, pos2, pos3):
     pos1, pos2, pos3 = pos1, pos2, pos3
     sections_info = {
-        "! number of particles": 1,  # Solo 1 partícula
+        "! number of particles": 1,  # Solo 1 partícula,
+        "!save vtk?": 1,
         "!Center": 2,  
         "!particle semiaxis x y z in nm": 2,
         "! Rotation": 6,  # 3 líneas por partícula, 2 partículas en original
@@ -246,7 +232,10 @@ def definitions_ref_edit(lines, ref_folder, pos1, pos2, pos3):
             check_num_part = int(lines[i+1].strip())
             modified_lines[i+1] = "1\n"
             break
-    
+        if line.strip() == "!save vtk?":
+            modified_lines[i+1] = "vtkflag 0\n"
+            continue
+
     for i, line in enumerate(modified_lines):
         if line.strip() == "!Center":
             # Reemplazar la primera línea con la posición de la partícula (los valores pueden ser flotantes)

@@ -44,6 +44,20 @@ update_cdiva("DEFINITIONS.txt", name_bin)
 for gamma_folder in gamma_folder_list:
 	os.makedirs(f'gamma_{gamma_folder}', exist_ok=True)
 
+part1_folder = ["sim_part1/binary_ref","sim_part1/binary_ref/part1"]
+for cell in cell_part:
+	part1_folder.append(f"sim_part1/{cell}")
+	part1_folder.append(f"sim_part1/{cell}_ref")
+
+for folder in part1_folder:
+	os.makedirs(folder, exist_ok=True)
+	if os.path.exists(folder):
+		try:
+			#shutil.rmtree(folder)
+			os.remove(os.path.join(folder, 'tot_references.csv'))
+		except Exception as e:
+			continue
+
 for gamma_folder in gamma_folder_list:
 	os.chdir(dir_inicial)
 	DEF = os.path.join(dir_inicial, "DEFINITIONS.txt")
@@ -52,22 +66,19 @@ for gamma_folder in gamma_folder_list:
 
 	dir_fuente = os.getcwd()
 	folders = []
-	folders = ["binary", "binary_ref/part1", "binary_ref/part2"]
-	for part in ["part1", "part2"]:
-		for cell in cell_part:
-			folders.append(f"{part}/{cell}")
-			folders.append(f"{part}/{cell}_ref")
+	folders = ["binary", "binary_ref", "binary_ref/part2"]
+	for cell in cell_part:
+		folders.append(f"part2/{cell}")
+		folders.append(f"part2/{cell}_ref")
 
-	for folder in ["binary", "binary_ref", "part1", "part2"]:
+	for folder in folders:
+		os.makedirs(folder, exist_ok=True)
 		if os.path.exists(folder):
 			try:
 				#shutil.rmtree(folder)
 				os.remove(os.path.join(folder, 'tot_references.csv'))
 			except Exception as e:
 				continue
-
-	for folder in folders:
-	    os.makedirs(folder, exist_ok=True)
 
 	lines = read_DEF(DEF)
 	gamma = float(gamma_folder.replace('_','.'))
@@ -79,25 +90,22 @@ for gamma_folder in gamma_folder_list:
 	DEF = os.path.join(os.getcwd(), "DEFINITIONS.txt")
 	R1_np, R2_np = extract_R_bin(DEF, n1*k_bin)
 
-	aL = float(run_command(f"python3 {dir_script}/references/aL_estimate_bin.py {name_bin} {R1_np} {R2_np}"))
+	aL = float(run_command(f'python3 {dir_script}/references/aL_estimate_bin.py {name_bin} {R1_np} {R2_np}'))
 	delta_dim_bin = [entry for entry in gamm_delta_dim if entry["gamma"] == gamma]
 	process_principal_binario(DEF, name_bin, delta_dim_bin, aL, n_k_bin, tosubmit, dir_fuente)
 	os.chdir(dir_fuente)
 
-	os.chdir("binary_ref")
-	references_delta = extract_references("tot_references.csv")
-	process_terciario_binario(os.getcwd(), name_bin, references_delta[1:], tosubmit, dir_fuente, n_k_bin)
-	os.chdir(dir_fuente)
-	print(f"created binary gamma = {gamma}")
 	DEF_part = {}
 	for cell in cell_part:
 		DEF_part[cell] = os.path.join(dir_script,"references", f"DEFINITIONS_{cell}.txt")
 	R_part = {"part1": R1_np, "part2": R2_np}
 	
+	dir_fuente = {"part1": os.path.join(dir_inicial,"sim_part1"),"part2": os.path.join(os.getcwd(),"part2")}
 	for label in ["part1", "part2"]:
+		os.chdir(dir_fuente[label])
 		for label_struc in cell_part:
-			os.chdir(os.path.join(label, label_struc))
-			dir_fuente_part = os.path.join(dir_fuente, label)
+			os.chdir(os.path.join(dir_fuente[label],label_struc))
+			dir_fuente_part = dir_fuente[label]
 			shutil.copy(DEF_part[label_struc], os.path.join(os.getcwd(),"DEFINITIONS.txt"))
 			DEF = os.path.join(os.getcwd(), "DEFINITIONS.txt")
 			lines = read_DEF(DEF)
@@ -111,16 +119,35 @@ for gamma_folder in gamma_folder_list:
 
 			DEF = os.path.join(os.getcwd(), "DEFINITIONS.txt")
 			R_np = extract_R_part(DEF)
-			aL = float(run_command(f"python3 {dir_script}/references/aL_min_{label_struc}.py {R_np}"))
-			process_principal_part(DEF, delta_part[label_struc], aL, tosubmit, dir_fuente)
-			os.chdir(dir_fuente)
+			aL = float(run_command(f'python3 {dir_script}/references/aL_min_{label_struc}.py {R_np}'))
+			process_principal_part(DEF, delta_part[label_struc], aL, tosubmit, dir_fuente[label])
 
-	for label in ["part1", "part2"]:
-	    for label_struc in cell_part:
-	        DEF = os.path.join(dir_fuente, label, label_struc, "DEFINITIONS.txt")
-	        os.chdir(os.path.join(dir_fuente, label, f"{label_struc}_ref"))
-	        references_delta = extract_references("tot_references.csv")
-	        process_terciario_part(os.getcwd(), references_delta[1:], DEF, tosubmit)
-	        os.chdir(dir_fuente)
+import pandas as pd
+folder_ref = [os.path.join(dir_inicial,"sim_part1/binary_ref")]
+for cell in cell_part:
+	folder_ref.append(os.path.join(dir_inicial,f"sim_part1/{cell}_ref"))
 
-	print(f"created parts gamma = {gamma}")
+for folder in folder_ref:
+	os.chdir(folder)
+	df = pd.read_csv('tot_references.csv')
+	df_fixed = df.drop_duplicates()
+	df_fixed.to_csv('tot_references.csv', index=False)
+
+for label in ["part1", "part2"]:
+	for gamma_folder in gamma_folder_list:
+		dir_fuente = {"part1": os.path.join(dir_inicial,"sim_part1"),"part2": os.path.join(dir_inicial,f'gamma_{gamma_folder}')}
+		os.chdir(dir_fuente[label])
+		os.chdir("binary_ref")
+		references_delta = extract_references("tot_references.csv")
+		process_terciario_binario(os.getcwd(), name_bin, references_delta[1:], tosubmit, dir_fuente[label], n_k_bin)
+		print(f'created binary {label} gamma = {gamma_folder.replace("_",".")}')
+
+		dir_fuente["part2"] = os.path.join(dir_inicial,f"gamma_{gamma_folder}","part2")
+		for label_struc in cell_part:
+			os.chdir(dir_fuente[label])
+			DEF = os.path.join(dir_fuente[label], label_struc, "DEFINITIONS.txt")
+			os.chdir(os.path.join(dir_fuente[label], f"{label_struc}_ref"))
+			references_delta = extract_references("tot_references.csv")
+			process_terciario_part(os.getcwd(), references_delta[1:], DEF, tosubmit)
+
+		print(f'created {label} gamma = {gamma_folder.replace("_",".")}')

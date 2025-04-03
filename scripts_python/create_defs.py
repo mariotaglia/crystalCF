@@ -3,9 +3,10 @@ import csv
 import os
 import numpy as np
 import shutil
+import hashlib
 from collections import defaultdict
 from transform_refs import calculate_center_ref, process_positions
-from function import run_command, read_DEF, write_DEF, extract_references, extract_definitions
+from function import run_command, read_DEF, write_DEF, extract_references, extract_definitions, generate_references_csv
 
 def process_principal_binario(reference_DEF, name_bin, delta_dim_bin, aL, n_k_bin, tosubmit, dir_fuente):
     structure = os.getcwd()
@@ -46,7 +47,8 @@ def process_principal_binario(reference_DEF, name_bin, delta_dim_bin, aL, n_k_bi
 
             write_DEF("DEFINITIONS.txt", content)
             lines = read_DEF("DEFINITIONS.txt")
-            output_DEF_ref = os.path.join(dir_fuente,"binary_ref")
+            dir_origen = os.path.abspath(os.path.join(dir_fuente, os.pardir))
+            output_DEF_ref = {"part1": os.path.join(dir_origen,"sim_part1","binary_ref","part1"),"part2": os.path.join(dir_fuente,"binary_ref","part2")}
             process_secundario_binario(lines, name_bin, output_DEF_ref, delta, dim, n_k_bin, dir_fuente, delta_list)
             os.chdir(dir_fuente)
             os.chdir(structure)
@@ -92,13 +94,12 @@ def process_secundario_binario(lines, name_bin, output_folder, delta, dim, n_k_b
                 for line in reversed(new_block):
                     modified_lines.insert(start_index, line)
 
-        output_DEF = os.path.join(output_folder, f"{label}/DEFINITIONS.txt")
+        output_DEF = os.path.join(output_folder[label], f"DEFINITIONS.txt")
         with open(output_DEF, "w") as f:
             f.writelines(modified_lines)
 
     for label in ["part1", "part2"]:
-        os.chdir(os.path.join(dir_fuente, "binary_ref",label))
-
+        os.chdir(output_folder[label])
         # Extraer datos y procesar posiciones
         data = extract_definitions("DEFINITIONS.txt")
         dimx = int(data.get("dimx"))
@@ -119,9 +120,9 @@ def process_secundario_binario(lines, name_bin, output_folder, delta, dim, n_k_b
         pos_out, _ = process_positions(center_ref_list)
 
         references = extract_references("references.csv")
-        os.chdir(os.path.join(dir_fuente, "binary_ref"))
+        os.chdir(os.path.abspath(os.path.join(output_folder[label], os.pardir)))
 
-        def_ref_path = os.path.join(dir_fuente, "binary_ref",label, "DEFINITIONS.txt")
+        def_ref_path = os.path.join(label, "DEFINITIONS.txt")
 
         with open(def_ref_path, "r") as file:
             lines = file.readlines()
@@ -157,33 +158,27 @@ def process_terciario_binario(output_folder, name_bin, references, tosubmit, dir
         pos_tuple = (reference[2], reference[3], reference[4])  # Tupla única de posiciones
         delta = str(reference[5]).replace('.', '_')  # Formato correcto de delta
         dim = reference[6]  # Dimensión
-        delta_map[(label, delta)][pos_tuple].add(dim)
+        key = reference[7] 
+        delta_map[(label, delta)][pos_tuple].add(key)
 
     # Segunda fase: creación de carpetas y archivos
     for (label, delta), pos_map in delta_map.items():
         DEF_ref = os.path.join(dir_fuente, "binary_ref", label, "DEFINITIONS.txt")
-        delta_folder = os.path.join(output_folder, label, f"delta_{delta}")  # Nombre correcto
+        delta_folder = os.path.join(output_folder, label, f"delta_{delta}")
         os.makedirs(delta_folder, exist_ok=True)
 
-        sub_folder_counter = defaultdict(int)  # Contador para subcarpetas
-
-        for pos_tuple, dims in pos_map.items():
-            sorted_dims = sorted(dims, key=lambda x: float(x))  # Asegurar orden numérico  
-            dim_folder_name = "_".join(f"dim_{dim}" for dim in sorted_dims)
-            dim_folder = os.path.join(delta_folder, dim_folder_name)
-            os.makedirs(dim_folder, exist_ok=True)
+        for pos_tuple,key_value in pos_map.items():
+            sorted_key_value = sorted(key_value, key=lambda x: str(x))  
+            key_folder_name = "_".join(f"{key_value}" for key_value in sorted_key_value)
+            key_folder = os.path.join(delta_folder, key_folder_name)
+            os.makedirs(key_folder, exist_ok=True)
             
-            sub_folder_counter[dim_folder] += 1  # Contador por carpeta de dimensiones
-            sub_folder_name = f"sub_{sub_folder_counter[dim_folder]}"
-            sub_folder = os.path.join(dim_folder, sub_folder_name)
-            os.makedirs(sub_folder, exist_ok=True)
-
             # Copiar y modificar tosubmit.sh
-            shutil.copy(tosubmit, os.path.join(sub_folder, "tosubmit.sh"))
-            with open(os.path.join(sub_folder, "tosubmit.sh"), "r") as file:
+            shutil.copy(tosubmit, os.path.join(key_folder, "tosubmit.sh"))
+            with open(os.path.join(key_folder, "tosubmit.sh"), "r") as file:
                 content = file.read()
-            content = content.replace("_NOMBRE", sub_folder_name)
-            with open(os.path.join(sub_folder, "tosubmit.sh"), "w") as file:
+            content = content.replace("_NOMBRE", key_folder)
+            with open(os.path.join(key_folder, "tosubmit.sh"), "w") as file:
                 file.write(content)
 
             if not os.path.exists(DEF_ref):
@@ -206,31 +201,17 @@ def process_terciario_binario(output_folder, name_bin, references, tosubmit, dir
             content = content.replace("dimx _DIM_", f'dimx {str(N_ref)}').replace("dimy _DIM_", f'dimy {str(N_ref)}')
             content = content.replace("dimz _DIM_", f'dimz {str(N_ref*k)}').replace("_delta_", str(delta_num))
 
-            with open(os.path.join(sub_folder, "DEFINITIONS.txt"), "w") as file:
+            with open(os.path.join(key_folder, "DEFINITIONS.txt"), "w") as file:
                 file.write(content)
             
-            lines = read_DEF(os.path.join(sub_folder, "DEFINITIONS.txt"))
-            definitions_ref_edit(lines, sub_folder, *pos_tuple, n_k_bin[label])
-
-def generate_references_csv(references, output_folder, delta_value, dim_value, label):
-    references_path = os.path.join(output_folder, "tot_references.csv")
-    if not os.path.exists(references_path):
-        with open(references_path, mode='w', newline='') as file:
-            writer = csv.writer(file)
-            writer.writerow(['#part'] + references[0] + ['delta', 'dim'])
-            for row in references[1:]:
-                writer.writerow([label] + row + [delta_value, dim_value])
-    else:
-        with open(references_path, mode='a', newline='') as file:
-            writer = csv.writer(file)
-            for row in references[1:]:
-                writer.writerow([label] + row + [delta_value, dim_value])
-    return references_path
+            lines = read_DEF(os.path.join(key_folder, "DEFINITIONS.txt"))
+            definitions_ref_edit(lines, key_folder, *pos_tuple, n_k_bin[label])
 
 def definitions_ref_edit(lines, ref_folder, pos1, pos2, pos3, ni_k_bin):
     pos1, pos2, pos3 = pos1, pos2, pos3
     sections_info = {
         "! number of particles": 1,
+        "!save vtk?": 1,
         "!Center": ni_k_bin,  
         "!particle semiaxis x y z in nm": ni_k_bin,
         "! Rotation": 3*ni_k_bin,
@@ -243,6 +224,9 @@ def definitions_ref_edit(lines, ref_folder, pos1, pos2, pos3, ni_k_bin):
         if line.strip() == "! number of particles":
             modified_lines[i+1] = "1\n"
             break
+        if line.strip() == "!save vtk?":
+            modified_lines[i+1] = "vtkflag 0\n"
+            continue
     
     for key, num_lines in sections_info.items():
         for i, line in enumerate(modified_lines):

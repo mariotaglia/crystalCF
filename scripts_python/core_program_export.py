@@ -51,13 +51,6 @@ while True:
 	if check_extract in ["s", "si"]:
 		print("Extrayendo F.data...")
 		for gamma_folder in gamma_folder_list:
-			os.chdir(dir_origin)
-
-			if gamma_folder != gamma_folder_list[0]:
-				if os.path.isdir(os.path.join(dir_origin, f"gamma_{gamma_folder}", "part1")):
-					shutil.rmtree(os.path.join(dir_origin, f"gamma_{gamma_folder}", "part1"))
-				os.system(f"cp -r {os.path.join(dir_origin, f"gamma_{gamma_folder_list[0]}", "part1")} {os.path.join(dir_origin, f"gamma_{gamma_folder}", "part1")}")
-
 			os.chdir(os.path.join(dir_origin,f"gamma_{gamma_folder}"))
 
 			dir_fuente = os.getcwd()
@@ -68,8 +61,9 @@ while True:
 			output_folder = os.path.join(dir_fuente,"data_analysis")
 
 			for f_name in F_name:
+				os.chdir(os.path.join(dir_origin,f"gamma_{gamma_folder}"))
 				os.chdir("binary")
-				output_file = os.path.join(dir_fuente, "data_analysis", f"{name_bin}_results_{f_name}.csv")
+				output_file = os.path.join(output_folder, f"{name_bin}_results_{f_name}.csv")
 				DEF = os.path.join(os.getcwd(), "DEFINITIONS.txt")
 				R1_np, R2_np = extract_R_bin(DEF, n1*k_bin)
 				
@@ -77,34 +71,33 @@ while True:
 				aL = float(run_command(f"python3 {dir_script}/references/aL_estimate_bin.py {name_bin} {R1_np} {R2_np}"))
 				delta_dim_bin = [entry for entry in gamm_delta_dim if entry["gamma"] == gamma]
 				process_principal(output_file, delta_dim_bin, aL, f_name)
-				os.chdir(dir_fuente)
+				os.chdir(os.path.join(dir_origin,f"gamma_{gamma_folder}"))
 
-				output_file = os.path.join(dir_fuente, "data_analysis", f"{name_bin}_references_{f_name}.csv")
-				process_reference_bin(output_file, dir_fuente, f_name)
-				os.chdir(dir_fuente)
+				output_file = os.path.join(output_folder, f"{name_bin}_references_{f_name}.csv")
+				process_reference_bin(output_file, dir_origin, f_name)
 
+				dir_fuente = {"part1": os.path.join(dir_origin,"sim_part1"),"part2": os.path.join(os.getcwd(),"part2")}
 				for label in ["part1", "part2"]:
 					for label_struc in cell_part:
-						output_file = os.path.join(dir_fuente, "data_analysis", f"{label}_results_{f_name}.csv")
-						DEF = os.path.join(dir_fuente, label, label_struc, "DEFINITIONS.txt")
-						os.chdir(os.path.join(label, f"{label_struc}"))
+						os.chdir(dir_fuente[label])
+						output_file = os.path.join(output_folder, f"{label}_results_{f_name}.csv")
+						DEF = os.path.join(dir_fuente[label], label_struc, "DEFINITIONS.txt")
+						os.chdir(f"{label_struc}")
 						R_np = extract_R_part(DEF)
 						aL = float(run_command(f"python3 {dir_script}/references/aL_min_{label_struc}.py {R_np}"))
 						delta_list = delta_part[label_struc]
-						process_principal_part(output_file,label_struc, delta_list, aL, f_name)
-						os.chdir(dir_fuente)
+						process_principal_part(output_file, label_struc, delta_list, aL, f_name)
 
-						os.chdir(os.path.join(dir_fuente, label, f"{label_struc}_ref"))
-						output_file = os.path.join(dir_fuente, "data_analysis", f"{label}_references_{f_name}.csv")
-						base_folder = os.path.join(dir_fuente, label, f"{label_struc}_ref")
+						os.chdir(os.path.join(dir_fuente[label], f"{label_struc}_ref"))
+						output_file = os.path.join(output_folder, f"{label}_references_{f_name}.csv")
+						base_folder = os.path.join(dir_fuente[label], f"{label_struc}_ref")
 						process_reference_part(output_file, base_folder, cell_part, label_struc, f_name)
-						os.chdir(dir_fuente)
 
-			join_F_csv(os.path.join(dir_fuente,"data_analysis"), name_bin, True)
-			join_F_csv_ref(os.path.join(dir_fuente,"data_analysis"), name_bin)
+			join_F_csv(output_folder, name_bin, True)
+			join_F_csv_ref(output_folder, name_bin)
 			for label in ["part1","part2"]:
-				join_F_csv(os.path.join(dir_fuente,"data_analysis"), label, False)
-				join_F_csv_ref(os.path.join(dir_fuente,"data_analysis"), label)
+				join_F_csv(output_folder, label, False)
+				join_F_csv_ref(output_folder, label)
 
 			print(f'Exportado gamma {gamma_folder.replace('_','.')}')
 		break
@@ -318,9 +311,9 @@ output_path = os.path.join(dir_origin, f"{final_output}/{name_bin}_table_results
 tabla_final_df.to_excel(output_path, index=False)
 
 ########## graficos U, S ##########
+label = ["part1", "part2", "binary", "global"]
+marker = ["o", "v", "d", "s"]
 if gen_curves_flag == True:
-	label = ["part1", "part2", "binary", "global"]
-	marker = ["o", "v", "d", "s"]
 	DU = pd.DataFrame(DU_values).to_numpy()
 	plt.figure(figsize=(8, 6))
 	for i in range(len(label)):
@@ -351,17 +344,17 @@ if gen_curves_flag == True:
 		plt.legend(fontsize=13)
 		plt.savefig(f'{final_output}/{name_bin}_contrib_results_-TΔS.png',format='png',dpi=300,bbox_inches='tight')
 
-	DF = pd.DataFrame(DF_values).to_numpy()
-	plt.figure(figsize=(8, 6))
-	for i in range(len(label)):
-		plt.plot(gamma_value,DF[i],marker=marker[i],ms=7, label=label[i])
+DF = pd.DataFrame(DF_values).to_numpy()
+plt.figure(figsize=(8, 6))
+for i in range(len(label)):
+	plt.plot(gamma_value,DF[i],marker=marker[i],ms=7, label=label[i])
 
-		plt.axhline(0,ls='--',c='darkgray',zorder=-3)
-		plt.xticks(fontsize=14)
-		plt.yticks(fontsize=14)
-		plt.xlim(min(gamma_value)-0.05,max(gamma_value)+0.05)
-		plt.ylabel(r'$\Delta$F (k$_{\text{b}}$T)',fontsize=18)
-		plt.xlabel(r'$\gamma$',fontsize=18)
-		plt.title(f"{name_bin}",fontsize=22,weight='bold')
-		plt.legend(fontsize=13)
-		plt.savefig(f'{final_output}/{name_bin}_contrib_results_ΔF.png',format='png',dpi=300,bbox_inches='tight')
+	plt.axhline(0,ls='--',c='darkgray',zorder=-3)
+	plt.xticks(fontsize=14)
+	plt.yticks(fontsize=14)
+	plt.xlim(min(gamma_value)-0.05,max(gamma_value)+0.05)
+	plt.ylabel(r'$\Delta$F (k$_{\text{b}}$T)',fontsize=18)
+	plt.xlabel(r'$\gamma$',fontsize=18)
+	plt.title(f"{name_bin}",fontsize=22,weight='bold')
+	plt.legend(fontsize=13)
+	plt.savefig(f'{final_output}/{name_bin}_contrib_results_ΔF.png',format='png',dpi=300,bbox_inches='tight')

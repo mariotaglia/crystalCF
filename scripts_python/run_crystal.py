@@ -15,16 +15,42 @@ def editar_tosubmit(base_path, name_bin, gamma):
         with open(tosubmit_path, 'w') as file:
             file.writelines(lines)
 
+def editar_tosubmit_part1(base_path, name_bin):
+    tosubmit_path = os.path.join(base_path, 'tosubmit.sh')
+    if os.path.exists(tosubmit_path):
+        with open(tosubmit_path, 'r') as file:
+            lines = file.readlines()
+        for i, line in enumerate(lines):
+            if line.startswith("#SBATCH --job-name="):
+                lines[i] = f"#SBATCH --job-name=\"{name_bin}_sim_part1\"\n"
+                break
+        with open(tosubmit_path, 'w') as file:
+            file.writelines(lines)
+
 def run_process_final(gamma_list, name_bin):
     dir_origin = os.getcwd()
+
+    base_path = os.path.join(dir_origin,f"sim_part1")
+    paths = []
+        
+    search_path = os.walk(base_path)
+
+    for root, _, files in search_path:
+        if 'tosubmit.sh' in files:
+            print(root)
+            paths.append(root)
+
+    for dir1 in paths:
+        editar_tosubmit_part1(dir1, name_bin)
+        os.chdir(dir1)
+        os.system("sbatch tosubmit.sh")
+        time.sleep(0.01)
+
     for i, gamma in enumerate(gamma_list):
         base_path = os.path.join(dir_origin,f"gamma_{gamma}")
         paths = []
         
-        if i > 0:
-            search_path = [d for d in os.walk(base_path) if f"gamma_{gamma}/part1" not in d[0]]
-        else:
-            search_path = os.walk(base_path)
+        search_path = os.walk(base_path)
 
         for root, _, files in search_path:
             if 'tosubmit.sh' in files:
@@ -35,7 +61,7 @@ def run_process_final(gamma_list, name_bin):
             editar_tosubmit(dir1, name_bin, gamma)
             os.chdir(dir1)
             os.system("sbatch tosubmit.sh")
-            time.sleep(0.1)
+            time.sleep(0.01)
 
 ################### START ##################
 dir_origin = os.getcwd()

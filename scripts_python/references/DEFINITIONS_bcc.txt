@@ -6,7 +6,7 @@ stdout 6
 sigmar 0.0
 !seed
 seed 938121
-
+seed_lig 14258825
 
 !!! SCAN !!!
 

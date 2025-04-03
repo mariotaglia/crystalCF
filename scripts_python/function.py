@@ -6,6 +6,7 @@ import pandas as pd
 import glob
 import re
 import numpy as np
+import hashlib
 from references.dependecies_init import edit_def_bin, extract_definitions
 
 def run_command(command):
@@ -345,19 +346,40 @@ def update_R1(DEF, n1_k_bin, R1):
 
 def generate_references_csv(references, output_folder, delta_value, dim_value, label):
     references_path = os.path.join(output_folder, "tot_references.csv")
+    existing_rows = []  # Lista para mantener el orden y evitar duplicados
 
-    if not os.path.exists(references_path):
-        with open(references_path, mode='w', newline='') as file:
-            writer = csv.writer(file)
-            writer.writerow(['#part'] + references[0] + ['delta', 'dim'])
-            for row in references[1:]:
-                writer.writerow([label] + row + [delta_value, dim_value])
-    else:
+    # Leer el archivo existente si ya existe
+    if os.path.exists(references_path):
+        with open(references_path, mode='r', newline='') as file:
+            reader = csv.reader(file)
+            header = next(reader, None)  # Guardamos la cabecera
+            existing_rows = [tuple(row) for row in reader]  # Convertir a tuplas para comparación exacta
+
+    new_rows = []
+
+    for row in references[1:]:
+        pos_tuple = tuple(row[1:4])
+        key_value = f'key_{hashlib.md5(f"{pos_tuple}".encode()).hexdigest()[:8]}'
+        new_row = tuple([label] + row + [delta_value, dim_value, key_value])
+
+        if new_row not in existing_rows:  # Solo agregar si la fila no existe
+            new_rows.append(new_row)
+            existing_rows.append(new_row)  # Agregarla a la lista de comparación
+
+    # Solo escribir si hay filas nuevas
+    if new_rows:
+        file_exists = os.path.exists(references_path)
+
         with open(references_path, mode='a', newline='') as file:
             writer = csv.writer(file)
-            for row in references[1:]:
-                writer.writerow([label] + row + [delta_value, dim_value])
+
+            if not file_exists:  # Si el archivo no existía, escribir la cabecera
+                writer.writerow(['#part'] + references[0] + ['delta', 'dim', 'key'])
+
+            writer.writerows(new_rows)  # Escribir solo las nuevas filas
+
     return references_path
+
 
 def gamma_calc(definitions_path, n1):
     lines = read_DEF(definitions_path)

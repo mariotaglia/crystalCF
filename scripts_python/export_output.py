@@ -48,71 +48,63 @@ def process_principal(output_file, delta_dim_bin, aL, F):
                 print(f"Advertencia: Archivo no encontrado en {file_path}")
             os.chdir("..")
 
-def process_reference_bin(output_file, dir_fuente, F):
-    references_file = os.path.join(dir_fuente, "binary_ref", "tot_references.csv")
+def process_reference_bin(output_file, dir_inicial, F):
+    dir_fuente = {"part1": os.path.join(dir_inicial,"sim_part1"),"part2": os.path.join(os.getcwd())}
     data = defaultdict(lambda: defaultdict(lambda: defaultdict(float)))
-    contadores = defaultdict(lambda: defaultdict(int))
-    delta_map = defaultdict(lambda: defaultdict(set))
 
-    # Leer y acumular contadores de las reference
-    with open(references_file, "r", encoding="utf-8") as ref_file:
-        reader = csv.reader(ref_file)
-        next(reader)  # Saltar encabezado
-        for parts in reader:
-            if len(parts) >= 7:
-                try:
-                    label = parts[0].strip()  # Primera columna
-                    contador = int(parts[1].strip())  
-                    pos_tuple = (parts[2], parts[3], parts[4])  # Tupla única de posiciones
-                    delta = parts[5].strip().replace(",", ".")  # Quinta columna
-                    dim = parts[6].strip().replace(",", ".")  # Sexta columna
+    for label in ["part1", "part2"]:
+        references_file = os.path.join(dir_fuente[label], "binary_ref", "tot_references.csv")
+        contadores = defaultdict(lambda: defaultdict(int))
+        delta_map = defaultdict(lambda: defaultdict(set))
 
-                    # Acumular el contador correctamente
-                    contadores[delta][(pos_tuple, dim)] = contador  
-                    delta_map[(label, delta)][pos_tuple].add(dim)
+        # Leer el archivo de referencias y construir los mapas
+        with open(references_file, "r", encoding="utf-8") as ref_file:
+            reader = csv.reader(ref_file)
+            next(reader)  # Saltar encabezado
+            for parts in reader:
+                if len(parts) >= 8:
+                    try:
+                        label = parts[0].strip()
+                        contador = int(parts[1].strip())
+                        pos_tuple = (parts[2], parts[3], parts[4])
+                        delta = parts[5].strip().replace(",", ".")
+                        dim = parts[6].strip().replace(",", ".")
+                        key = parts[7].strip()
 
-                except ValueError:
-                    print(f"Error de formato en línea -> {','.join(parts)}")
+                        # Ahora guardamos el contador asociado a (key, dim)
+                        contadores[delta][(key, dim)] = contador
+                        delta_map[(label, delta)][key].add(dim)
 
-    if not os.path.isfile(output_file):
-        with open(output_file, "w") as out_file:
-            out_file.write("#part,delta,dim,F_reference\n")
+                    except ValueError:
+                        print(f"Error de formato en línea -> {','.join(parts)}")
 
-    # Procesar los archivos F_tot_gcanon.dat en la estructura existente
-    for (label, delta), pos_map in delta_map.items():
-        base_folder = os.path.join(dir_fuente, "binary_ref", label)
-        delta_name = delta.replace('.', '_')
-        delta_folder = os.path.join(base_folder, f"delta_{delta_name}")  
+        # Crear archivo de salida si no existe
+        if not os.path.isfile(output_file):
+            with open(output_file, "w") as out_file:
+                out_file.write("#part,delta,dim,F_reference\n")
 
-        sub_folder_counter = defaultdict(int)  # Contador para subcarpetas
+        for (label, delta), key_map in delta_map.items():
+            base_folder = os.path.join(dir_fuente[label], "binary_ref", label)
+            delta_name = delta.replace('.', '_')
+            delta_folder = os.path.join(base_folder, f"delta_{delta_name}")
 
-        for pos_tuple, dims in pos_map.items():
-            sorted_dims = sorted(dims, key=lambda x: float(x))  # Asegurar orden numérico
-            dim_folder_name = "_".join(f"dim_{dim}" for dim in sorted_dims)
-            dim_folder = os.path.join(delta_folder, dim_folder_name)
+            for key, dims in key_map.items():
+                key_folder = os.path.join(delta_folder, key)
 
-            sub_folder_counter[dim_folder] += 1  # Contador por carpeta de dimensiones
-            sub_folder_name = f"sub_{sub_folder_counter[dim_folder]}"
-            sub_folder = os.path.join(dim_folder, sub_folder_name)
+                # Verificar si el archivo `F_tot_gcanon.dat` existe
+                file_path = os.path.join(key_folder, F+".dat")
+                if os.path.isfile(file_path):
+                    try:
+                        with open(file_path, "r") as file:
+                            value = float(file.readline().strip().split()[1])  # Segunda columna
+                            for dim in dims:
+                                multiplicador = contadores.get(delta, {}).get((key, dim), 1)
+                                data[label][delta][dim] += value * multiplicador
 
-            # Verificar si el archivo F_tot_gcanon.dat existe
-            file_path = os.path.join(sub_folder, F+".dat")
-            if os.path.isfile(file_path):
-                try:
-                    # Leer y procesar el value de F_tot_gcanon.dat
-                    with open(file_path, "r") as file:
-                        value = float(file.readline().strip().split()[1])  # Segunda columna
-
-                        # Buscar multiplicador para esta combinación delta/dim
-                        for dim in sorted_dims:
-                            multiplicador = contadores.get(delta, {}).get((pos_tuple, dim), 1)
-                            # Sumar el value multiplicado al diccionario data
-                            data[label][delta][dim] += value * multiplicador
-
-                except Exception as e:
-                    print(f"Error al procesar {file_path}: {e}")
-            else:
-                print(f"Advertencia: Archivo no encontrado en {file_path}")
+                    except Exception as e:
+                        print(f"Error al procesar {file_path}: {e}")
+                else:
+                    print(f"Advertencia: Archivo no encontrado en {file_path}")
 
     # Escribir los resultados en el archivo de salida
     for label in ["part1", "part2"]:
@@ -158,66 +150,52 @@ def process_principal_part(output_file, label_struc, delta_list, aL, F):
             os.chdir("..")
 
 def process_reference_part(output_file, base_folder, cell_part, label_struc, F):
-    # Obtener el nombre de la carpeta actual (que corresponde a la estructura #_ref)
     references_file = os.path.join(base_folder, "tot_references.csv")
-    data = defaultdict(lambda: defaultdict(lambda: defaultdict(float)))
     contadores = defaultdict(lambda: defaultdict(int))
     delta_map = defaultdict(lambda: defaultdict(set))
 
-    # Leer y acumular contadores de las reference
+    # Leer el archivo de referencias y construir los mapas
     with open(references_file, "r", encoding="utf-8") as ref_file:
         reader = csv.reader(ref_file)
         next(reader)  # Saltar encabezado
         for parts in reader:
-            if len(parts) >= 6:
+            if len(parts) >= 7:
                 try:
-                    # Asegurarse de que los datos estén en el formato adecuado
-                    contador = int(parts[0].strip())  # Primer columna (entero)
-                    pos_tuple = (parts[1], parts[2], parts[3])  # Tupla de posiciones
-                    delta = parts[4].strip().replace(",", ".")  # Quinta columna (delta, convertir a formato adecuado)
-                    dim = parts[5].strip().replace(",", ".")  # Sexta columna (dim, convertir a formato adecuado)
+                    contador = int(parts[0].strip())
+                    pos_tuple = (parts[1], parts[2], parts[3])
+                    delta = parts[4].strip().replace(",", ".")
+                    dim = parts[5].strip().replace(",", ".")
+                    key = parts[6].strip()
 
-                    # Acumular el contador correctamente en contadores
-                    contadores[delta][(pos_tuple, dim)] = contador  
-                    delta_map[(label_struc, delta)][pos_tuple].add(dim)  # Almacenar información de deltas y posiciones
+                    # Ahora guardamos el contador asociado a (key, dim)
+                    contadores[delta][(key, dim)] = contador
+                    delta_map[(label_struc, delta)][key].add(dim)
 
                 except ValueError:
                     print(f"Error de formato en línea -> {','.join(parts)}")
 
+    # Crear archivo de salida si no existe
     if not os.path.isfile(output_file):
         with open(output_file, "w") as out_file:
             out_file.write("cell,delta,dim,F_reference\n")
 
-    # Procesar los archivos F_tot_gcanon.dat en la estructura existente
-    for (label_struc, delta), pos_map in delta_map.items():
-        delta_name = delta.replace('.', '_')  # Convertir el delta para usarlo como nombre de carpeta
-        delta_folder = os.path.join(base_folder, f"delta_{delta_name}")  
+    data = defaultdict(lambda: defaultdict(lambda: defaultdict(float)))
 
-        sub_folder_counter = defaultdict(int)  # Contador para subcarpetas (si existen múltiples subcarpetas)
+    for (label_struc, delta), key_map in delta_map.items():
+        delta_name = delta.replace('.', '_')
+        delta_folder = os.path.join(base_folder, f"delta_{delta_name}")
 
-        # Recorrer cada combinación de posición y dimensiones
-        for pos_tuple, dims in pos_map.items():
-            sorted_dims = sorted(dims, key=lambda x: float(x))  # Asegurar el orden correcto de las dimensiones
-            dim_folder_name = "_".join(f"dim_{dim}" for dim in sorted_dims)  # Nombre de carpeta por dimensiones
-            dim_folder = os.path.join(delta_folder, dim_folder_name)
+        for key, dims in key_map.items():
+            key_folder = os.path.join(delta_folder, key)
 
-            sub_folder_counter[dim_folder] += 1  # Contar subcarpetas por combinación de dimensiones
-            sub_folder_name = f"sub_{sub_folder_counter[dim_folder]}"  # Nombre de la subcarpeta
-            
-            sub_folder = os.path.join(dim_folder, sub_folder_name)
-
-            # Verificar si el archivo F_tot_gcanon.dat existe en la subcarpeta
-            file_path = os.path.join(sub_folder, F+".dat")
+            # Verificar si el archivo `F_tot_gcanon.dat` existe
+            file_path = os.path.join(key_folder, F+".dat")
             if os.path.isfile(file_path):
                 try:
-                    # Leer y procesar el valor de F_x.dat
                     with open(file_path, "r") as file:
-                        value = float(file.readline().strip().split()[1])  # Segunda columna de F_tot_gcanon.dat
-
-                        # Buscar multiplicador para esta combinación delta/dim
-                        for dim in sorted_dims:
-                            multiplicador = contadores.get(delta, {}).get((pos_tuple, dim), 1)  # valor por defecto 1
-                            # Sumar el valor multiplicado al diccionario data
+                        value = float(file.readline().strip().split()[1])  # Segunda columna
+                        for dim in dims:
+                            multiplicador = contadores.get(delta, {}).get((key, dim), 1)
                             data[label_struc][delta][dim] += value * multiplicador
 
                 except Exception as e:
