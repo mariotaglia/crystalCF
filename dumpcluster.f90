@@ -12,7 +12,9 @@ integer j, i, jx, jy, jz, ix, iy ,iz, ii
 integer Nlatx, Nlaty, Nlatz ! periodic images to scan in each direction, may be different due to PBC
 real*8 co
 integer depth
-integer distlist((dumpcluster-1)*dumpcluster/2)
+integer combs
+real*8, allocatable :: distlisttmp(:)
+real*8, allocatable :: distlist(:,:)
 integer d1, d2, dd
 real*8 vect1T(3), vect1R(3),vect2T(3),vect2R(3),vectdiff(3)
 real*8, external :: posx, posy, posz
@@ -27,6 +29,12 @@ allocate(listcluster(4,dumpcluster, maxcluster)) ! matrix saving the clusters
                                                 ! third index is the number of cluster
 
 allocate(tmpcluster(4,dumpcluster))                                                
+
+combs = (dumpcluster-1)*dumpcluster/2
+print*, dumpcluster, combs
+
+allocate(distlisttmp(combs))
+allocate(distlist(combs, maxcluster))
 
 ! check PBC
 
@@ -62,14 +70,6 @@ do j = 1, NNN ! loop over all particles in central cell
 enddo
 
 
-if(rank.eq.0) then
-print*,'Found ', indexcluster, ' clusters'
-print*,'List:'
-do j = 1, indexcluster
-   print*, listcluster(:,:,j)
-enddo
-endif
-
 ! Now, find only non-equivalent clusters
 ! To do that, we will make am ordered list of the N(N-1)/2 distances in the cluster
 
@@ -78,7 +78,7 @@ do ii = 1, indexcluster
 dd = 0 
 
 do d1 = 1, dumpcluster
- do d2 = d1, dumpcluster 
+ do d2 = d1+1, dumpcluster 
 
  dd = dd + 1
 
@@ -104,12 +104,26 @@ do d1 = 1, dumpcluster
 
  vectdiff = vect1R-vect2R
    
- distlist(dd) = norm2(vectdiff) 
+ distlisttmp(dd) = norm2(vectdiff) 
 
  enddo ! d2
 enddo ! d1
 
+call bubble_sort(distlisttmp, combs)
+
+distlist(:,ii) = distlisttmp(:)
+
 enddo ! ii
+
+if(rank.eq.0) then
+print*,'Found ', indexcluster, ' clusters'
+print*,'List:'
+do j = 1, indexcluster
+   print*, listcluster(:,:,j)
+   print*, distlist(:,j)
+enddo
+endif
+
 end
 
 
@@ -235,5 +249,23 @@ posz =  Rellf(3,j)*delta*dfloat(dimz)+dfloat(dimz*jz)*delta
 end
 
 
+! ChatGTP routine to order an array
+subroutine bubble_sort(arr, ss)
+integer ss
+real*8 arr(ss)
+integer i, j
+real*8 temp
 
+        do i = 1, ss-1
+            do j = 1, ss-i
+                if (arr(j) > arr(j+1)) then
+                    ! Swap elements
+                    temp = arr(j)
+                    arr(j) = arr(j+1)
+                    arr(j+1) = temp
+                end if
+            end do
+        end do
+    
+end subroutine bubble_sort
 
