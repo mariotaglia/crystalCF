@@ -41,6 +41,17 @@ integer flagmu
 integer eqs ! number of set of equations 
 endmodule
 
+module clusters
+integer dumpcluster ! use this flag to dump the decomposition of the cell N body interactions
+real*8 cutoffcluster ! cutoff distance for cluster
+integer, allocatable :: listcluster(:,:,:) ! matrix saving the clusters  
+                                                ! first index is type of particle, cellx, celly and cellz
+                                                ! second index is the size of the cluster
+                                                ! third index is the number of cluster
+integer, allocatable tmpcluster(:,:)
+endmodule
+
+
 module ematrix
 use system
 real*8, allocatable :: volprot(:,:,:)

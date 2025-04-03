@@ -41,6 +41,12 @@ call chains_definitions
 call initconst
 call inittransf ! Create transformation matrixes
 call initellpos ! calculate real positions for ellipsoid centers
+
+if(dumpcluster.ne.0) then
+        call dumpclusterinfo
+        call endall
+endif
+
 call initall
 call allocation
 

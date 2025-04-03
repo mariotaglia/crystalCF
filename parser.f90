@@ -24,6 +24,7 @@ use branches
 use cube
 use solventchains
 use mparameters_monomer
+use clusters
 implicit none
 
 ! Input related variables
@@ -88,6 +89,9 @@ gama0 = ndr
 benergy = ndr
 coordinate_system = ndi
 transform_type = ndi
+dumpcluster = ndi
+cutoffcluster = ndr
+
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Control file variables
@@ -132,6 +136,14 @@ do while (ios == 0)
       stop
     endif
    enddo
+
+ case ('dumpcluster') ! dump cluster information: use 0 for no dumping, any other number N for clusters of size N
+   read(buffer, *, iostat=ios) dumpcluster
+   if(rank.eq.0)write(stdout,*) 'parser:','Set ',trim(label),' = ',trim(buffer)
+
+ case ('cutoffcluster') ! dump cluster cutoff
+   read(buffer, *, iostat=ios) cutoffcluster
+   if(rank.eq.0)write(stdout,*) 'parser:','Set ',trim(label),' = ',trim(buffer)
 
  case ('seed') ! random seed 
    read(buffer, *, iostat=ios) seed
@@ -652,6 +664,17 @@ if(randominput.eq.ndi) then
    randominput = 0
    print*, 'randominput undefined, used default:', randominput
 endif
+
+if(dumpcluster.eq.ndi) then
+   dumpcluster = 0
+   print*, 'dumpcluster undefined, used default:', dumpcluster
+endif
+
+if(cutoffcluster.eq.ndr) then
+   cutoffcluster = 0.0
+   print*, 'cutoffcluster undefined, used default:', cutoffcluster
+endif
+
 
 
 if(coordinate_system.eq.ndi)call stopundef('coordinate_system')
