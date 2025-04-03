@@ -8,12 +8,18 @@ use clusters
 use MPI, only : rank
 implicit none
 integer, parameter :: Nlat = 7 ! number of lattices to scan around central cell
-integer j
+integer j, i, jx, jy, jz, ix, iy ,iz, ii
 integer Nlatx, Nlaty, Nlatz ! periodic images to scan in each direction, may be different due to PBC
 real*8 co
 integer depth
+integer distlist((dumpcluster-1)*dumpcluster/2)
+integer d1, d2, dd
+real*8 vect1T(3), vect1R(3),vect2T(3),vect2R(3),vectdiff(3)
+real*8, external :: posx, posy, posz
+
 
 co = cutoffcluster ! cutoff distance
+
 
 allocate(listcluster(4,dumpcluster, maxcluster)) ! matrix saving the clusters  
                                                 ! first index is type of particle, cellx, celly and cellz
@@ -44,7 +50,6 @@ endif
 
 ! loop over cell indexes 
 
-
 indexcluster = 0 
 
 do j = 1, NNN ! loop over all particles in central cell 
@@ -65,6 +70,46 @@ do j = 1, indexcluster
 enddo
 endif
 
+! Now, find only non-equivalent clusters
+! To do that, we will make am ordered list of the N(N-1)/2 distances in the cluster
+
+do ii = 1, indexcluster
+
+dd = 0 
+
+do d1 = 1, dumpcluster
+ do d2 = d1, dumpcluster 
+
+ dd = dd + 1
+
+ j = listcluster(1,d1,ii)
+ jx = listcluster(2,d1,ii)
+ jy = listcluster(3,d1,ii)
+ jz = listcluster(4,d1,ii)
+
+ i = listcluster(1,d2,ii)
+ ix = listcluster(2,d2,ii)
+ iy = listcluster(3,d2,ii)
+ iz = listcluster(4,d2,ii)
+
+ vect1T(1) = posx(j,jx) 
+ vect1T(2) = posy(j,jy)
+ vect1T(3) = posz(j,jz)
+ vect1R = MATMUL(IMAT,vect1T) ! coordinates of particle in real space
+       
+ vect2T(1) = posx(i,ix)
+ vect2T(2) = posy(i,iy)
+ vect2T(3) = posz(i,iz)
+ vect2R = MATMUL(IMAT,vect2T) ! coordinates of particle in real space
+
+ vectdiff = vect1R-vect2R
+   
+ distlist(dd) = norm2(vectdiff) 
+
+ enddo ! d2
+enddo ! d1
+
+enddo ! ii
 end
 
 
@@ -84,7 +129,7 @@ integer Nlatx,Nlaty,Nlatz
 real*8, external :: posx, posy, posz
 integer depth
 real*8 dist
-
+integer flagin, dd
 
 ! Find coordinates of first particle in real space
  vect1T(1) = posx(j,jx) 
@@ -111,16 +156,33 @@ real*8 dist
 
       if((dist.ne.0.0).and.(dist.le.co)) then ! found a particle within co distance and it's not the same particle
 
-!      print*, 'found', ix,iy,iz, depth, dist
-              
+!      print*, 'found 1', ix,iy,iz, depth, dist
+
+! Before adding it to the list, we must check that the new particle is not in the cluster already
+
+      flagin = 0 ! not in the cluster
+
+      do dd = 1, depth-1
+        if ((tmpcluster(1,dd).eq.i).and. & 
+        (tmpcluster(2,dd).eq.ix).and. &
+        (tmpcluster(3,dd).eq.iy).and. &
+        (tmpcluster(4,dd).eq.iz)) then
+         
+        flagin = 1 ! already in the cluster 
+        exit
+        endif
+      enddo
+
+     if (flagin.eq.0) then
+
       tmpcluster(1,depth) = i
       tmpcluster(2,depth) = ix
       tmpcluster(3,depth) = iy
       tmpcluster(4,depth) = iz
 
       if (depth.eq.dumpcluster) then ! we are done
-      indexcluster = indexcluster + 1
 
+      indexcluster = indexcluster + 1
       listcluster(:,:,indexcluster)=tmpcluster(:,:)
 
 
@@ -134,7 +196,8 @@ real*8 dist
 
        call findneighbors(i,ix,iy,iz, Nlatx,Nlaty,Nlatz,co, depth+1) ! find neighbors for this particle
       endif ! depth
-        
+
+      endif ! flagin      
       endif ! dist
  
     enddo ! i
