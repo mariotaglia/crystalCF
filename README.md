@@ -432,4 +432,23 @@ Coment line
 For each N, surface coverge (N lines)  
 Coment line  
 For each N, surface-polymer attraction (N lines)  
-  
+ 
+----  
+# Options for cluster analysis:
+
+## dumpcluster  *int*  
+Set *int* to 1 to perform cluster analysis (the calculation stops after the analysis)
+Deafult: 0
+
+## cutoffcluster *real*
+Cut off value for cluster analysis. 
+A cluster is defined as any group of particles where each one is at a distance smaller than the cutoff of other particle in the cluster
+
+## cluster_same *int*
+Set *int* to 1 to treat all particles in the unit cell as equivalent for the clustering algorithm 
+
+
+
+
+
+ 
