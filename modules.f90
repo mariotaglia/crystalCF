@@ -43,6 +43,7 @@ endmodule
 
 module clusters
 integer dumpcluster ! use this flag to dump the decomposition of the cell N body interactions
+integer cluster_same ! treat all particles as equal for clustering
 real*8 cutoffcluster ! cutoff distance for cluster
 integer, allocatable :: listcluster(:,:,:) ! matrix saving the clusters  
                                                 ! first index is type of particle, cellx, celly and cellz

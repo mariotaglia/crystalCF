@@ -90,6 +90,7 @@ benergy = ndr
 coordinate_system = ndi
 transform_type = ndi
 dumpcluster = ndi
+cluster_same = ndi
 cutoffcluster = ndr
 
 
@@ -140,6 +141,11 @@ do while (ios == 0)
  case ('dumpcluster') ! dump cluster information: use 0 for no dumping, any other number N for clusters of size N
    read(buffer, *, iostat=ios) dumpcluster
    if(rank.eq.0)write(stdout,*) 'parser:','Set ',trim(label),' = ',trim(buffer)
+
+ case ('cluster_same') ! 1: treat all particles as equivalent for clustering
+   read(buffer, *, iostat=ios) cluster_same
+   if(rank.eq.0)write(stdout,*) 'parser:','Set ',trim(label),' = ',trim(buffer)
+
 
  case ('cutoffcluster') ! dump cluster cutoff
    read(buffer, *, iostat=ios) cutoffcluster
@@ -669,6 +675,12 @@ if(dumpcluster.eq.ndi) then
    dumpcluster = 0
    print*, 'dumpcluster undefined, used default:', dumpcluster
 endif
+
+if(cluster_same.eq.ndi) then
+   cluster_same = 0
+   print*, 'cluster_same undefined, used default:', cluster_same
+endif
+
 
 if(cutoffcluster.eq.ndr) then
    cutoffcluster = 0.0

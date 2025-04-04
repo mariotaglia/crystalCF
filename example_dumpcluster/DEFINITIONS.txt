@@ -98,24 +98,33 @@ coordinate_system 2
 !systemtype
 systemtype 1
 ! number of particles
-1
+2
 !Center
 0.0 0.0 0.0
+0.5 0.5 0.5
 ! radius
+1.5 1.5 1.5
 1.5 1.5 1.5
 ! Rotation
 1.0 0.0 0.0
 0.0 1.0 0.0
 0.0 0.0 1.0
+1.0 0.0 0.0
+0.0 1.0 0.0
+0.0 0.0 1.0
 ! coverage
 5.85
+5.85
 !Surface-polymer atraction
+0.0
 0.0
 
 
 ! dumpcluster
-dumpcluster 1
+dumpcluster 3
 
 ! cutoff
-cutoffcluster 6.0
+cutoffcluster 5.8
 
+! cluster_same
+cluster_same 1

@@ -8,16 +8,23 @@ use clusters
 use MPI, only : rank
 implicit none
 integer, parameter :: Nlat = 7 ! number of lattices to scan around central cell
-integer j, i, jx, jy, jz, ix, iy ,iz, ii
+integer j, i, jx, jy, jz, ix, iy ,iz, ii, jj
 integer Nlatx, Nlaty, Nlatz ! periodic images to scan in each direction, may be different due to PBC
 real*8 co
 integer depth
 integer combs
-real*8, allocatable :: distlisttmp(:)
-real*8, allocatable :: distlist(:,:)
+real*8, allocatable :: distlisttmp(:,:)
+real*8, allocatable :: distlist(:,:,:)
 integer d1, d2, dd
 real*8 vect1T(3), vect1R(3),vect2T(3),vect2R(3),vectdiff(3)
 real*8, external :: posx, posy, posz
+integer, allocatable :: listcluster_in(:,:,:)
+real*8, allocatable :: distlist_in(:,:,:)
+real*8 weight(maxcluster)
+real*8 tol
+integer found, flag
+integer indexcluster_in
+character*15 filename
 
 
 co = cutoffcluster ! cutoff distance
@@ -28,13 +35,15 @@ allocate(listcluster(4,dumpcluster, maxcluster)) ! matrix saving the clusters
                                                 ! second index is the size of the cluster
                                                 ! third index is the number of cluster
 
+allocate(listcluster_in(4,dumpcluster, maxcluster))
 allocate(tmpcluster(4,dumpcluster))                                                
 
 combs = (dumpcluster-1)*dumpcluster/2
 print*, dumpcluster, combs
 
-allocate(distlisttmp(combs))
-allocate(distlist(combs, maxcluster))
+allocate(distlisttmp(3,combs))
+allocate(distlist(3,combs, maxcluster))
+allocate(distlist_in(3,combs, maxcluster))
 
 ! check PBC
 
@@ -104,25 +113,117 @@ do d1 = 1, dumpcluster
 
  vectdiff = vect1R-vect2R
    
- distlisttmp(dd) = norm2(vectdiff) 
+ distlisttmp(1, dd) = norm2(vectdiff) 
+
+ if(i.lt.j) then
+   distlisttmp(2, dd) = i
+   distlisttmp(3, dd) = j
+ else
+   distlisttmp(2, dd) = j
+   distlisttmp(3, dd) = i
+ endif
+
 
  enddo ! d2
 enddo ! d1
 
 call bubble_sort(distlisttmp, combs)
 
-distlist(:,ii) = distlisttmp(:)
+distlist(:,:,ii) = distlisttmp(:,:)
 
 enddo ! ii
+
+! Now find unique clusters
+
+indexcluster_in = 0 ! index of unique clusters
+tol = 1e-3 ! tolerance for comparing distances
+weight = 0.0
+
+do ii = 1, indexcluster ! loop over all clusters
+
+  found = 0 ! cluster ii not in the list
+
+  do jj = 1, indexcluster_in ! loop over all cluster already in list 
+
+    do dd = 1, combs ! loop over all distance pairs
+    flag = 1 ! assume it is there
+
+
+    if(cluster_same.eq.0) then
+         if((abs(distlist(1,dd,ii)-distlist_in(1,dd,jj)).gt.tol).or.  &
+            (abs(distlist(2,dd,ii)-distlist_in(2,dd,jj)).gt.tol).or.  &
+            (abs(distlist(3,dd,ii)-distlist_in(3,dd,jj)).gt.tol)) then
+          flag = 0 ! not there
+          exit
+         endif
+    else
+         if((abs(distlist(1,dd,ii)-distlist_in(1,dd,jj)).gt.tol)) then
+          flag = 0 ! not there
+          exit
+         endif
+    endif
+  
+    enddo ! dd   
+
+    if(flag.eq.1) then
+            found = jj ! already in list
+!            print*,'found', distlist(1,dd,ii), distlist_in(1,dd,jj), ii, jj
+            exit
+    endif
+  enddo ! jj   
+  
+  if(found.ne.0) weight(found) = weight(found) + 1 ! increase weight 
+
+  if(found.eq.0) then ! not in list, add to it
+       indexcluster_in = indexcluster_in + 1
+       distlist_in(:,:,indexcluster_in) = distlist(:,:,ii)
+       listcluster_in(:,:,indexcluster_in) = listcluster(:,:,ii)
+       weight = 1.0
+   endif
+
+enddo ! ii
+
+!!! PRINT ALL
 
 if(rank.eq.0) then
 print*,'Found ', indexcluster, ' clusters'
 print*,'List:'
 do j = 1, indexcluster
-   print*, listcluster(:,:,j)
-   print*, distlist(:,j)
+!   print*, listcluster(:,:,j)
+   print*, distlist(1,:,j)
+   if(cluster_same.eq.0)print*, distlist(2,:,j)
+   if(cluster_same.eq.0)print*, distlist(3,:,j)
+   if(cluster_same.eq.0)print*,'!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
 enddo
 endif
+
+
+if(rank.eq.0) then
+print*,'Found ', indexcluster_in, ' unique clusters'
+print*,'List of distances and weight):'
+do j = 1, indexcluster_in
+!   print*, listcluster_in(:,:,j)
+   print*, distlist_in(1,:,j), weight(j)
+   if(cluster_same.eq.0)print*, distlist_in(2,:,j), weight(j)
+   if(cluster_same.eq.0)print*, distlist_in(3,:,j), weight(j)
+   if(cluster_same.eq.0)print*,'!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
+enddo
+endif
+
+print*, 'Saving coordinates of unique clusters to disk'
+
+do j = 1, indexcluster_in
+
+    write(filename,'(A8, I3.3, A4)')'cluster.', j, '.xyz'
+    open(unit=45, file=filename)
+
+    do i = 1, dumpcluster 
+    write(45,*) posx(listcluster_in(1,i,j), listcluster_in(2,i,j)), &
+                posy(listcluster_in(1,i,j), listcluster_in(3,i,j)), &
+                posz(listcluster_in(1,i,j), listcluster_in(4,i,j))
+    enddo
+    close(45)
+enddo
 
 end
 
@@ -252,17 +353,17 @@ end
 ! ChatGTP routine to order an array
 subroutine bubble_sort(arr, ss)
 integer ss
-real*8 arr(ss)
+real*8 arr(3,ss)
 integer i, j
-real*8 temp
+real*8 temp(3)
 
         do i = 1, ss-1
             do j = 1, ss-i
-                if (arr(j) > arr(j+1)) then
+                if (arr(1,j) > arr(1,j+1)) then
                     ! Swap elements
-                    temp = arr(j)
-                    arr(j) = arr(j+1)
-                    arr(j+1) = temp
+                    temp(:) = arr(:,j)
+                    arr(:,j) = arr(:,j+1)
+                    arr(:,j+1) = temp(:)
                 end if
             end do
         end do
