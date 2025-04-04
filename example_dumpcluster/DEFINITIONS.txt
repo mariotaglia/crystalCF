@@ -121,7 +121,7 @@ systemtype 1
 
 
 ! dumpcluster
-dumpcluster 3
+dumpcluster 2
 
 ! cutoff
 cutoffcluster 5.8

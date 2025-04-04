@@ -437,7 +437,7 @@ For each N, surface-polymer attraction (N lines)
 # Options for cluster analysis:
 
 ## dumpcluster  *int*  
-Set *int* to 1 to perform cluster analysis (the calculation stops after the analysis)
+Set *int* > 1 to perform a cluster analysis with cluster size *int* (the calculation stops after the analysis)
 Deafult: 0
 
 ## cutoffcluster *real*
