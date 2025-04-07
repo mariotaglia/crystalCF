@@ -99,7 +99,7 @@ while True:
 				join_F_csv(output_folder, label, False)
 				join_F_csv_ref(output_folder, label)
 
-			print(f'Exportado gamma {gamma_folder.replace('_','.')}')
+			print(f"Exportado gamma {gamma_folder.replace('_','.')}")
 		break
 
 	elif check_extract in ["n", "no"]:
