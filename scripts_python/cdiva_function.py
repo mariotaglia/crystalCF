@@ -28,7 +28,8 @@ def update_cdiva(DEF, name_bin, gamma, flag_reflexion):
                 lines[size_index] = f"{str(cdiva/2)}\n"
                 break
 
-    if name_bin == 'CaCu5':
+    names = ["CaCu5", "AlB2"]
+    if name_bin in names:
         for i, line in enumerate(lines):
             if line == "!cdiva\n":
                 size_index = i + 1
@@ -53,7 +54,7 @@ def cdiva_calc(name,gamma):
             a_fac = 2*gamma
             c_fac = np.sqrt(8.0/3.0)*gamma
 
-    if name == "CaCu5":        
+    if name == "AlB2":        
         if gamma < np.sqrt(7.0/3.0)-1:
             a_fac = 1.0
             c_fac = 1.0
