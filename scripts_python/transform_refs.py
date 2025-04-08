@@ -92,7 +92,8 @@ def extract_definitions(definitions_path):
         "centers": [],
         "R": [],
         "lseg": None,
-        "nseg": None
+        "nseg": None,
+        "PBC": []
     }
     lines = read_DEF(definitions_path)
     for i, line in enumerate(lines):
@@ -102,13 +103,13 @@ def extract_definitions(definitions_path):
             try:
                 data[parts[0]] = float(parts[1])
             except ValueError:
-                print(f"Error while reading {parts[0]}: {parts[1]}.")
+                print(f"Error al leer {parts[0]}: {parts[1]}")
 
         elif line == "! number of particles":
             try:
                 data["num_particles"] = float(lines[i+1].split()[0])
             except ValueError:
-                print("Error while reading the number of particles.")
+                print("Error al leer el numero de particulas.")
         elif line == "!cdiva":
             try:
                 data["cdiva"] = float(lines[i+1].split()[0])
@@ -121,7 +122,7 @@ def extract_definitions(definitions_path):
                 try:
                     data["centers"].append([float(x) for x in lines[j].strip().split()])
                 except ValueError:
-                    print(f"Error while reading the !center: {lines[j]}")
+                    print(f"Error al leer coordenadas del centro en línea: {lines[j]}")
                 j += 1
 
         elif line == "!particle semiaxis x y z in nm":
@@ -131,18 +132,25 @@ def extract_definitions(definitions_path):
                     semiaxis_values = [float(x) for x in lines[j].strip().split()]
                     data["R"].append(semiaxis_values[0]) 
                 except ValueError:
-                    print(f"Error while reading particle semiaxis: {lines[j]}")
+                    print(f"Error al leer semiejes en línea: {lines[j]}")
                 j += 1
         elif line == "!properties of ligand chains":
             try:
                 data["nseg"] = float(lines[i+1].split()[1])
             except ValueError:
-                print("Error while reading \'long\'")
+                print("Error al leer nseg.")
         elif line == "! segment lengths":
             try:
                 data["lseg"] = float(lines[i+1].split()[1])
             except ValueError:
-                print("Error while reading \'lseg\'")
+                print("Error al leer lseg.")
+
+        elif line == "!PBC PBC xmin xmax ymin ymax zmin zmax, 1=yes, 2=wall, 0=bulk":
+            try:
+                data["PBC"] = ([float(x) for x in lines[i+1].split()[1:]])
+            except ValueError:
+                print(f"Error al leer coordenadas PBC")
+
         i += 1
     return data
 

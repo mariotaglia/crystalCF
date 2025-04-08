@@ -112,6 +112,7 @@ def process_secundario_part(struc, dim, dir_fuente_part, delta_list):
     delta = float(data.get("delta"))
     cdiva = float(data.get("cdiva"))
     centers = data.get("centers", [])
+    PBC = data.get("PBC", [])
     R = float(data.get("R")[0])
     nseg = int(data.get("nseg")); lseg = float(data.get("lseg"))
     delta_min = np.min(delta_list)
@@ -121,7 +122,7 @@ def process_secundario_part(struc, dim, dir_fuente_part, delta_list):
     if N_ref%2 == 0:
         N_ref += 1
 
-    center_ref_list = calculate_center_ref(N_ref, centers, dimx, dimy, dimz, delta, cdiva)
+    center_ref_list = calculate_center_ref(N_ref, centers, dimx, dimy, dimz, delta, cdiva, PBC)
     pos_out, _ = process_positions(center_ref_list)
 
     references = extract_references("references.csv")
