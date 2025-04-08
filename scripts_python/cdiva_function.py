@@ -24,7 +24,7 @@ def update_cdiva(DEF, name_bin, gamma, flag_reflexion):
         for i, line in enumerate(lines):
             if line == "!cdiva\n":
                 size_index = i + 1
-                cdiva = (8.0/3.0)**0.5
+                cdiva = float(lines[size_index].split()[0])
                 lines[size_index] = f"{str(cdiva/2)}\n"
                 break
 
