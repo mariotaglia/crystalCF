@@ -7,27 +7,49 @@ def read_DEF(file_path):
         lines = f.readlines()
     return lines
 
-def calculate_center_ref(Nref, centers, dimx, dimy, dimz, delta, cdiva):
+def x_center(center, Nref, delta, dimx, aL):
+    x = center * delta * dimx
+    x_grid = x % delta
+    x0 = delta * (Nref - 1) / 2
+    x_ref = x0 + x_grid
+    frac_ref_x = x_ref / aL
+    return frac_ref_x
+
+def z_center(center, Nref, delta, dimz, cdiva, aL):
+    z = center * delta * cdiva * dimz
+    z_grid = z % (delta * cdiva)
+    z0 = delta * cdiva * (Nref - 1) / 2
+    z_ref = z0 + z_grid
+    frac_ref_z = z_ref / (aL * cdiva)
+    return frac_ref_z
+
+def calculate_center_ref(Nref, centers, dimx, dimy, dimz, delta, cdiva, PBC):
     aL = Nref * delta
     center_ref_list = []
     for center in centers:
-        x = center[0] * delta * dimx
-        x_grid = x % delta
-        x0 = delta * (Nref - 1) / 2
-        x_ref = x0 + x_grid
-        frac_ref_x = x_ref / aL
+        if PBC[0] == 3 and PBC[1] == 3:
+            if center[0] == 0 or center[0] == 1:
+                frac_ref_x = center[0]
+            else:
+                frac_ref_x = x_center(center[0], Nref, delta, dimx, aL)
+        else:
+            frac_ref_x = x_center(center[0], Nref, delta, dimx, aL)
+
+        if PBC[2] == 3 and PBC[3] == 3:
+            if center[1] == 0 or center[1] == 1:
+                frac_ref_y = center[1]
+            else:
+                frac_ref_y = x_center(center[1], Nref, delta, dimy, aL)
+        else:
+            frac_ref_y = x_center(center[1], Nref, delta, dimy, aL)
         
-        y = center[1] * delta * dimy
-        y_grid = y % delta
-        y0 = delta * (Nref - 1) / 2
-        y_ref = y0 + y_grid
-        frac_ref_y = y_ref / aL
-        
-        z = center[2] * delta * cdiva * dimz
-        z_grid = z % (delta * cdiva)
-        z0 = delta * cdiva * (Nref - 1) / 2
-        z_ref = z0 + z_grid
-        frac_ref_z = z_ref / (aL * cdiva)
+        if PBC[4] == 3 and PBC[5] == 3:
+            if center[2] == 0 or center[2] == 1:
+                frac_ref_z = center[2]
+            else:
+                frac_ref_z = z_center(center[2], Nref, delta, dimz, cdiva, aL)
+        else:
+            frac_ref_z = z_center(center[2], Nref, delta, dimz, cdiva, aL)
         
         center_ref_list.append([frac_ref_x, frac_ref_y, frac_ref_z])
     

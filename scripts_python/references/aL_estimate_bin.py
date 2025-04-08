@@ -31,11 +31,19 @@ elif name == "MgZn2":
 	N1 = 4
 	N2 = 8
 
-if name == "NaCl" or "CsCl":
-	aL_min = (N1*Vol_NP_1+N1*sigma*A_1*V_pol*l_pol+ N2*Vol_NP_1+N2*sigma*A_2*V_pol*l_pol)**(1./3.)
-elif name == "MgZn2":
-	aL_min = (N1*Vol_NP_1+N1*sigma*A_1*V_pol*l_pol+ N2*Vol_NP_1+N2*sigma*A_2*V_pol*l_pol)**(1./3.) 
+elif name == "CaCu5":
+	V_pol = 0.003
+	N1 = 1
+	N2 = 5
 
+elif name == "AlB2":
+	V_pol = 0.003
+	N1 = 1
+	N2 = 2
 
-if __name__ == '__main__':
+aL_min = (N1*Vol_NP_1+N1*sigma*A_1*V_pol*l_pol+ N2*Vol_NP_1+N2*sigma*A_2*V_pol*l_pol)**(1./3.)
+
+def output():
 	print(str(aL_min))
+if __name__ == '__main__':
+	output()

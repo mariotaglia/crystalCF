@@ -32,7 +32,7 @@ def extract_params_init(params_init):
         "cell part": [], "list delta part": {}, "num cell part": {},
         "num cell bin": None, "aL cell bin factor": None, 
         "aL cell part factor": {}, "flag generate energy vs aL curves": None,
-        "flag reflexion": None
+        "flag reflexion": None, "PBC": []
     }
 
     lines = read_DEF(params_init)
@@ -146,7 +146,7 @@ def extract_params_init(params_init):
         elif line == "!flag use reflexion planes":
             value = lines[i + 1].strip("\n")
             if value == "True":
-                data["flag reflexion"] = False # Not implemented yet
+                data["flag reflexion"] = True
             else:
                 data["flag reflexion"] = False
             i += 1
@@ -154,15 +154,10 @@ def extract_params_init(params_init):
         i += 1
 
     if data["flag reflexion"] == True:
-        DEF = "DEFINITIONS.txt"
-        if os.path.exists('DEFINITIONS_backup.txt'):
-            shutil.copy('DEFINITIONS_backup.txt', os.path.join(os.getcwd(), "DEFINITIONS.txt"))
-        else:
-            shutil.copy(DEF, os.path.join(os.getcwd(), "DEFINITIONS_backup.txt"))
-        DEF = "DEFINITIONS.txt"
-        n1 = data['n1']; n2 = data['n2']
-        k_bin = data['num cell bin']; name = data['name']
-        edit_def_bin(DEF, n1, n2, k_bin, name)
+        if data["name"] == "MgZn2":
+            data["n1"] = 2
+            data["n2"] = 7
+            data["num cell bin"] = 1
 
     return data
 
@@ -177,7 +172,8 @@ def extract_definitions(definitions_path):
         "centers": [],
         "R": [],
         "lseg": None,
-        "nseg": None
+        "nseg": None,
+        "PBC": []
     }
     lines = read_DEF(definitions_path)
     for i, line in enumerate(lines):
@@ -228,6 +224,13 @@ def extract_definitions(definitions_path):
                 data["lseg"] = float(lines[i+1].split()[1])
             except ValueError:
                 print("Error al leer lseg.")
+
+        elif line == "!PBC PBC xmin xmax ymin ymax zmin zmax, 1=yes, 2=wall, 0=bulk":
+            try:
+                data["PBC"] = ([float(x) for x in lines[i+1].split()[1:]])
+            except ValueError:
+                print(f"Error al leer coordenadas PBC")
+
         i += 1
     return data
 
@@ -310,23 +313,6 @@ def update_particle_sizes(lines, gamma, R_np, n1_k_bin, n2_k_bin):
     
     return lines
 
-def update_cdiva(DEF, name_bin):
-    if os.path.exists('DEFINITIONS_backup.txt'):
-        shutil.copy('DEFINITIONS_backup.txt', os.path.join(os.getcwd(), "DEFINITIONS.txt"))
-    else:
-        shutil.copy(DEF, os.path.join(os.getcwd(), "DEFINITIONS_backup.txt"))
-    DEF = "DEFINITIONS.txt"
-    lines = read_DEF(DEF)
-    if name_bin == 'MgZn2':
-        for i, line in enumerate(lines):
-            if line == "!cdiva\n":
-                size_index = i + 1
-                cdiva = float(lines[size_index].split()[0])
-                lines[size_index] = f"{str(cdiva/2)}\n"
-                break
-
-    write_DEF("DEFINITIONS.txt", lines)
-
 def update_R1(DEF, n1_k_bin, R1):
     if os.path.exists('DEFINITIONS_backup.txt'):
         shutil.copy('DEFINITIONS_backup.txt', os.path.join(os.getcwd(), "DEFINITIONS.txt"))
@@ -358,7 +344,7 @@ def generate_references_csv(references, output_folder, delta_value, dim_value, l
     new_rows = []
 
     for row in references[1:]:
-        pos_tuple = tuple(row[1:4])
+        pos_tuple = tuple(np.round(float(val), 15) for val in row[1:4])
         key_value = f'key_{hashlib.md5(f"{pos_tuple}".encode()).hexdigest()[:8]}'
         new_row = tuple([label] + row + [delta_value, dim_value, key_value])
 
@@ -366,7 +352,6 @@ def generate_references_csv(references, output_folder, delta_value, dim_value, l
             new_rows.append(new_row)
             existing_rows.append(new_row)  # Agregarla a la lista de comparación
 
-    # Solo escribir si hay filas nuevas
     if new_rows:
         file_exists = os.path.exists(references_path)
 

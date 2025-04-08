@@ -7,7 +7,8 @@ from collections import defaultdict
 from transform_refs import calculate_center_ref, process_positions
 from references.dependecies_init import list_reflexion
 from function import run_command, read_DEF, write_DEF, path_carpeta, extract_params_init
-from function import extract_R_bin, extract_references, update_particle_sizes, update_cdiva, update_R1, extract_definitions
+from function import extract_R_bin, extract_references, update_particle_sizes, update_R1, extract_definitions, gamma_calc
+from cdiva_function import update_cdiva
 from function_part import generate_references_part_csv, extract_R_part, process_principal_part, process_secundario_part
 from function_part import process_terciario_part
 from create_defs import process_principal_binario, process_secundario_binario, process_terciario_binario, definitions_ref_edit
@@ -24,6 +25,7 @@ R1_np = params_init['R1']
 gamma_list = params_init['gamma list']
 gamm_delta_dim = params_init['list gamma delta sum dim']
 k_bin = params_init['num cell bin']
+n_k_bin = {"part1": n1*k_bin, "part2": n2*k_bin}
 flag_reflexion = params_init["flag reflexion"]
 
 delta_part = params_init["list delta part"]
@@ -31,15 +33,7 @@ cell_part = params_init["cell part"]
 k_part = params_init["num cell part"]
 gamma_folder_list = ["{:.3f}".format(g).replace('.','_') for g in gamma_list]
 
-# Not implemented yet
-if flag_reflexion == True:
-	n_k_list = list_reflexion(name_bin)
-	n_k_bin = {"part1": n_k_list[0], "part2": n_k_list[1]}
-else:
-	n_k_bin = {"part1": n1*k_bin, "part2": n2*k_bin}
-#
 update_R1("DEFINITIONS.txt", n_k_bin["part1"], R1_np)
-update_cdiva("DEFINITIONS.txt", name_bin)
 
 for gamma_folder in gamma_folder_list:
 	os.makedirs(f'gamma_{gamma_folder}', exist_ok=True)
@@ -90,9 +84,11 @@ for gamma_folder in gamma_folder_list:
 	DEF = os.path.join(os.getcwd(), "DEFINITIONS.txt")
 	R1_np, R2_np = extract_R_bin(DEF, n1*k_bin)
 
+	update_cdiva("DEFINITIONS.txt", name_bin, gamma_calc(DEF, n1*k_bin), flag_reflexion)
+
 	aL = float(run_command(f'python3 {dir_script}/references/aL_estimate_bin.py {name_bin} {R1_np} {R2_np}'))
 	delta_dim_bin = [entry for entry in gamm_delta_dim if entry["gamma"] == gamma]
-	process_principal_binario(DEF, name_bin, delta_dim_bin, aL, n_k_bin, tosubmit, dir_fuente)
+	process_principal_binario(DEF, name_bin, delta_dim_bin, aL, n_k_bin, tosubmit, dir_fuente, flag_reflexion)
 	os.chdir(dir_fuente)
 
 	DEF_part = {}
@@ -101,7 +97,6 @@ for gamma_folder in gamma_folder_list:
 	R_part = {"part1": R1_np, "part2": R2_np}
 	
 	if os.path.exists(os.path.join(dir_fuente,"part2")):
-		print(cell_part)
 		dir_fuente = {"part1": os.path.join(dir_inicial,"sim_part1"),"part2": os.path.join(os.getcwd(),"part2")}
 		for label in ["part1", "part2"]:
 			os.chdir(dir_fuente[label])
@@ -145,11 +140,12 @@ for label in ["part1", "part2"]:
 		print(f'created binary {label} gamma = {gamma_folder.replace("_",".")}')
 
 		dir_fuente["part2"] = os.path.join(dir_inicial,f"gamma_{gamma_folder}","part2")
-		for label_struc in cell_part:
-			os.chdir(dir_fuente[label])
-			DEF = os.path.join(dir_fuente[label], label_struc, "DEFINITIONS.txt")
-			os.chdir(os.path.join(dir_fuente[label], f"{label_struc}_ref"))
-			references_delta = extract_references("tot_references.csv")
-			process_terciario_part(os.getcwd(), references_delta[1:], DEF, tosubmit)
+		if os.path.exists(dir_fuente["part2"]):
+			for label_struc in cell_part:
+				os.chdir(dir_fuente[label])
+				DEF = os.path.join(dir_fuente[label], label_struc, "DEFINITIONS.txt")
+				os.chdir(os.path.join(dir_fuente[label], f"{label_struc}_ref"))
+				references_delta = extract_references("tot_references.csv")
+				process_terciario_part(os.getcwd(), references_delta[1:], DEF, tosubmit)
 
-		print(f'created {label} gamma = {gamma_folder.replace("_",".")}')
+			print(f'created {label} gamma = {gamma_folder.replace("_",".")}')

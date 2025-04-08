@@ -8,7 +8,7 @@ from collections import defaultdict
 from transform_refs import calculate_center_ref, process_positions
 from function import run_command, read_DEF, write_DEF, extract_references, extract_definitions, generate_references_csv
 
-def process_principal_binario(reference_DEF, name_bin, delta_dim_bin, aL, n_k_bin, tosubmit, dir_fuente):
+def process_principal_binario(reference_DEF, name_bin, delta_dim_bin, aL, n_k_bin, tosubmit, dir_fuente, flag_reflexion):
     structure = os.getcwd()
     DEF =  os.path.join(structure, "DEFINITIONS.txt")
     lines = read_DEF(DEF)
@@ -39,7 +39,7 @@ def process_principal_binario(reference_DEF, name_bin, delta_dim_bin, aL, n_k_bi
                 content = file.read()
             
             k = 1
-            if name_bin == 'MgZn2':
+            if name_bin == 'MgZn2' and flag_reflexion == False:
                 k = 2
 
             content = content.replace("dimx _DIM_", f'dimx {str(dim)}').replace("dimy _DIM_", f'dimy {str(dim)}')
@@ -108,6 +108,7 @@ def process_secundario_binario(lines, name_bin, output_folder, delta, dim, n_k_b
         delta = float(data.get("delta"))
         cdiva = float(data.get("cdiva"))
         centers = data.get("centers", [])
+        PBC = data.get("PBC", [])
         R = float(data.get("R")[0])
         nseg = int(data.get("nseg")); lseg = float(data.get("lseg"))
         delta_min = np.min(delta_bin)
@@ -116,7 +117,7 @@ def process_secundario_binario(lines, name_bin, output_folder, delta, dim, n_k_b
         if N_ref%2 == 0:
             N_ref += 1
 
-        center_ref_list = calculate_center_ref(N_ref, centers, dimx, dimy, dimz, delta, cdiva)
+        center_ref_list = calculate_center_ref(N_ref, centers, dimx, dimy, dimz, delta, cdiva, PBC)
         pos_out, _ = process_positions(center_ref_list)
 
         references = extract_references("references.csv")
@@ -152,7 +153,7 @@ def process_terciario_binario(output_folder, name_bin, references, tosubmit, dir
     From the references file, separates each particle and create a folder delta/dim/sub
     for each equivalent relative position to estimate the energy of a particle isolated.
     '''
-    delta_map = defaultdict(lambda: defaultdict(set)) 
+    delta_map = defaultdict(lambda: defaultdict(set))
     for reference in references:
         label = reference[0]
         pos_tuple = (reference[2], reference[3], reference[4])  # Tupla única de posiciones
