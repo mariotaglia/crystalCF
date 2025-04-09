@@ -32,12 +32,12 @@ elif name == "MgZn2":
 	N2 = 8
 
 elif name == "CaCu5":
-	V_pol = 0.003
+	V_pol = 0.015
 	N1 = 1
 	N2 = 5
 
 elif name == "AlB2":
-	V_pol = 0.003
+	V_pol = 0.017
 	N1 = 1
 	N2 = 2
 

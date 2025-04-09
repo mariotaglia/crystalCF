@@ -116,13 +116,13 @@ def process_secundario_part(struc, dim, dir_fuente_part, delta_list):
     R = float(data.get("R")[0])
     nseg = int(data.get("nseg")); lseg = float(data.get("lseg"))
     delta_min = np.min(delta_list)
-
-    N_ref = np.round((2*R+2*lseg*nseg)*1.50/delta_min)
+    dist_min = (2*R+2*lseg*nseg)
+    N_ref = np.round(dist_min*1.50/delta_min)
     N_ref = int(N_ref)
     if N_ref%2 == 0:
         N_ref += 1
 
-    center_ref_list = calculate_center_ref(N_ref, centers, dimx, dimy, dimz, delta, cdiva, PBC)
+    center_ref_list = calculate_center_ref(N_ref, centers, dimx, dimy, dimz, delta, cdiva, dist_min/2, PBC)
     pos_out, _ = process_positions(center_ref_list)
 
     references = extract_references("references.csv")
