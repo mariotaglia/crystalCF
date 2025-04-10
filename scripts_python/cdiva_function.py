@@ -70,5 +70,5 @@ def cdiva_calc(name,gamma):
 
     cdiva = c_fac/a_fac
     if cdiva > 2 or cdiva <= 0.5:
-        print(f"warning, cdiva<0.5 or cdiva>0.5 for gamma {gamma:.2f}")
+        print(f"warning, cdiva<0.5 or cdiva>2.0 for gamma {gamma:.2f}")
     return cdiva
