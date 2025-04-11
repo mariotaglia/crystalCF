@@ -77,14 +77,13 @@ def extract_params_init(params_init):
 
     while i < len(lines):
         line = lines[i].strip()
-
         if line == "!name":
             data["name"] = lines[i + 1].strip("\n")
             i += 1
         elif line == "!list gamma":
             data["gamma list"] = [float(x) for x in lines[i+1].strip("[]\n").split(",")]
             i += 1
-
+        i += 1
     return data
 
 ################### START ##################
