@@ -60,6 +60,12 @@ def run_process_final(gamma_list, name_bin):
             os.system("sbatch tosubmit.sh")
             time.sleep(0.01)
 
+def read_DEF(file_path):
+    """Extract the lines from DEF."""
+    with open(file_path, 'r') as f:
+        lines = f.readlines()
+    return lines
+
 def extract_params_init(params_init):
     data = {
         "name": None,
