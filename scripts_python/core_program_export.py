@@ -1,4 +1,5 @@
 import os
+import sys
 import subprocess
 import shutil
 import numpy as np
@@ -39,6 +40,29 @@ if os.path.isdir(f"results_{name_bin}"):
 os.makedirs(f"results_{name_bin}", exist_ok=True)
 final_output = os.path.join(dir_origin,f"results_{name_bin}")
 
+flag_reflexion = params_init["flag reflexion binary"]
+flag_reflexion_part = params_init["flag reflexion part"]
+k_aL = {"kx": 1,"ky": 1,"kz": 1}
+if flag_reflexion == True:
+	DEF = os.path.join(dir_inicial, "DEFINITIONS.txt")
+	lines = read_DEF(DEF)
+	for i, line in enumerate(lines):
+		PBC = []
+		for i, line in enumerate(lines):
+			if line.strip() == "!PBC PBC xmin xmax ymin ymax zmin zmax, 1=yes, 2=wall, 0=bulk":
+				PBC.append([float(x) for x in lines[i+1].split()[1:]])
+				break
+		PBC = PBC[0]
+		if PBC[0] != PBC[1] or PBC[2] != PBC[3] or PBC[4] != PBC[5]:
+			print("PBC bad entry error.")
+			sys.exit()
+		else:
+			for i, k in enumerate(k_aL):
+				if PBC[2*i] == 3:
+					k_aL[k] = 2
+				else:
+					k_aL[k] = 1
+
 ################## EXPORTACTION #############
 gamma_folder_list = ["{:.3f}".format(g).replace('.','_') for g in gamma_list]
 
@@ -66,15 +90,15 @@ while True:
 				output_file = os.path.join(output_folder, f"{name_bin}_results_{f_name}.csv")
 				DEF = os.path.join(os.getcwd(), "DEFINITIONS.txt")
 				R1_np, R2_np = extract_R_bin(DEF, n1*k_bin)
-				
+				R = {"part1": R1_np, "part2": R2_np}
 				gamma = float(gamma_folder.replace('_','.'))
 				aL = float(run_command(f"python3 {dir_script}/references/aL_estimate_bin.py {name_bin} {R1_np} {R2_np}"))
 				delta_dim_bin = [entry for entry in gamm_delta_dim if entry["gamma"] == gamma]
-				process_principal(output_file, delta_dim_bin, aL, f_name)
+				process_principal(output_file, name_bin, R, delta_dim_bin, aL, k_aL, f_name)
 				os.chdir(os.path.join(dir_origin,f"gamma_{gamma_folder}"))
 
 				output_file = os.path.join(output_folder, f"{name_bin}_references_{f_name}.csv")
-				process_reference_bin(output_file, dir_origin, f_name)
+				process_reference_bin(output_file, dir_origin, f_name, R)
 
 				dir_fuente = {"part1": os.path.join(dir_origin,"sim_part1"),"part2": os.path.join(os.getcwd(),"part2")}
 				for label in ["part1", "part2"]:
@@ -86,7 +110,10 @@ while True:
 						R_np = extract_R_part(DEF)
 						aL = float(run_command(f"python3 {dir_script}/references/aL_min_{label_struc}.py {R_np}"))
 						delta_list = delta_part[label_struc]
-						process_principal_part(output_file, label_struc, delta_list, aL, f_name)
+						k_aL_part = 1
+						if flag_reflexion_part == True:
+							k_aL_part = 2
+						process_principal_part(output_file, label_struc, R_np, delta_list, aL, k_aL_part, f_name)
 
 						os.chdir(os.path.join(dir_fuente[label], f"{label_struc}_ref"))
 						output_file = os.path.join(output_folder, f"{label}_references_{f_name}.csv")

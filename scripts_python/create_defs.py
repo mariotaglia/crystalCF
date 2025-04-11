@@ -8,21 +8,21 @@ from collections import defaultdict
 from transform_refs import calculate_center_ref, process_positions
 from function import run_command, read_DEF, write_DEF, extract_references, extract_definitions, generate_references_csv
 
-def process_principal_binario(reference_DEF, name_bin, delta_dim_bin, aL, n_k_bin, tosubmit, dir_fuente, flag_reflexion):
+def process_principal_binario(reference_DEF, name_bin, delta_dim_bin, aL, n_k_bin, tosubmit, dir_fuente, k_aL):
     structure = os.getcwd()
     DEF =  os.path.join(structure, "DEFINITIONS.txt")
     lines = read_DEF(DEF)
 
     delta_list = sorted({entry["delta"] for entry in delta_dim_bin if entry["delta"] is not None})
     for delta in delta_list:
-        round_value = int(np.round(float(aL) / float(delta)))
+        round_value = int(np.round(float(aL/k_aL["kx"]) / float(delta)))
         dims = []
         dims_sum_bin = [entry["dim"] for entry in delta_dim_bin if entry["delta"] == delta][0]
         for sum_dim in dims_sum_bin:
             dims.append(round_value + int(sum_dim))
         delta_folder = str(delta).replace('.','_')
         for dim in dims:
-            folder_name = f"delta_{delta_folder}_dim_{dim}"
+            folder_name = f'delta_{delta_folder}_dim_{dim}'
             os.makedirs(folder_name, exist_ok=True)
             os.chdir(folder_name)
             
@@ -39,21 +39,21 @@ def process_principal_binario(reference_DEF, name_bin, delta_dim_bin, aL, n_k_bi
                 content = file.read()
             
             k = 1
-            if name_bin == 'MgZn2' and flag_reflexion == False:
+            if name_bin == 'MgZn2':
                 k = 2
 
-            content = content.replace("dimx _DIM_", f'dimx {str(dim)}').replace("dimy _DIM_", f'dimy {str(dim)}')
-            content = content.replace("dimz _DIM_", f'dimz {str(dim*k)}').replace("_delta_", str(delta))
+            content = content.replace("dimx _DIM_", f'dimx {str(dim)}').replace("dimy _DIM_", f'dimy {str(int(dim*k_aL["kx"]/k_aL["ky"]))}')
+            content = content.replace("dimz _DIM_", f'dimz {str(int(dim*k*k_aL["kx"]/k_aL["kz"]))}').replace("_delta_", str(delta))
 
             write_DEF("DEFINITIONS.txt", content)
             lines = read_DEF("DEFINITIONS.txt")
             dir_origen = os.path.abspath(os.path.join(dir_fuente, os.pardir))
             output_DEF_ref = {"part1": os.path.join(dir_origen,"sim_part1","binary_ref","part1"),"part2": os.path.join(dir_fuente,"binary_ref","part2")}
-            process_secundario_binario(lines, name_bin, output_DEF_ref, delta, dim, n_k_bin, dir_fuente, delta_list)
+            process_secundario_binario(lines, name_bin, output_DEF_ref, int(dim*k_aL["kx"]), n_k_bin, dir_fuente, delta_list, k_aL)
             os.chdir(dir_fuente)
             os.chdir(structure)
 
-def process_secundario_binario(lines, name_bin, output_folder, delta, dim, n_k_bin, dir_fuente, delta_bin):
+def process_secundario_binario(lines, name_bin, output_folder, dim, n_k_bin, dir_fuente, delta_bin, k_aL):
     n1_k_bin = n_k_bin["part1"]; n2_k_bin = n_k_bin["part2"]
     sections_info = [
         ("! number of particles", 1, 1),
@@ -118,7 +118,7 @@ def process_secundario_binario(lines, name_bin, output_folder, delta, dim, n_k_b
         if N_ref%2 == 0:
             N_ref += 1
 
-        center_ref_list = calculate_center_ref(N_ref, centers, dimx, dimy, dimz, delta, cdiva, dist_min/2, PBC)
+        center_ref_list = calculate_center_ref(N_ref, centers, dimx, dimy, dimz, delta, cdiva, PBC)
         pos_out, _ = process_positions(center_ref_list)
 
         references = extract_references("references.csv")
@@ -132,14 +132,14 @@ def process_secundario_binario(lines, name_bin, output_folder, delta, dim, n_k_b
         new_lines = []
         for line in lines:
             if line.startswith("dimx"):
-                new_lines.append(f"dimx {N_ref}\n")
+                new_lines.append(f"dimx {int(N_ref/k_aL["kx"])}\n")
             elif line.startswith("dimy"):
-                new_lines.append(f"dimy {N_ref}\n")
+                new_lines.append(f"dimy {int(N_ref/k_aL["ky"])}\n")
             elif line.startswith("dimz"):
                 k = 1
                 if name_bin == 'MgZn2':
                     k = 2
-                new_lines.append(f"dimz {N_ref*k}\n")
+                new_lines.append(f"dimz {int(N_ref*k/k_aL["kz"])}\n")
             elif line.startswith("delta"):
                 new_lines.append("delta _delta_\n")
             else:
@@ -147,7 +147,7 @@ def process_secundario_binario(lines, name_bin, output_folder, delta, dim, n_k_b
         
         with open(def_ref_path, "w") as file:
             file.writelines(new_lines)
-        generate_references_csv(references, os.getcwd(), delta, dim, label)
+        generate_references_csv(references, os.getcwd(), delta, R, dimx, dimy, dimz, label, name_bin, k_aL)
 
 def process_terciario_binario(output_folder, name_bin, references, tosubmit, dir_fuente, n_k_bin):
     '''
@@ -157,10 +157,10 @@ def process_terciario_binario(output_folder, name_bin, references, tosubmit, dir
     delta_map = defaultdict(lambda: defaultdict(set))
     for reference in references:
         label = reference[0]
-        pos_tuple = (reference[2], reference[3], reference[4])  # Tupla única de posiciones
-        delta = str(reference[5]).replace('.', '_')  # Formato correcto de delta
-        dim = reference[6]  # Dimensión
-        key = reference[7] 
+        pos_tuple = (reference[3], reference[4], reference[5])  # Tupla única de posiciones
+        delta = str(reference[6]).replace('.', '_')  # Formato correcto de delta
+        dim = reference[7]  # Dimensión
+        key = reference[-1] 
         delta_map[(label, delta)][pos_tuple].add(key)
 
     # Segunda fase: creación de carpetas y archivos

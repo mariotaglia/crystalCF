@@ -1,0 +1,118 @@
+!!!! GENERAL OPTIONS !!!
+
+! stdout to file
+stdout 6
+! random grafting density
+sigmar 0.0
+!seed
+seed 938121
+seed_lig 14258825
+
+!!! SCAN !!!
+
+!infile
+infile 0
+!what to scan: 1, solvent volume fraction or chemical potential, use kp and flagmu
+!2, attraction strength st. If 1 then the system will use the first st value.
+vscan 2
+
+! flagmu, set = 1 for solvent chemical potential scan or = 0 for solvent volume fraction scan
+flagmu 1
+
+! scan of chemical pot/volume fraction, format: ini step last
+nkp -35.0 0.01 -35.0
+
+!hydroph: list values of st, if vcan = 1, only the first value is used
+nst 1
+0.5019
+
+!!! OUTPUT !!!
+
+!save vtk?
+vtkflag 1
+
+! supercell
+scx 1
+scy 1
+scz 1
+
+!!! CHAIN PROPERTIES !!!
+
+!gauche energy
+benergy -0.65
+
+! xu cut off
+Xucutoff 2.0
+
+!properties of ligand chains
+long 12
+cuantas 100000
+
+! segment lengths
+lseg 0.154
+lsegkai 0.4
+
+! properties of solvent chains
+longsv 6
+cuantassv 100
+
+!readchains, -1: save chains, 1: load chains
+readchains 0
+
+! branched chains=
+branched 0
+
+!randominput, not in use
+randominput 0
+
+!volume
+vsol 0.008
+
+!!! UNIT CELL !!!
+!system size
+dimx _DIM_
+dimy _DIM_
+dimz _DIM_
+
+delta _delta_
+
+dx 0.0
+dy 0.0
+dz 0.0
+
+transform_type 1
+!cdiva
+1
+!gama
+90.0
+
+!PBC PBC xmin xmax ymin ymax zmin zmax, 1=yes, 2=wall, 0=bulk
+PBC 3 3 3 3 3 3
+
+! coordinate_system: 1: real coordinates in nm, 2: fractional coordinates
+coordinate_system 2
+
+!systemtype
+systemtype 1
+! number of particles
+2
+!Center
+0.0 0.0 0.0
+1.0 1.0 1.0
+!particle semiaxis x y z in nm
+2.0 2.0 2.0
+0.8 0.8 0.8
+! Rotation
+1.0 0.0 0.0
+0.0 1.0 0.0
+0.0 0.0 1.0
+1.0 0.0 0.0
+0.0 1.0 0.0
+0.0 0.0 1.0
+! coverage
+5.85
+5.85
+!Surface-polymer atraction
+0.0
+0.0
+

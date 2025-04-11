@@ -32,7 +32,7 @@ def extract_params_init(params_init):
         "cell part": [], "list delta part": {}, "num cell part": {},
         "num cell bin": None, "aL cell bin factor": None, 
         "aL cell part factor": {}, "flag generate energy vs aL curves": None,
-        "flag reflexion": None, "PBC": []
+        "flag reflexion binary": None, "flag reflexion part": None, "PBC": []
     }
 
     lines = read_DEF(params_init)
@@ -143,20 +143,31 @@ def extract_params_init(params_init):
             else:
                 data["flag generate energy vs aL curves"] = False
             i += 1
-        elif line == "!flag use reflexion planes":
+        elif line == "!flag use reflexion planes binary":
             value = lines[i + 1].strip("\n")
             if value == "True":
-                data["flag reflexion"] = True
+                data["flag reflexion binary"] = True
             else:
-                data["flag reflexion"] = False
+                data["flag reflexion binary"] = False
+            i += 1
+        elif line == "!flag use reflexion planes part":
+            value = lines[i + 1].strip("\n")
+            if value == "True":
+                data["flag reflexion part"] = True
+            else:
+                data["flag reflexion part"] = False
             i += 1
 
         i += 1
 
-    if data["flag reflexion"] == True:
+    if data["flag reflexion binary"] == True:
         if data["name"] == "MgZn2":
             data["n1"] = 2
             data["n2"] = 7
+            data["num cell bin"] = 1
+        elif data["name"] == "NaCl" or data["name"] == "CsCl":
+            data["n1"] = 2
+            data["n2"] = 2
             data["num cell bin"] = 1
 
     return data
@@ -330,7 +341,7 @@ def update_R1(DEF, n1_k_bin, R1):
     write_DEF(DEF, lines)
     shutil.copy(DEF, os.path.join(os.getcwd(), "DEFINITIONS_backup.txt"))
 
-def generate_references_csv(references, output_folder, delta_value, dim_value, label):
+def generate_references_csv(references, output_folder, delta_value, R, dimx, dimy, dimz, label, name_bin, k_aL):
     references_path = os.path.join(output_folder, "tot_references.csv")
     existing_rows = []  # Lista para mantener el orden y evitar duplicados
 
@@ -344,10 +355,10 @@ def generate_references_csv(references, output_folder, delta_value, dim_value, l
     new_rows = []
 
     for row in references[1:]:
-        pos_tuple = tuple(np.round(float(val), 15) for val in row[1:4])
-        key_value = f'key_{hashlib.md5(f"{pos_tuple}".encode()).hexdigest()[:8]}'
-        new_row = tuple([label] + row + [delta_value, dim_value, key_value])
-
+        pos_tuple = tuple(f"{float(val):.10f}" for val in row[1:4])
+        hash_input = ",".join(pos_tuple)
+        key_value = f"key_{hashlib.md5(hash_input.encode()).hexdigest()[:8]}"
+        new_row = tuple([label, R] + row + [delta_value, dimx, dimy, dimz , key_value])
         if new_row not in existing_rows:  # Solo agregar si la fila no existe
             new_rows.append(new_row)
             existing_rows.append(new_row)  # Agregarla a la lista de comparación
@@ -359,7 +370,7 @@ def generate_references_csv(references, output_folder, delta_value, dim_value, l
             writer = csv.writer(file)
 
             if not file_exists:  # Si el archivo no existía, escribir la cabecera
-                writer.writerow(['#part'] + references[0] + ['delta', 'dim', 'key'])
+                writer.writerow(['#part', 'radius [nm]'] + references[0] + ['delta', 'dimx', 'dimy', 'dimz', 'key'])
 
             writer.writerows(new_rows)  # Escribir solo las nuevas filas
 
@@ -419,9 +430,9 @@ def join_F_csv(folder, name, bin_true):
     df_combined = pd.concat(data_dict.values(), axis=1, join='outer')
     # Crear la fila extra con los nombres de f_name en la posición correcta
     if bin_true == True:
-        header_row = ["", ""] + [f"{f_name}" for f_name in data_dict.keys()]  # El encabezado con los nombres f_name
+        header_row = ["", "","", "", "", ""] + [f"{f_name}" for f_name in data_dict.keys()]  # El encabezado con los nombres f_name
     else:
-        header_row = ["", "", ""] + [f"{f_name}" for f_name in data_dict.keys()]  # El encabezado con los nombres f_name
+        header_row = ["", "", "","", "", ""] + [f"{f_name}" for f_name in data_dict.keys()]  # El encabezado con los nombres f_name
     
     df_header = pd.DataFrame([header_row], columns=df_combined.columns)
 
@@ -437,7 +448,6 @@ def join_F_csv_ref(folder, name):
     pattern = re.compile(rf"{name}_references_(.+)\.csv$")
 
     # Filtrar archivos que cumplen con el patrón
-    csv_DEFs = []
     csv_DEFs = [f for f in glob.glob(os.path.join(ruta_archivos, "*.csv")) if pattern.search(os.path.basename(f))]
 
     # Diccionario para almacenar los DataFrames y sus respectivos f_name
@@ -449,22 +459,20 @@ def join_F_csv_ref(folder, name):
         if not match:
             continue
         f_name = match.groups()
-
         # Cargar el CSV
         if i==0:
             df = pd.read_csv(file)
         else:
             df = pd.read_csv(file,usecols=["F_reference"])
-        df.rename(columns={"F_reference": f"{f_name}_reference"}, inplace=True)
 
+        df.rename(columns={"F_reference": f"{f_name}_reference"}, inplace=True)
         data_dict[f_name] = df
+
         os.remove(file)
 
     # Asegurar que todas las columnas de los DataFrames sean las mismas, llenando NaN si falta alguna
     df_combined = pd.concat(data_dict.values(), axis=1, join='outer')
-    # Crear la fila extra con los nombres de f_name en la posición correcta
-    header_row = ["", "", ""] + [f"{f_name}_reference" for f_name in data_dict.keys()]  # El encabezado con los nombres f_name
-
+    header_row = ["", "","", "", "", ""] + [f"{f_name}" for f_name in data_dict.keys()]  # El encabezado con los nombres f_name
     df_header = pd.DataFrame([header_row], columns=df_combined.columns)
 
     # Concatenar la fila extra antes del DataFrame combinado

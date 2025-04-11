@@ -44,5 +44,8 @@ bcc 1
 !flag generate energy vs aL curves
 True
 
-!flag use reflexion planes
+!flag use reflexion planes binary
+False
+
+!flag use reflexion planes part
 False

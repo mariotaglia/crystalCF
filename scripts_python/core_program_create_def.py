@@ -1,4 +1,5 @@
 import os
+import sys
 import shutil
 import csv
 import numpy as np
@@ -26,7 +27,8 @@ gamma_list = params_init['gamma list']
 gamm_delta_dim = params_init['list gamma delta sum dim']
 k_bin = params_init['num cell bin']
 n_k_bin = {"part1": n1*k_bin, "part2": n2*k_bin}
-flag_reflexion = params_init["flag reflexion"]
+flag_reflexion = params_init["flag reflexion binary"]
+flag_reflexion_part = params_init["flag reflexion part"]
 
 delta_part = params_init["list delta part"]
 cell_part = params_init["cell part"]
@@ -34,6 +36,32 @@ k_part = params_init["num cell part"]
 gamma_folder_list = ["{:.3f}".format(g).replace('.','_') for g in gamma_list]
 
 update_R1("DEFINITIONS.txt", n_k_bin["part1"], R1_np)
+DEF = os.path.join(dir_inicial, "DEFINITIONS.txt")
+lines = read_DEF(DEF)
+for i, line in enumerate(lines):
+	if line.strip() == "!seed":
+		size_index = i + 1
+		seed = lines[size_index]
+		seed_lig = lines[size_index + 1]
+		break
+
+k_aL = {"kx": 1,"ky": 1,"kz": 1}
+if flag_reflexion == True:
+	PBC = []
+	for i, line in enumerate(lines):
+		if line.strip() == "!PBC PBC xmin xmax ymin ymax zmin zmax, 1=yes, 2=wall, 0=bulk":
+			PBC.append([float(x) for x in lines[i+1].split()[1:]])
+			break
+	PBC = PBC[0]
+	if PBC[0] != PBC[1] or PBC[2] != PBC[3] or PBC[4] != PBC[5]:
+		print("PBC bad entry error.")
+		sys.exit()
+	else:
+		for i, k in enumerate(k_aL):
+			if PBC[2*i] == 3:
+				k_aL[k] = 2
+			else:
+				k_aL[k] = 1
 
 for gamma_folder in gamma_folder_list:
 	os.makedirs(f'gamma_{gamma_folder}', exist_ok=True)
@@ -88,12 +116,15 @@ for gamma_folder in gamma_folder_list:
 
 	aL = float(run_command(f'python3 {dir_script}/references/aL_estimate_bin.py {name_bin} {R1_np} {R2_np}'))
 	delta_dim_bin = [entry for entry in gamm_delta_dim if entry["gamma"] == gamma]
-	process_principal_binario(DEF, name_bin, delta_dim_bin, aL, n_k_bin, tosubmit, dir_fuente, flag_reflexion)
+	process_principal_binario(DEF, name_bin, delta_dim_bin, aL, n_k_bin, tosubmit, dir_fuente, k_aL)
 	os.chdir(dir_fuente)
 
 	DEF_part = {}
 	for cell in cell_part:
-		DEF_part[cell] = os.path.join(dir_script,"references", f"DEFINITIONS_{cell}.txt")
+		if flag_reflexion_part == True:
+			DEF_part[cell] = os.path.join(dir_script,"references", f"DEFINITIONS_{cell}_reflex.txt")
+		else:
+			DEF_part[cell] = os.path.join(dir_script,"references", f"DEFINITIONS_{cell}.txt")
 	R_part = {"part1": R1_np, "part2": R2_np}
 	
 	if os.path.exists(os.path.join(dir_fuente,"part2")):
@@ -108,16 +139,25 @@ for gamma_folder in gamma_folder_list:
 				lines = read_DEF(DEF)
 				size_index = None
 				for i, line in enumerate(lines):
-					if line.strip() == "!particle semiaxis x y z in nm":
+					if line.strip() == "!seed":
 						size_index = i + 1
-				for n in np.arange(0,k_part[label_struc]):
-					lines[size_index + n] = f"{R_part[label]} {R_part[label]} {R_part[label]}\n"
+						lines[size_index] = seed
+						lines[size_index + 1] = seed_lig
+					elif line.strip() == "!particle semiaxis x y z in nm":
+						size_index = i + 1
+						for n in np.arange(0,k_part[label_struc]):
+							lines[size_index + n] = f"{R_part[label]} {R_part[label]} {R_part[label]}\n"
+						break
+
 				write_DEF(DEF, lines) 
 
 				DEF = os.path.join(os.getcwd(), "DEFINITIONS.txt")
 				R_np = extract_R_part(DEF)
 				aL = float(run_command(f'python3 {dir_script}/references/aL_min_{label_struc}.py {R_np}'))
-				process_principal_part(DEF, delta_part[label_struc], aL, tosubmit, dir_fuente[label])
+				k_aL_part = 1
+				if flag_reflexion_part == True:
+					k_aL_part = 2
+				process_principal_part(DEF, delta_part[label_struc], aL, tosubmit, dir_fuente[label], k_aL_part)
 
 import pandas as pd
 folder_ref = [os.path.join(dir_inicial,"sim_part1/binary_ref")]

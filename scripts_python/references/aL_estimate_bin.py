@@ -19,7 +19,7 @@ A_2 = 4*pi*R2**2
 l_pol = 12
 
 if name == "NaCl":
-	V_pol = 0.02325 #nm^3
+	V_pol = 0.0285 #nm^3
 	N1 = 2
 	N2 = 2
 elif name == "CsCl":
@@ -27,21 +27,30 @@ elif name == "CsCl":
 	N1 = 1
 	N2 = 1
 elif name == "MgZn2":
-	V_pol = 0.003
+	V_pol = 0.011
 	N1 = 4
 	N2 = 8
 
 elif name == "CaCu5":
-	V_pol = 0.015
+	V_pol = 0.031
 	N1 = 1
 	N2 = 5
 
 elif name == "AlB2":
-	V_pol = 0.017
+	V_pol = 0.035
 	N1 = 1
 	N2 = 2
 
-aL_min = (N1*Vol_NP_1+N1*sigma*A_1*V_pol*l_pol+ N2*Vol_NP_1+N2*sigma*A_2*V_pol*l_pol)**(1./3.)
+if name=="MgZn2":
+	if R2<R1/2:
+		V_pol = 0.013
+		Vol_NP_2 = pi*(4/3)*0.77**3
+		aL_min = (N1*Vol_NP_1+N1*sigma*A_1*V_pol*l_pol)**(1./3.)
+	else:
+		aL_min = (N1*Vol_NP_1+N1*sigma*A_1*V_pol*l_pol+ N2*Vol_NP_2+N2*sigma*A_2*V_pol*l_pol)**(1./3.)
+
+else:
+	aL_min = (N1*Vol_NP_1+N1*sigma*A_1*V_pol*l_pol+ N2*Vol_NP_2+N2*sigma*A_2*V_pol*l_pol)**(1./3.)
 
 def output():
 	print(str(aL_min))

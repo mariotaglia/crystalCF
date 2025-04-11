@@ -23,51 +23,30 @@ def z_center(center, Nref, delta, dimz, cdiva, aL):
     frac_ref_z = z_ref / (aL * cdiva)
     return frac_ref_z
 
-def keep_pos(center, Nref, delta, dim, cdiva, aL):
-    z_pos = center * delta * cdiva * dim
-    z0 = delta * cdiva * Nref
-    z_max = delta * cdiva * dim
-    if center < 0.5:
-        z_ref = z_pos
-    else:
-        z_ref = z0 - (z_max - z_pos)
-    frac_ref_z = z_ref / (aL * cdiva)
-    return frac_ref_z
-
-def calculate_center_ref(Nref, centers, dimx, dimy, dimz, delta, cdiva, radius_min, PBC):
+def calculate_center_ref(Nref, centers, dimx, dimy, dimz, delta, cdiva, PBC):
     aL = Nref * delta
-    frac_min = radius_min*1.10/delta
 
     center_ref_list = []
     for center in centers:
         if PBC[0] == 3 and PBC[1] == 3:
-            if center[0] < frac_min/dimx or center[0] > 1-frac_min/dimx:
-                if center[0] == 0 or center[0] == 1:
-                    frac_ref_x = center[0]
-                else:
-                    frac_ref_x = keep_pos(center[0], Nref, delta, dimx, 1.0, aL)
+            if center[0] == 0 or center[0] == 1:
+                frac_ref_x = center[0]
             else:
-                frac_ref_x = x_center(center[0], Nref, delta, dimx, aL)
+                frac_ref_x = x_center(center[1], Nref, delta, dimx, aL)
         else:
             frac_ref_x = x_center(center[0], Nref, delta, dimx, aL)
 
         if PBC[2] == 3 and PBC[3] == 3:
-            if center[1] < frac_min/dimy or center[1] > 1-frac_min/dimy:
-                if center[1] == 0 or center[1] == 1:
-                    frac_ref_y = center[1]
-                else:
-                    frac_ref_y = keep_pos(center[1], Nref, delta, dimy, 1.0, aL)
+            if center[1] == 0 or center[1] == 1:
+                frac_ref_y = center[1]
             else:
                 frac_ref_y = x_center(center[1], Nref, delta, dimy, aL)
         else:
             frac_ref_y = x_center(center[1], Nref, delta, dimy, aL)
         
         if PBC[4] == 3 and PBC[5] == 3:
-            if center[2] < frac_min/(dimz*cdiva) or center[2] > 1-frac_min/(dimz*cdiva):
-                if center[2] == 0 or center[2] == 1:
-                    frac_ref_z = center[2]
-                else:
-                    frac_ref_z = keep_pos(center[2], Nref, delta, dimz, cdiva, aL)
+            if center[2] == 0 or center[2] == 1:
+                frac_ref_z = center[2]
             else:
                 frac_ref_z = z_center(center[2], Nref, delta, dimz, cdiva, aL)
         else:
@@ -175,32 +154,3 @@ def extract_definitions(definitions_path):
 
         i += 1
     return data
-
-def main():
-    definitions_path = "DEFINITIONS.txt"
-    data = extract_definitions(definitions_path)
-
-    dimx = int(data.get("dimx"))
-    dimy = int(data.get("dimy"))
-    dimz = int(data.get("dimz"))
-    delta = float(data.get("delta"))
-    cdiva = float(data.get("cdiva"))
-    centers = data.get("centers", [])
-
-    center_ref_list = calculate_center_ref(centers, dimx, dimy, dimz, delta, cdiva)
-    pos_out, counts = process_positions(center_ref_list)
-
-    with open('references.csv', mode='w', newline='') as file:
-        writer = csv.writer(file)
-        
-        writer.writerow(["Count", "Pos 1", "Pos 2", "Pos 3"])
-        
-        for count, pos in zip(counts, pos_out):
-            writer.writerow([count] + pos)
-
-    print("pos_out:")
-    for pos in pos_out:
-        print(f"{pos[0]:.6f} {pos[1]:.6f} {pos[2]:.6f}")
-
-if __name__ == '__main__':
-    main()

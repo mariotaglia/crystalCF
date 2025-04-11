@@ -49,20 +49,21 @@ def extract_references(csv_path):
             references.append(row)
     return references
 
-def generate_references_part_csv(references, output_folder, delta_value, dim_value):
+def generate_references_part_csv(references, output_folder, R, delta_value, dimx, dimy, dimz, k_aL):
     references_path = os.path.join(output_folder, "tot_references.csv")
     if not os.path.exists(references_path):
         with open(references_path, mode='w', newline='') as file:
             writer = csv.writer(file)
-            writer.writerow(references[0] + ['delta', 'dim', 'key'])
+            writer.writerow(["radius [nm]"] + references[0] + ['delta', 'dimx','dimy','dimz', 'key'])
     
     with open(references_path, mode='a', newline='') as file:
         writer = csv.writer(file)
         for row in references[1:]:
-            pos_tuple = tuple(row[1:4])
-            key_value = f'key_{hashlib.md5(f"{pos_tuple}".encode()).hexdigest()[:8]}' 
+            pos_tuple = tuple(f"{float(val):.10f}" for val in row[1:4])
+            hash_input = ",".join(pos_tuple)
+            key_value = f"key_{hashlib.md5(hash_input.encode()).hexdigest()[:8]}"
             
-            writer.writerow(row + [delta_value, dim_value, key_value])
+            writer.writerow([R] + row + [delta_value, dimx, dimy, dimz, key_value])
 
 def path_carpeta(folder_init,n):
     x = os.path.dirname(folder_init)
@@ -70,13 +71,13 @@ def path_carpeta(folder_init,n):
         x = os.path.dirname(x)
     return x
 
-def process_principal_part(reference_DEF, delta_list, aL, tosubmit, dir_fuente):
+def process_principal_part(reference_DEF, delta_list, aL, tosubmit, dir_fuente, k_aL):
     structure = os.getcwd()
     DEF =  os.path.join(structure, "DEFINITIONS.txt")
     lines = read_DEF(DEF)
 
     for delta in delta_list:
-        round_value = int(np.round(float(aL) / float(delta)))
+        round_value = int(np.round(float(aL/k_aL) / float(delta)))
         dims = [round_value - 1, round_value, round_value + 1]
         delta_folder = str(delta).replace('.','_')
         for j in dims:
@@ -100,11 +101,11 @@ def process_principal_part(reference_DEF, delta_list, aL, tosubmit, dir_fuente):
             lines = read_DEF("DEFINITIONS.txt")
 
             output_DEF_ref = os.path.join(dir_fuente,"binary_ref")
-            process_secundario_part(structure, j, dir_fuente, delta_list)
+            process_secundario_part(structure, j, dir_fuente, delta_list, k_aL)
             os.chdir(dir_fuente)
             os.chdir(structure)
 
-def process_secundario_part(struc, dim, dir_fuente_part, delta_list):
+def process_secundario_part(struc, dim, dir_fuente_part, delta_list, k_aL):
     data = extract_definitions("DEFINITIONS.txt")
     dimx = int(data.get("dimx"))
     dimy = int(data.get("dimy"))
@@ -118,11 +119,11 @@ def process_secundario_part(struc, dim, dir_fuente_part, delta_list):
     delta_min = np.min(delta_list)
     dist_min = (2*R+2*lseg*nseg)
     N_ref = np.round(dist_min*1.50/delta_min)
-    N_ref = int(N_ref)
+    N_ref = int(N_ref/k_aL)
     if N_ref%2 == 0:
         N_ref += 1
 
-    center_ref_list = calculate_center_ref(N_ref, centers, dimx, dimy, dimz, delta, cdiva, dist_min/2, PBC)
+    center_ref_list = calculate_center_ref(N_ref, centers, dimx, dimy, dimz, delta, cdiva, PBC)
     pos_out, _ = process_positions(center_ref_list)
 
     references = extract_references("references.csv")
@@ -147,7 +148,7 @@ def process_secundario_part(struc, dim, dir_fuente_part, delta_list):
     with open(def_ref_path, "w") as file:
         file.writelines(new_lines)
     os.chdir(os.path.join(dir_fuente_part, f"{struc}_ref"))
-    generate_references_part_csv(references, os.getcwd(), delta, dim)
+    generate_references_part_csv(references, os.getcwd(), R, delta, dimx, dimy, dimz, k_aL)
 
 def process_terciario_part(output_folder, references, DEF, tosubmit):
     delta_map = defaultdict(lambda: defaultdict(set))
@@ -155,10 +156,9 @@ def process_terciario_part(output_folder, references, DEF, tosubmit):
 
     # Agrupar referencias por delta, dimensiones y posiciones únicas
     for reference in references:
-        pos_tuple = (reference[1], reference[2], reference[3])  # Tupla única de posiciones
-        delta = str(reference[4]).replace('.', '_')  # Formato correcto de delta
-        dim = reference[5]  # Dimensión
-        key = reference[6]
+        pos_tuple = (reference[2], reference[3], reference[4]) 
+        delta = str(reference[5]).replace('.', '_') 
+        key = reference[-1]
         delta_map[delta][pos_tuple].add(key)
 
     # Segunda fase: creación de carpetas y archivos
@@ -194,9 +194,9 @@ def process_terciario_part(output_folder, references, DEF, tosubmit):
 
             with open(DEF_ref, "r") as file:
                 content = file.read()
-            k = 1
+
             content = content.replace("dimx _DIM_", f'dimx {str(N_ref)}').replace("dimy _DIM_", f'dimy {str(N_ref)}')
-            content = content.replace("dimz _DIM_", f'dimz {str(N_ref*k)}').replace("_delta_", str(delta_num))
+            content = content.replace("dimz _DIM_", f'dimz {str(N_ref)}').replace("_delta_", str(delta_num))
 
             with open(os.path.join(key_folder, "DEFINITIONS.txt"), "w") as file:
                 file.write(content)

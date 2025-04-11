@@ -1,7 +1,6 @@
 import os
 import subprocess
 import time
-from function import extract_params_init
 
 def editar_tosubmit(base_path, name_bin, gamma):
     tosubmit_path = os.path.join(base_path, 'tosubmit.sh')
@@ -37,7 +36,6 @@ def run_process_final(gamma_list, name_bin):
 
     for root, _, files in search_path:
         if 'tosubmit.sh' in files:
-            print(root)
             paths.append(root)
 
     for dir1 in paths:
@@ -54,7 +52,6 @@ def run_process_final(gamma_list, name_bin):
 
         for root, _, files in search_path:
             if 'tosubmit.sh' in files:
-                print(root)
                 paths.append(root)
 
         for dir1 in paths:
@@ -62,6 +59,27 @@ def run_process_final(gamma_list, name_bin):
             os.chdir(dir1)
             os.system("sbatch tosubmit.sh")
             time.sleep(0.01)
+
+def extract_params_init(params_init):
+    data = {
+        "name": None,
+        "gamma list": []
+    }
+
+    lines = read_DEF(params_init)
+    i = 0
+
+    while i < len(lines):
+        line = lines[i].strip()
+
+        if line == "!name":
+            data["name"] = lines[i + 1].strip("\n")
+            i += 1
+        elif line == "!list gamma":
+            data["gamma list"] = [float(x) for x in lines[i+1].strip("[]\n").split(",")]
+            i += 1
+
+    return data
 
 ################### START ##################
 dir_origin = os.getcwd()

@@ -19,7 +19,7 @@ def estimate_part_F(part, part_cell, factor_aL_part, ni, k_part, n1, n2, gen_cur
     data_part = pd.read_csv(csv_file[0], skiprows=0)
     data_part_ref = pd.read_csv(csv_file[1], skiprows=0)
     data_part_cell = data_part[data_part["cell"] == part_cell].copy()
-    data_part_cell['aL'] = data_part_cell['delta'] * data_part_cell['dim'] *factor_aL_part
+    data_part_cell['aL'] = data_part_cell['delta'] * data_part_cell['dimx'] *factor_aL_part
     data_part_cell['aL'] = data_part_cell['aL'].round(4) #needed to calculate mean.
     data_part_cell["F_norm"] = data_part_cell["F_tot_gcanon"] - data_part_ref["F_tot_gcanon_reference"]
     data_part_cell.sort_values(by='aL', inplace=True)
@@ -65,7 +65,7 @@ def estimate_part_contrib(part, part_cell, factor_aL_part, ni, k_part, n1, n2, F
         data_part_ref = pd.read_csv(csv_file [1], skiprows=0)
 
         data_part_cell = data_part[data_part["cell"] == part_cell].copy()
-        data_part_cell['aL'] = data_part_cell['delta'] * data_part_cell['dim'] * factor_aL_part
+        data_part_cell['aL'] = data_part_cell['delta'] * data_part_cell['dimx'] * factor_aL_part
         data_part_cell['aL'] = data_part_cell['aL'].round(4) #si no lo redondeo no puede promediar.
         data_part_cell["F_norm"] = data_part_cell[f_name] - data_part_ref[f"{f_name}_reference"]
         data_part_cell.sort_values(by='aL', inplace=True)
@@ -104,11 +104,11 @@ def estimate_bin_F(name, factor_bcell, k_bin, n1, n2, ax, gamma, gen_curves_flag
     for part in ["part1", "part2"]:
         data_bin_part = data_bin_ref[data_bin_ref["#part"] == part].copy()
         data_bin_part = data_bin_part.rename(columns={"F_tot_gcanon_reference": f"F_tot_gcanon_reference_{part}"})
-        data_bin = data_bin.merge(data_bin_part[['delta', 'dim', f'F_tot_gcanon_reference_{part}']], 
-                                  on=['delta', 'dim'], 
+        data_bin = data_bin.merge(data_bin_part[['delta', 'dimx', f'F_tot_gcanon_reference_{part}']], 
+                                  on=['delta', 'dimx'], 
                                   how='left')
         
-    data_bin['aL'] = (data_bin['delta'] * data_bin['dim'] * float(factor_bcell)).round(4)
+    data_bin['aL'] = (data_bin['delta'] * data_bin['dimx'] * float(factor_bcell)).round(4)
     data_bin["F_norm"] = data_bin["F_tot_gcanon"] - data_bin["F_tot_gcanon_reference_part1"] - data_bin["F_tot_gcanon_reference_part2"]
     data_bin.sort_values(by='aL', inplace=True)
 
@@ -156,11 +156,11 @@ def estimate_bin_contrib(name, factor_bin_cell, k_bin, n1, n2, F, aL_array, aL_m
         for part in ["part1", "part2"]:
             data_bin_part = data_bin_ref[data_bin_ref["#part"] == part].copy()
             data_bin_part = data_bin_part.rename(columns={f"{f_name}_reference": f"{f_name}_reference_{part}"})
-            data_bin = data_bin.merge(data_bin_part[['delta', 'dim', f"{f_name}_reference_{part}"]], 
-                                      on=['delta', 'dim'], 
+            data_bin = data_bin.merge(data_bin_part[['delta', 'dimx', f"{f_name}_reference_{part}"]], 
+                                      on=['delta', 'dimx'], 
                                       how='left')
 
-        data_bin['aL'] = (data_bin['delta'] * data_bin['dim'] * float(factor_bin_cell)).round(4)
+        data_bin['aL'] = (data_bin['delta'] * data_bin['dimx'] * float(factor_bin_cell)).round(4)
         data_bin["F_norm"] = data_bin[f_name] - data_bin[f"{f_name}_reference_part1"] - data_bin[f"{f_name}_reference_part2"]
 
         # Ordenar por 'aL'
