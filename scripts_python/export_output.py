@@ -72,7 +72,6 @@ def process_reference_bin(output_file, dir_inicial, F, R):
                 dim = match.group(2)
                 dim_validos.add((delta, dim, dim, dim))
 
-        print(dim_validos)
         # Leer el archivo de referencias y construir los mapas
         with open(references_file, "r", encoding="utf-8") as ref_file:
             reader = csv.reader(ref_file)
