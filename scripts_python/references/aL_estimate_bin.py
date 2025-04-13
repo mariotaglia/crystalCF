@@ -27,10 +27,9 @@ elif name == "CsCl":
 	N1 = 1
 	N2 = 1
 elif name == "MgZn2":
-	V_pol = 0.011
+	V_pol = 0.013
 	N1 = 4
 	N2 = 8
-
 elif name == "CaCu5":
 	V_pol = 0.031
 	N1 = 1
@@ -42,12 +41,19 @@ elif name == "AlB2":
 	N2 = 2
 
 if name=="MgZn2":
-	if R2<R1/2:
-		V_pol = 0.013
-		Vol_NP_2 = pi*(4/3)*0.77**3
-		aL_min = (N1*Vol_NP_1+N1*sigma*A_1*V_pol*l_pol)**(1./3.)
+	if R2<=R1*1.12/2:
+		R = R1*0.88/2
+		V_pol = 0.014
+		A_2 = 4*pi*R**2
+		Vol_NP_2 = pi*(4./3.)*R**3
+
+	elif R2<=R1*1.48/2:
+		V_pol = 0.0115
+
 	else:
-		aL_min = (N1*Vol_NP_1+N1*sigma*A_1*V_pol*l_pol+ N2*Vol_NP_2+N2*sigma*A_2*V_pol*l_pol)**(1./3.)
+		V_pol = 0.010
+
+	aL_min = (N1*Vol_NP_1+N1*sigma*A_1*V_pol*l_pol+ N2*Vol_NP_2+N2*sigma*A_2*V_pol*l_pol)**(1./3.)
 
 else:
 	aL_min = (N1*Vol_NP_1+N1*sigma*A_1*V_pol*l_pol+ N2*Vol_NP_2+N2*sigma*A_2*V_pol*l_pol)**(1./3.)

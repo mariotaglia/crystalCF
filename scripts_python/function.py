@@ -251,7 +251,7 @@ def path_carpeta(folder_init,n):
         x = os.path.dirname(x)
     return x
 
-def extract_R_bin(definitions_path, n1_k_bin):
+def extract_R_bin(definitions_path):
     R1_np, R2_np = None, None
     lines = read_DEF(definitions_path)
     size_index = None
@@ -262,9 +262,13 @@ def extract_R_bin(definitions_path, n1_k_bin):
 
     if size_index is not None:
         try:
-            # Extraer solo el primer valor de cada línea, por ejemplo, '2.0' de '2.0 2.0 2.0'
-            R1_np = float(lines[size_index].split()[0])  # Tomar el primer valor de la línea
-            R2_np = float(lines[size_index + n1_k_bin].split()[0])  # Tomar el primer valor de la línea
+            R1_np = float(lines[size_index].split()[0]) 
+            j = 0
+            while R2_np == None:
+                if float(lines[size_index+ j].split()[0]) != R1_np:
+                    R2_np = float(lines[size_index + j].split()[0])
+                j += 1
+
         except (ValueError, IndexError):
             print("Error al leer o actualizar los tamaños de las partículas.")
     

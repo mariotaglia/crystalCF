@@ -21,11 +21,34 @@ dir_script = os.path.expanduser("~/develop/crystalCF/scripts_python")
 
 params_init = extract_params_init('init_params.txt')
 name_bin = params_init['name']
-n1 = params_init['n1']; n2 = params_init['n2']
-n = {"part1": n1, "part2": n2}
 
+flag_reflexion = params_init["flag reflexion binary"]
+flag_reflexion_part = params_init["flag reflexion part"]
+
+if flag_reflexion == True:
+	if name_bin == "NaCl" or name_bin == "CsCl":
+		lines = read_DEF('init_params.txt')
+		i = 0
+		data = {"n1": None, "n2": None, "R1": None, "num cell bin": None}
+
+		while i < len(lines):
+			line = lines[i].strip()
+			if line.startswith(("n1", "n2")):
+				key, value = line.split()
+				data[key] = int(value)
+			elif line == "!num cell bin":
+				data["num cell bin"] = int(lines[i+1].split()[1])
+				i += 1
+			i += 1
+		n1 = data["n1"]; n2 = data["n2"]; k_bin = data['num cell bin']
+
+else: 
+	n1 = params_init['n1']; n2 = params_init['n2']
+	k_bin = params_init['num cell bin']
+
+n = {"part1": n1, "part2": n2}
 gamma_list = params_init['gamma list']
-k_bin = params_init['num cell bin']
+
 gamm_delta_dim = params_init['list gamma delta sum dim']
 factor_aL_bin = params_init['aL cell bin factor']
 
@@ -40,11 +63,10 @@ if os.path.isdir(f"results_{name_bin}"):
 os.makedirs(f"results_{name_bin}", exist_ok=True)
 final_output = os.path.join(dir_origin,f"results_{name_bin}")
 
-flag_reflexion = params_init["flag reflexion binary"]
-flag_reflexion_part = params_init["flag reflexion part"]
+
 k_aL = {"kx": 1,"ky": 1,"kz": 1}
 if flag_reflexion == True:
-	DEF = os.path.join(dir_inicial, "DEFINITIONS.txt")
+	DEF = os.path.join(dir_origin, "DEFINITIONS.txt")
 	lines = read_DEF(DEF)
 	for i, line in enumerate(lines):
 		PBC = []
@@ -89,7 +111,7 @@ while True:
 				os.chdir("binary")
 				output_file = os.path.join(output_folder, f"{name_bin}_results_{f_name}.csv")
 				DEF = os.path.join(os.getcwd(), "DEFINITIONS.txt")
-				R1_np, R2_np = extract_R_bin(DEF, n1*k_bin)
+				R1_np, R2_np = extract_R_bin(DEF)
 				R = {"part1": R1_np, "part2": R2_np}
 				gamma = float(gamma_folder.replace('_','.'))
 				aL = float(run_command(f"python3 {dir_script}/references/aL_estimate_bin.py {name_bin} {R1_np} {R2_np}"))
@@ -148,6 +170,7 @@ for gamma_folder in gamma_folder_list:
 	dir_fuente = os.getcwd()
 	DEF = os.path.join(dir_fuente,'binary','DEFINITIONS.txt')
 	lines = read_DEF(DEF)
+	R1_np, R2_np = extract_R_bin(DEF)
 	size_index = None
 	for i, line in enumerate(lines):
 		if line.strip() == "!properties of ligand chains":
@@ -160,11 +183,6 @@ for gamma_folder in gamma_folder_list:
 		if line.startswith("!volume"):
 			size_index = i+1
 			vsol = float(lines[size_index].split()[1])
-		if line.strip() == "!particle semiaxis x y z in nm":
-			size_index = i + 1
-			R1_np = float(lines[size_index].split()[0])  # Tomar el primer valor de la línea
-			R2_np = float(lines[size_index + n1].split()[0])  # Tomar el primer valor de la línea 
-			size_index = None
 
 	gamma =  gamma_calc(DEF, n1*k_bin)
 	R = {"part1": R1_np, "part2": R2_np}
@@ -176,40 +194,38 @@ for gamma_folder in gamma_folder_list:
 	dict_contrib = {key: [] for key in keys_list}
 	dict_delta = {"#part": [],"cell": [], "aL_min": [], "ΔU_min": [], "-ΔST_min": [], "ΔF_min": []}
 
+	k_aL_part = 1
+	if flag_reflexion_part == True:
+		k_aL_part = 2
 	for part in ["part1", "part2"]:
 		result_cell = []
 		for i, cell in enumerate(cell_part):
-			result_cell = estimate_part_F(part, cell, factor_aL_part[cell], n[part], k_part[cell], n1, n2, gen_curves_flag)
+			result_cell = estimate_part_F(part, cell, factor_aL_part[cell], n[part], k_part[cell], n1, n2, gen_curves_flag, k_aL_part)
 			aL_min = result_cell[0]
 			F_part = result_cell[1]
 			aL_array = result_cell[2]
-			U = estimate_part_contrib(part, cell, factor_aL_part[cell], n[part], k_part[cell], n1, n2, F_U, aL_array, aL_min, gen_curves_flag)
-			S = estimate_part_contrib(part, cell, factor_aL_part[cell], n[part], k_part[cell], n1, n2, F_ST, aL_array, aL_min, gen_curves_flag)
+			U = estimate_part_contrib(part, cell, factor_aL_part[cell], n[part], k_part[cell], n1, n2, F_U, aL_array, aL_min, gen_curves_flag, k_aL_part)
+			S = estimate_part_contrib(part, cell, factor_aL_part[cell], n[part], k_part[cell], n1, n2, F_ST, aL_array, aL_min, gen_curves_flag, k_aL_part)
 
-			dict_delta["#part"].append(part)
-			dict_delta["cell"].append(cell)
-			dict_delta["aL_min"].append(aL_min)
-			dict_delta["ΔU_min"].append(U)
-			dict_delta["-ΔST_min"].append(S)
-			dict_delta["ΔF_min"].append(F_part)
+			for i,key in enumerate(dict_delta):
+				list = [part,cell,aL_min,U,S,F_part]
+				dict_delta[key].append(list[i])
 
-	result_bin = estimate_bin_F(name_bin, factor_aL_bin, k_bin, n1, n2, ax1, np.round(gamma,2), gen_curves_flag)
+	result_bin = estimate_bin_F(name_bin, factor_aL_bin, k_bin, n1, n2, ax1, np.round(gamma,2), gen_curves_flag, k_aL)
 	aL_min = result_bin[0]
 	F_bin = result_bin[1]
 	aL_array = result_bin[2]
 
-	U_bin = estimate_bin_contrib(name_bin, factor_aL_bin, k_bin, n1, n2, F_U, aL_array, aL_min, ax2, np.round(gamma,2), gen_curves_flag)
-	S_bin = estimate_bin_contrib(name_bin, factor_aL_bin, k_bin, n1, n2, F_ST, aL_array, aL_min, ax3, np.round(gamma,2), gen_curves_flag)
+	U_bin = estimate_bin_contrib(name_bin, factor_aL_bin, k_bin, n1, n2, F_U, aL_array, aL_min, ax2, np.round(gamma,2), gen_curves_flag, k_aL)
+	S_bin = estimate_bin_contrib(name_bin, factor_aL_bin, k_bin, n1, n2, F_ST, aL_array, aL_min, ax3, np.round(gamma,2), gen_curves_flag, k_aL)
 
-	for key in dict_delta:
-		dict_delta[key].append("")
+	for i,key in enumerate(dict_delta):
+		list = ["R2 [nm]", R2_np, "", "", "", ""]
+		dict_delta[key].append(list[i])
 
-	dict_delta["#part"].append("binary")
-	dict_delta["cell"].append(name_bin)
-	dict_delta["aL_min"].append(aL_min)
-	dict_delta["ΔU_min"].append(U_bin)
-	dict_delta["-ΔST_min"].append(S_bin)
-	dict_delta["ΔF_min"].append(F_bin)
+	for i,key in enumerate(dict_delta):
+		list = ["binary",name_bin,aL_min,U_bin,S_bin,F_bin]
+		dict_delta[key].append(list[i])
 
 	for key in dict_delta:
 		dict_delta[key].append("")
@@ -218,12 +234,10 @@ for gamma_folder in gamma_folder_list:
 	DF = result[0]
 	DU = delta_energy_US(dict_delta, "ΔU", cell_min=result[1], n1=n1, n2=n2)
 	DS = delta_energy_US(dict_delta, "-ΔST", cell_min=result[1], n1=n1, n2=n2)
-	dict_delta["#part"].append("gamma")
-	dict_delta["cell"].append(gamma)
-	dict_delta["aL_min"].append("Global")
-	dict_delta["ΔU_min"].append(DU)
-	dict_delta["-ΔST_min"].append(DS)
-	dict_delta["ΔF_min"].append(DF)
+	
+	for i,key in enumerate(dict_delta):
+		list = ["gamma",gamma,"Global X",DU,DS,DF]
+		dict_delta[key].append(list[i])
 
 	df_delta = pd.DataFrame.from_dict(dict_delta)
 
@@ -265,14 +279,14 @@ for gamma_folder in gamma_folder_list:
 	for j, name in enumerate(["part1", "part2", "binary", "Global"]):
 		if j<3:
 			values = df.loc[df["#part"] == name, ["ΔU_min", "-ΔST_min", "ΔF_min"]]
-			gamma = df.loc[df["aL_min"] == "Global", ["cell"]].iloc[0]
+			gamma = df.loc[df["aL_min"] == "Global X", ["cell"]].iloc[0]
 			if name != "binary":
 				DU, DS, DF = values.sort_values(by="ΔF_min").iloc[0]
 			else:
 				DU, DS, DF = values.iloc[0]
 
 		elif j == 3:
-			values = df.loc[df["aL_min"] == "Global", ["cell", "ΔU_min", "-ΔST_min", "ΔF_min"]]
+			values = df.loc[df["aL_min"] == "Global X", ["cell", "ΔU_min", "-ΔST_min", "ΔF_min"]]
 			gamma, DU, DS, DF = values.iloc[0]
 		
 		DU_values[j].append(DU)
