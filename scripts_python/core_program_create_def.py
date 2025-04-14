@@ -112,7 +112,7 @@ for gamma_folder in gamma_folder_list:
 	DEF = os.path.join(os.getcwd(), "DEFINITIONS.txt")
 	R1_np, R2_np = extract_R_bin(DEF)
 
-	update_cdiva("DEFINITIONS.txt", name_bin, gamma_calc(DEF, n1*k_bin), flag_reflexion)
+	update_cdiva("DEFINITIONS.txt", name_bin, gamma_calc(DEF), flag_reflexion)
 
 	aL = float(run_command(f'python3 {dir_script}/references/aL_estimate_bin.py {name_bin} {R1_np} {R2_np}'))
 	delta_dim_bin = [entry for entry in gamm_delta_dim if entry["gamma"] == gamma]
