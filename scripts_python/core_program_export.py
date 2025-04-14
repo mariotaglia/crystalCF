@@ -184,7 +184,7 @@ for gamma_folder in gamma_folder_list:
 			size_index = i+1
 			vsol = float(lines[size_index].split()[1])
 
-	gamma =  gamma_calc(DEF, n1*k_bin)
+	gamma =  gamma_calc(DEF)
 	R = {"part1": R1_np, "part2": R2_np}
 	os.chdir("data_analysis")
 	df_delta = pd.DataFrame()

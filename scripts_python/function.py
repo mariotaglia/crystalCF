@@ -381,9 +381,10 @@ def generate_references_csv(references, output_folder, delta_value, R, dimx, dim
     return references_path
 
 
-def gamma_calc(definitions_path, n1):
+def gamma_calc(definitions_path):
     lines = read_DEF(definitions_path)
     size_index = None
+    R2_np = None
     for i, line in enumerate(lines):
         if line.strip() == "!properties of ligand chains":
             size_index = i+1
@@ -394,8 +395,12 @@ def gamma_calc(definitions_path, n1):
             lseg = float(lines[size_index].split()[1])
         if line.strip() == "!particle semiaxis x y z in nm":
             size_index = i + 1
-            R1_np = float(lines[size_index].split()[0])  # Tomar el primer valor de la línea
-            R2_np = float(lines[size_index + n1].split()[0])  # Tomar el primer valor de la línea 
+            R1_np = float(lines[size_index].split()[0])
+            j = 0
+            while R2_np == None:
+                if R1_np != float(lines[size_index + j].split()[0]):
+                    R2_np = float(lines[size_index + j].split()[0])
+                j += 1
             size_index = None
 
     lamda_fact = 2*lseg*n_seg

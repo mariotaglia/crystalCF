@@ -110,7 +110,7 @@ for gamma_folder in gamma_folder_list:
 
 	os.chdir("binary")
 	DEF = os.path.join(os.getcwd(), "DEFINITIONS.txt")
-	R1_np, R2_np = extract_R_bin(DEF, n1*k_bin)
+	R1_np, R2_np = extract_R_bin(DEF)
 
 	update_cdiva("DEFINITIONS.txt", name_bin, gamma_calc(DEF, n1*k_bin), flag_reflexion)
 
