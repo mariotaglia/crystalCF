@@ -13,6 +13,7 @@ def process_principal_binario(reference_DEF, name_bin, delta_dim_bin, aL, n_k_bi
     DEF =  os.path.join(structure, "DEFINITIONS.txt")
     lines = read_DEF(DEF)
     delta_list = sorted({entry["delta"] for entry in delta_dim_bin if entry["delta"] is not None})
+
     for delta in delta_list:
         round_value = int(np.round(float(aL/k_aL["kx"]) / float(delta)))
         dims = []

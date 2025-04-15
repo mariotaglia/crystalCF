@@ -69,11 +69,11 @@ def extract_params_init(params_init, cond):
                     gamma_value = float(parts[1])
                     if "delta" in parts[2]:
                         sum_dim_part, delta_part = parts[2].split("delta")
-                        sum_dim_values = [int(x) for x in sum_dim_part.strip("[] \n").replace(",", " ").split()]
+                        sum_dim_values = [int(x) for x in re.findall(r'\d+', parts[2])[:-2]]
                         delta_value = float(delta_part.strip())
                     else:
                         delta_value = None  # No hay delta explícito
-                        sum_dim_values = [int(x) for x in parts[2].strip("[]\n").replace(",", " ").split()]
+                        sum_dim_values = [int(x) for x in re.findall(r'\d+', parts[2])[:-2]]
                     
                     if delta_value is None:
                         for delta in delta_ref:
