@@ -25,7 +25,7 @@ def write_DEF(file_path, lines):
     with open(file_path, 'w') as f:
         f.writelines(lines)
         
-def extract_params_init(params_init):
+def extract_params_init(params_init, cond):
     data = {
         "name": None, "n1": None, "n2": None, "R1": None,
         "gamma list": [], "list delta bin": [], "list gamma delta sum dim": [],
@@ -160,7 +160,7 @@ def extract_params_init(params_init):
 
         i += 1
 
-    if data["flag reflexion binary"] == True:
+    if data["flag reflexion binary"] == True and cond == False:
         if data["name"] == "MgZn2":
             data["n1"] = 2
             data["n2"] = 7

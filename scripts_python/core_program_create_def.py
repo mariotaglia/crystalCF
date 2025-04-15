@@ -18,7 +18,7 @@ from create_defs import process_principal_binario, process_secundario_binario, p
 dir_inicial = os.getcwd()
 dir_script = os.path.expanduser("~/develop/crystalCF/scripts_python")
 
-params_init = extract_params_init('init_params.txt')
+params_init = extract_params_init('init_params.txt', False)
 name_bin = params_init['name']
 n1 = params_init['n1']; n2 = params_init['n2']
 R1_np = params_init['R1']

@@ -19,7 +19,7 @@ from calculate_energy import estimate_part_F, estimate_part_contrib, estimate_bi
 dir_origin= os.getcwd()
 dir_script = os.path.expanduser("~/develop/crystalCF/scripts_python")
 
-params_init = extract_params_init('init_params.txt')
+params_init = extract_params_init('init_params.txt', False)
 name_bin = params_init['name']
 
 flag_reflexion = params_init["flag reflexion binary"]
@@ -41,7 +41,9 @@ if flag_reflexion == True:
 				i += 1
 			i += 1
 		n1 = data["n1"]; n2 = data["n2"]; k_bin = data['num cell bin']
-
+	else:
+		n1 = params_init['n1']; n2 = params_init['n2']
+		k_bin = params_init['num cell bin']
 else: 
 	n1 = params_init['n1']; n2 = params_init['n2']
 	k_bin = params_init['num cell bin']
@@ -163,6 +165,11 @@ os.chdir(dir_origin)
 
 import matplotlib.pyplot as plt
 fig1, ax1 = plt.subplots(); fig2, ax2 = plt.subplots(); fig3, ax3 = plt.subplots()
+
+params_init = extract_params_init('init_params.txt', True)
+n1 = params_init['n1']; n2 = params_init['n2']
+k_bin = params_init['num cell bin']
+n = {"part1": n1, "part2": n2}
 
 for gamma_folder in gamma_folder_list:
 	os.chdir(dir_origin)
