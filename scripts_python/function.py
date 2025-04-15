@@ -169,6 +169,10 @@ def extract_params_init(params_init):
             data["n1"] = 2
             data["n2"] = 2
             data["num cell bin"] = 1
+        elif data["name"] == "Li3Bi":
+            data["n1"] = 4
+            data["n2"] = 5
+            data["num cell bin"] = 1
 
     return data
 
@@ -269,8 +273,8 @@ def extract_R_bin(definitions_path):
                     R2_np = float(lines[size_index + j].split()[0])
                 j += 1
 
-        except (ValueError, IndexError):
-            print("Error al leer o actualizar los tamaños de las partículas.")
+        except ValueError:
+            R2_np = R1_np
     
     return R1_np, R2_np
 
@@ -398,8 +402,11 @@ def gamma_calc(definitions_path):
             R1_np = float(lines[size_index].split()[0])
             j = 0
             while R2_np == None:
-                if R1_np != float(lines[size_index + j].split()[0]):
-                    R2_np = float(lines[size_index + j].split()[0])
+                try:
+                    if R1_np != float(lines[size_index + j].split()[0]):
+                        R2_np = float(lines[size_index + j].split()[0])
+                except ValueError:
+                    R2_np = R1_np
                 j += 1
             size_index = None
 

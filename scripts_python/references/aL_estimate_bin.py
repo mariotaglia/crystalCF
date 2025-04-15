@@ -40,6 +40,11 @@ elif name == "AlB2":
 	N1 = 1
 	N2 = 2
 
+elif name == "Li3Bi":
+	V_pol = 0.071
+	N1 = 2
+	N2 = 6
+
 if name=="MgZn2":
 	if R2<=R1*1.12/2:
 		R = R1*0.88/2
