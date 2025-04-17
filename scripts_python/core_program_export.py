@@ -314,7 +314,7 @@ ref_MD = pd.read_excel(os.path.join(dir_script,"references","ref_MD_backup.xlsx"
 ref_MD = ref_MD.loc[ref_MD.iloc[:, 0] == name_bin]
 gamma_MD = ref_MD[ref_MD.columns[1]]
 F_MD = ref_MD[ref_MD.columns[2:]]
-y_label = [r'$\Delta$U (k$_{\text{b}}$T)',r'$-T\Delta$S (k$_{\text{b}}$T)',r'$\Delta$F (k$_{\text{b}}$T)']
+y_label = [r'$\Delta$U (k$_{\text{B}}$T)',r'$-T\Delta$S (k$_{\text{B}}$T)',r'$\Delta$F (k$_{\text{B}}$T)']
 
 F_plot = [DU_values[3],DS_values[3],DF_values[3]]
 for i, (lista, F) in enumerate(zip(F_plot,["ΔU", "-TΔS", "ΔF"])):
@@ -371,7 +371,7 @@ if gen_curves_flag == True:
 		plt.xticks(fontsize=14)
 		plt.yticks(fontsize=14)
 		plt.xlim(min(gamma_value)-0.05,max(gamma_value)+0.05)
-		plt.ylabel(r'$\Delta$U (k$_{\text{b}}$T)',fontsize=18)
+		plt.ylabel(r'$\Delta$U (k$_{\text{B}}$T)',fontsize=18)
 		plt.xlabel(r'$\gamma$',fontsize=18)
 		plt.title(f"{name_bin}",fontsize=22,weight='bold')
 		plt.legend(fontsize=13)
@@ -386,7 +386,7 @@ if gen_curves_flag == True:
 		plt.xticks(fontsize=14)
 		plt.yticks(fontsize=14)
 		plt.xlim(min(gamma_value)-0.05,max(gamma_value)+0.05)
-		plt.ylabel(r'$-T\Delta$S (k$_{\text{b}}$T)',fontsize=18)
+		plt.ylabel(r'$-T\Delta$S (k$_{\text{B}}$T)',fontsize=18)
 		plt.xlabel(r'$\gamma$',fontsize=18)
 		plt.title(f"{name_bin}",fontsize=22,weight='bold')
 		plt.legend(fontsize=13)
@@ -401,7 +401,7 @@ for i in range(len(label)):
 	plt.xticks(fontsize=14)
 	plt.yticks(fontsize=14)
 	plt.xlim(min(gamma_value)-0.05,max(gamma_value)+0.05)
-	plt.ylabel(r'$\Delta$F (k$_{\text{b}}$T)',fontsize=18)
+	plt.ylabel(r'$\Delta$F (k$_{\text{B}}$T)',fontsize=18)
 	plt.xlabel(r'$\gamma$',fontsize=18)
 	plt.title(f"{name_bin}",fontsize=22,weight='bold')
 	plt.legend(fontsize=13)

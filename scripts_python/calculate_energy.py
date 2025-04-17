@@ -42,7 +42,7 @@ def estimate_part_F(part, part_cell, factor_aL_part, ni, k_part, n1, n2, gen_cur
         ax_sub.scatter(aL_cell, F_norm_cell/(n1+n2))
         ax_sub.plot(x_cell,y_cell/(n1+n2))
         ax_sub.set_xlabel(r'a$_{\text{L}}$',fontsize=14)
-        ax_sub.set_ylabel(r'$\Delta$F (k$_{\text{b}}$T)',fontsize=14)
+        ax_sub.set_ylabel(r'$\Delta$F (k$_{\text{B}}$T)',fontsize=14)
         ax_sub.axvline(aL_min_cell,ls='--',c='darkgray',zorder=-1)
         fig_sub.savefig(f"F_{part}_{part_cell}.png", format="png")
         plt.close(fig_sub)
@@ -50,7 +50,7 @@ def estimate_part_F(part, part_cell, factor_aL_part, ni, k_part, n1, n2, gen_cur
         fig_sub, ax_sub = plt.subplots()
         ax_sub.scatter(aL_cell, F_tot/(n1+n2))
         ax_sub.set_xlabel(r'a$_{\text{L}}$',fontsize=14)
-        ax_sub.set_ylabel(r'$\Delta$F (k$_{\text{b}}$T)',fontsize=14)
+        ax_sub.set_ylabel(r'$\Delta$F (k$_{\text{B}}$T)',fontsize=14)
         ax_sub.axvline(aL_min_cell,ls='--',c='darkgray',zorder=-1)
         fig_sub.savefig(f"F_without_ref_{part}_{part_cell}.png", format="png")
         plt.close(fig_sub)
@@ -88,10 +88,10 @@ def estimate_part_contrib(part, part_cell, factor_aL_part, ni, k_part, n1, n2, F
         ax_sub.axvline(aL_min,ls='--',c='darkgray',zorder=-1)
         ax_sub.set_xlabel(r'a$_{\text{L}}$',fontsize=14)
         if "F_trans" in F:
-            ax_sub.set_ylabel(r'$\Delta$U (k$_{\text{b}}$T)',fontsize=14)
+            ax_sub.set_ylabel(r'$\Delta$U (k$_{\text{B}}$T)',fontsize=14)
             fig_sub.savefig(f"U_{part}_{part_cell}.png", format="png")
         if "F_HS" in F:
-            ax_sub.set_ylabel(r'-T$\Delta$S (k$_{\text{b}}$T)',fontsize=14)
+            ax_sub.set_ylabel(r'-T$\Delta$S (k$_{\text{B}}$T)',fontsize=14)
             fig_sub.savefig(f"S_{part}_{part_cell}.png", format="png")
         plt.close(fig_sub)
 
@@ -130,7 +130,7 @@ def estimate_bin_F(name, factor_bcell, k_bin, n1, n2, ax, gamma, gen_curves_flag
         ax_sub.scatter(aL_bin, F_norm_bin/(n1+n2))
         ax_sub.plot(x_bin,y_bin/(n1+n2))
         ax_sub.set_xlabel(r'a$_{\text{L}}$',fontsize=14)
-        ax_sub.set_ylabel(r'$\Delta$F (k$_{\text{b}}$T)',fontsize=14)
+        ax_sub.set_ylabel(r'$\Delta$F (k$_{\text{B}}$T)',fontsize=14)
         ax_sub.axvline(aL_min_bin,ls='--',c='darkgray',zorder=-1)
         fig_sub.savefig(f"F_{name}.png", format="png")
         plt.close(fig_sub)
@@ -138,7 +138,7 @@ def estimate_bin_F(name, factor_bcell, k_bin, n1, n2, ax, gamma, gen_curves_flag
         fig_sub, ax_sub = plt.subplots()
         ax_sub.scatter(aL_bin, F_tot_bin/(n1+n2))
         ax_sub.set_xlabel(r'a$_{\text{L}}$',fontsize=14)
-        ax_sub.set_ylabel(r'$\Delta$F (k$_{\text{b}}$T)',fontsize=14)
+        ax_sub.set_ylabel(r'$\Delta$F (k$_{\text{B}}$T)',fontsize=14)
         ax_sub.axvline(aL_min_bin,ls='--',c='darkgray',zorder=-1)
         fig_sub.savefig(f"F_without_ref_{name}.png", format="png")
         plt.close(fig_sub)
@@ -192,10 +192,10 @@ def estimate_bin_contrib(name, factor_bin_cell, k_bin, n1, n2, F, aL_array, aL_m
         ax_sub.set_xlabel(r'a$_{\text{L}}$',fontsize=14)
         ax_sub.axvline(aL_min,ls='--',c='darkgray',zorder=-1)
         if "F_trans" in F:
-            ax_sub.set_ylabel(r'$\Delta$U (k$_{\text{b}}$T)',fontsize=14)
+            ax_sub.set_ylabel(r'$\Delta$U (k$_{\text{B}}$T)',fontsize=14)
             fig_sub.savefig(f"U_{name}.png", format="png")
         if "F_HS" in F:
-            ax_sub.set_ylabel(r'-T$\Delta$S (k$_{\text{b}}$T)',fontsize=14)
+            ax_sub.set_ylabel(r'-T$\Delta$S (k$_{\text{B}}$T)',fontsize=14)
             fig_sub.savefig(f"S_{name}.png", format="png")
         plt.close(fig_sub)
 

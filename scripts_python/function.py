@@ -64,16 +64,16 @@ def extract_params_init(params_init, cond):
             
             while j < len(lines) and not lines[j].startswith("!"):
                 parts = lines[j].split(maxsplit=2)  # ["gamma", value, list] o ["gamma", value, list, "delta", delta_value]
-                
+                print(parts)
                 if len(parts) >= 3 and parts[0] == "gamma":
                     gamma_value = float(parts[1])
                     if "delta" in parts[2]:
                         sum_dim_part, delta_part = parts[2].split("delta")
-                        sum_dim_values = [int(x) for x in re.findall(r'\d+', parts[2])[:-2]]
+                        sum_dim_values = [int(x) for x in re.findall(r'-?\d+', parts[2])[:-2]]
                         delta_value = float(delta_part.strip())
                     else:
                         delta_value = None  # No hay delta explícito
-                        sum_dim_values = [int(x) for x in re.findall(r'\d+', parts[2])[:-2]]
+                        sum_dim_values = [int(x) for x in re.findall(r'-?\d+', parts[2])]
                     
                     if delta_value is None:
                         for delta in delta_ref:
@@ -92,6 +92,7 @@ def extract_params_init(params_init, cond):
             # Convertir el diccionario de nuevo en la lista con la estructura adecuada
             data["list gamma delta sum dim"] = [{"gamma": g, "delta": d, "dim": dims} for (g, d), dims in gamma_delta_map.items()]
             data["list gamma delta sum dim"].sort(key=lambda x: (x["gamma"], x["delta"]))
+            print(data["list gamma delta sum dim"])
 
         elif line == "!num cell bin":
             data["num cell bin"] = int(lines[i+1].split()[1])
@@ -173,7 +174,10 @@ def extract_params_init(params_init, cond):
             data["n1"] = 4
             data["n2"] = 5
             data["num cell bin"] = 1
-
+        elif data["name"] == "NaZn13":
+            data["n1"] = 1
+            data["n2"] = 32
+            data["num cell bin"] = 1
     return data
 
 def extract_definitions(definitions_path):
