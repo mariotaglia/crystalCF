@@ -64,7 +64,6 @@ def extract_params_init(params_init, cond):
             
             while j < len(lines) and not lines[j].startswith("!"):
                 parts = lines[j].split(maxsplit=2)  # ["gamma", value, list] o ["gamma", value, list, "delta", delta_value]
-                print(parts)
                 if len(parts) >= 3 and parts[0] == "gamma":
                     gamma_value = float(parts[1])
                     if "delta" in parts[2]:
@@ -92,7 +91,6 @@ def extract_params_init(params_init, cond):
             # Convertir el diccionario de nuevo en la lista con la estructura adecuada
             data["list gamma delta sum dim"] = [{"gamma": g, "delta": d, "dim": dims} for (g, d), dims in gamma_delta_map.items()]
             data["list gamma delta sum dim"].sort(key=lambda x: (x["gamma"], x["delta"]))
-            print(data["list gamma delta sum dim"])
 
         elif line == "!num cell bin":
             data["num cell bin"] = int(lines[i+1].split()[1])
