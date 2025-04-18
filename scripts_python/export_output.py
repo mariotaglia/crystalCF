@@ -52,7 +52,8 @@ def process_principal(output_file, name_bin, R, delta_dim_bin, aL, k_aL, F):
                 print(f"Advertencia: Archivo no encontrado en {file_path}")
             os.chdir("..")
 
-def process_reference_bin(output_file, dir_inicial, F, R):
+def process_reference_bin(output_file, dir_inicial, F, R, gamma_folder):
+    gamma = gamma_folder.replace('_', '.')
     dir_fuente = {"part1": os.path.join(dir_inicial,"sim_part1"),"part2": os.path.join(os.getcwd())}
     data = defaultdict(lambda: defaultdict(lambda: defaultdict(float)))
 
@@ -61,42 +62,34 @@ def process_reference_bin(output_file, dir_inicial, F, R):
         contadores = defaultdict(lambda: defaultdict(int))
         delta_map = defaultdict(lambda: defaultdict(set))
 
-        dim_validos = set()
-        ruta = os.path.join(dir_fuente["part2"], "binary")
-        nombres_de_folders = os.listdir(ruta)
-        import re
-        for nombre in nombres_de_folders:
-            match = re.match(r"delta_(\d+_\d+)_dim_(\d+)", nombre)
-            if match:
-                delta = match.group(1).replace("_", ".")  # Convierte 0_23 → 0.23
-                dim = match.group(2)
-                dim_validos.add((delta, dim, dim, dim))
-
         # Leer el archivo de referencias y construir los mapas
         with open(references_file, "r", encoding="utf-8") as ref_file:
-            reader = csv.reader(ref_file)
+            reader = csv.reader(ref_file, delimiter=',')
             next(reader)  # Saltar encabezado
             for parts in reader:
-                if len(parts) >= 10:
-                    try:
-                        label = parts[0].strip()
-                        contador = int(parts[2].strip())
-                        pos_tuple = (parts[3], parts[4], parts[5])
-                        delta = parts[6].strip().replace(",", ".")
-                        dimx = parts[7].strip().replace(",", ".")
-                        dimy = parts[8].strip().replace(",", ".")
-                        dimz = parts[9].strip().replace(",", ".")
-                        key = parts[-1].strip()
+                label = parts[0].strip()
+                contador = int(parts[2].strip())
+                pos_tuple = (parts[3], parts[4], parts[5])
+                delta = parts[6].strip().replace(",", ".")
+                dimx = parts[7].strip().replace(",", ".")
+                dimy = parts[8].strip().replace(",", ".")
+                dimz = parts[9].strip().replace(",", ".")
+                key = parts[10].strip()
+                dim = (dimx, dimy, dimz)
 
-                        dim = (dimx,dimy,dimz)
-                        if (delta, dimx, dimy, dimz) not in dim_validos:
-                            continue
+                # Formatear los valores de gamma a 3 decimales
+                gamma_field = parts[11].strip()
+                
+                # Aceptar si viene una lista (con comas) o un único valor
+                gamma_values = gamma_field.split(',') if ',' in gamma_field else [gamma_field]
+                gamma_list = [f"{float(g.strip()):.3f}" for g in gamma_values]
 
-                        contadores[delta][(key, dim)] = contador
-                        delta_map[(label, delta)][key].add(dim)
+                if gamma not in gamma_list:
+                    continue
 
-                    except ValueError:
-                        print(f"Error de formato en línea -> {','.join(parts)}")
+                contadores[delta][(key, dim)] = contador
+                delta_map[(label, delta)][key].add(dim)
+
 
         # Crear archivo de salida si no existe
         if not os.path.isfile(output_file):
@@ -110,9 +103,9 @@ def process_reference_bin(output_file, dir_inicial, F, R):
 
             for key, dims in key_map.items():
                 key_folder = os.path.join(delta_folder, key)
-
+                
                 # Verificar si el archivo `F_tot_gcanon.dat` existe
-                file_path = os.path.join(key_folder, F+".dat")
+                file_path = os.path.join(key_folder, F + ".dat")
                 if os.path.isfile(file_path):
                     try:
                         with open(file_path, "r") as file:

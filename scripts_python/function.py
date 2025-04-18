@@ -8,6 +8,7 @@ import re
 import numpy as np
 import hashlib
 from references.dependecies_init import edit_def_bin, extract_definitions
+from collections import defaultdict
 
 def run_command(command):
     """Run the command on the terminal and return it's output."""
@@ -351,41 +352,45 @@ def update_R1(DEF, n1_k_bin, R1):
     write_DEF(DEF, lines)
     shutil.copy(DEF, os.path.join(os.getcwd(), "DEFINITIONS_backup.txt"))
 
-def generate_references_csv(references, output_folder, delta_value, R, dimx, dimy, dimz, label, name_bin, k_aL):
+def generate_references_csv(references, output_folder, delta_value, R, dimx, dimy, dimz, label, name_bin, gamma_value):
     references_path = os.path.join(output_folder, "tot_references.csv")
-    existing_rows = []  # Lista para mantener el orden y evitar duplicados
+    existing_dict = defaultdict(set)  # Usar defaultdict para automáticamente manejar los conjuntos de gamma
 
     # Leer el archivo existente si ya existe
     if os.path.exists(references_path):
         with open(references_path, mode='r', newline='') as file:
             reader = csv.reader(file)
             header = next(reader, None)  # Guardamos la cabecera
-            existing_rows = [tuple(row) for row in reader]  # Convertir a tuplas para comparación exacta
+            for row in reader:
+                row_base = tuple(row[:-1])  # Todo menos gamma
+                gamma_field = row[-1].strip()  # Campo gamma
+                gamma_list = [float(g) for g in gamma_field.split(',')]
+                existing_dict[row_base].update(gamma_list)
 
-    new_rows = []
-
+    # Procesar nuevas referencias
     for row in references[1:]:
         pos_tuple = tuple(f"{float(val):.10f}" for val in row[1:4])
         hash_input = ",".join(pos_tuple)
         key_value = f"key_{hashlib.md5(hash_input.encode()).hexdigest()[:8]}"
-        new_row = tuple([label, R] + row + [delta_value, dimx, dimy, dimz , key_value])
-        if new_row not in existing_rows:  # Solo agregar si la fila no existe
-            new_rows.append(new_row)
-            existing_rows.append(new_row)  # Agregarla a la lista de comparación
 
-    if new_rows:
-        file_exists = os.path.exists(references_path)
+        # Construir la tupla base sin el valor de gamma
+        row_base = tuple([label, R] + row + [delta_value, dimx, dimy, dimz, key_value])
 
-        with open(references_path, mode='a', newline='') as file:
-            writer = csv.writer(file)
+        # Agregar el valor de gamma al conjunto en existing_dict, evitando duplicados
+        existing_dict[row_base].add(gamma_value)
 
-            if not file_exists:  # Si el archivo no existía, escribir la cabecera
-                writer.writerow(['#part', 'radius [nm]'] + references[0] + ['delta', 'dimx', 'dimy', 'dimz', 'key'])
-
-            writer.writerows(new_rows)  # Escribir solo las nuevas filas
-
-    return references_path
-
+    # Reescribir el archivo con todos los datos unificados
+    with open(references_path, mode='w', newline='') as file:
+        writer = csv.writer(file)
+        
+        # Escribir la cabecera
+        writer.writerow(['#part', 'radius [nm]'] + references[0] + ['delta', 'dimx', 'dimy', 'dimz', 'key', 'gamma'])
+        
+        # Escribir las filas con las claves y valores de gamma
+        for row_base, gamma_set in existing_dict.items():
+            # Asegurarse de que gamma_set contiene floats antes de formatear
+            gamma_str = ','.join(f"{g:.3f}" for g in sorted(gamma_set))
+            writer.writerow(row_base + (gamma_str,))
 
 def gamma_calc(definitions_path):
     lines = read_DEF(definitions_path)

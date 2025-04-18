@@ -61,7 +61,7 @@ elif name == "Cu3Au":
 	N2 = 3
 
 elif name == "NaZn13":
-	V_pol = 0.030
+	V_pol = 0.033
 	N1 = 1
 	N2 = 12
 
@@ -79,6 +79,9 @@ if name=="MgZn2":
 		V_pol = 0.010
 
 	aL_min = (N1*Vol_NP_1+N1*sigma*A_1*V_pol*l_pol+ N2*Vol_NP_2+N2*sigma*A_2*V_pol*l_pol)**(1./3.)
+
+elif name == "NaZn13":
+	aL_min = (N1*Vol_NP_1+N1*sigma*A_1*V_pol*l_pol+ N2*Vol_NP_2+N2*sigma*A_2*V_pol*l_pol)**(1./3.) *2
 
 else:
 	aL_min = (N1*Vol_NP_1+N1*sigma*A_1*V_pol*l_pol+ N2*Vol_NP_2+N2*sigma*A_2*V_pol*l_pol)**(1./3.)

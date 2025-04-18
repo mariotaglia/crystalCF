@@ -8,7 +8,7 @@ from collections import defaultdict
 from transform_refs import calculate_center_ref, process_positions
 from function import run_command, read_DEF, write_DEF, extract_references, extract_definitions, generate_references_csv
 
-def process_principal_binario(reference_DEF, name_bin, delta_dim_bin, aL, n_k_bin, tosubmit, dir_fuente, k_aL):
+def process_principal_binario(reference_DEF, name_bin, delta_dim_bin, aL, n_k_bin, tosubmit, dir_fuente, k_aL, gamma):
     structure = os.getcwd()
     DEF =  os.path.join(structure, "DEFINITIONS.txt")
     lines = read_DEF(DEF)
@@ -49,11 +49,11 @@ def process_principal_binario(reference_DEF, name_bin, delta_dim_bin, aL, n_k_bi
             lines = read_DEF("DEFINITIONS.txt")
             dir_origen = os.path.abspath(os.path.join(dir_fuente, os.pardir))
             output_DEF_ref = {"part1": os.path.join(dir_origen,"sim_part1","binary_ref","part1"),"part2": os.path.join(dir_fuente,"binary_ref","part2")}
-            process_secundario_binario(lines, name_bin, output_DEF_ref, int(dim*k_aL["kx"]), n_k_bin, dir_fuente, delta_list, k_aL)
+            process_secundario_binario(lines, name_bin, output_DEF_ref, int(dim*k_aL["kx"]), n_k_bin, dir_fuente, delta_list, k_aL, gamma)
             os.chdir(dir_fuente)
             os.chdir(structure)
 
-def process_secundario_binario(lines, name_bin, output_folder, dim, n_k_bin, dir_fuente, delta_bin, k_aL):
+def process_secundario_binario(lines, name_bin, output_folder, dim, n_k_bin, dir_fuente, delta_bin, k_aL, gamma):
     n1_k_bin = n_k_bin["part1"]; n2_k_bin = n_k_bin["part2"]
     sections_info = [
         ("! number of particles", 1, 1),
@@ -147,7 +147,7 @@ def process_secundario_binario(lines, name_bin, output_folder, dim, n_k_bin, dir
         
         with open(def_ref_path, "w") as file:
             file.writelines(new_lines)
-        generate_references_csv(references, os.getcwd(), delta, R, dimx, dimy, dimz, label, name_bin, k_aL)
+        generate_references_csv(references, os.getcwd(), delta, R, dimx, dimy, dimz, label, name_bin, gamma)
 
 def process_terciario_binario(output_folder, name_bin, references, tosubmit, dir_fuente, n_k_bin):
     '''
@@ -160,7 +160,7 @@ def process_terciario_binario(output_folder, name_bin, references, tosubmit, dir
         pos_tuple = (reference[3], reference[4], reference[5])  # Tupla única de posiciones
         delta = str(reference[6]).replace('.', '_')  # Formato correcto de delta
         dim = reference[7]  # Dimensión
-        key = reference[-1] 
+        key = reference[10] 
         delta_map[(label, delta)][pos_tuple].add(key)
 
     # Segunda fase: creación de carpetas y archivos

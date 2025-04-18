@@ -122,7 +122,7 @@ while True:
 				os.chdir(os.path.join(dir_origin,f"gamma_{gamma_folder}"))
 
 				output_file = os.path.join(output_folder, f"{name_bin}_references_{f_name}.csv")
-				process_reference_bin(output_file, dir_origin, f_name, R)
+				process_reference_bin(output_file, dir_origin, f_name, R, gamma_folder)
 
 				dir_fuente = {"part1": os.path.join(dir_origin,"sim_part1"),"part2": os.path.join(os.getcwd(),"part2")}
 				for label in ["part1", "part2"]:
