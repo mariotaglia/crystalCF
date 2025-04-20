@@ -115,9 +115,26 @@ def process_secundario_binario(lines, name_bin, output_folder, dim, n_k_bin, dir
         dist_min = (2*R+2*lseg*nseg)
         N_ref = np.round(dist_min*1.50/delta_min)
         N_ref = int(N_ref)
-        if N_ref%2 == 0:
-            N_ref += 1
+        
+        def N_round(N_ref):
+            if N_ref%2 == 0:
+                N_ref += 1
+            return N_ref
+        if k_aL["kx"] == 2:
+            Nx = N_round(N_ref/1.5)
+        else:
+            Nx = N_round(N_ref)
 
+        if k_aL["ky"] == 2:
+            Ny = N_round(N_ref/1.5)
+        else:
+            Ny = N_round(N_ref)
+
+        if k_aL["kz"] == 2:
+            Nz = N_round(N_ref/1.5)
+        else:
+            Nz = N_round(N_ref) 
+              
         center_ref_list = calculate_center_ref(N_ref, centers, dimx, dimy, dimz, delta, cdiva, PBC)
         pos_out, _ = process_positions(center_ref_list)
 
@@ -132,24 +149,16 @@ def process_secundario_binario(lines, name_bin, output_folder, dim, n_k_bin, dir
         new_lines = []
         for line in lines:
             if line.startswith("dimx"):
-                if k_aL["kx"]:
-                    new_lines.append(f"dimx {int(N_ref/1.5)}\n")
-                else:
-                    new_lines.append(f"dimx {int(N_ref)}\n")
+                new_lines.append(f"dimx {int(Nx)}\n")
             elif line.startswith("dimy"):
-                if k_aL["ky"]:
-                    new_lines.append(f"dimy {int(N_ref/1.5)}\n")
-                else:
-                    new_lines.append(f"dimy {int(N_ref)}\n")
-                    
+                new_lines.append(f"dimy {int(Ny)}\n")
+
             elif line.startswith("dimz"):
                 k = 1
                 if name_bin == 'MgZn2':
                     k = 2
-                if k_aL["kz"]:
-                    new_lines.append(f"dimz {int(N_ref*k/1.5)}\n")
-                else:
-                    new_lines.append(f"dimz {int(N_ref*k)}\n")
+
+                new_lines.append(f"dimz {int(Nz*k)}\n")
             elif line.startswith("delta"):
                 new_lines.append("delta _delta_\n")
             else:
