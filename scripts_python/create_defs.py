@@ -132,14 +132,24 @@ def process_secundario_binario(lines, name_bin, output_folder, dim, n_k_bin, dir
         new_lines = []
         for line in lines:
             if line.startswith("dimx"):
-                new_lines.append(f"dimx {int(N_ref/k_aL["kx"])}\n")
+                if k_aL["kx"]:
+                    new_lines.append(f"dimx {int(N_ref/1.5)}\n")
+                else:
+                    new_lines.append(f"dimx {int(N_ref)}\n")
             elif line.startswith("dimy"):
-                new_lines.append(f"dimy {int(N_ref/k_aL["ky"])}\n")
+                if k_aL["ky"]:
+                    new_lines.append(f"dimy {int(N_ref/1.5)}\n")
+                else:
+                    new_lines.append(f"dimy {int(N_ref)}\n")
+                    
             elif line.startswith("dimz"):
                 k = 1
                 if name_bin == 'MgZn2':
                     k = 2
-                new_lines.append(f"dimz {int(N_ref*k/k_aL["kz"])}\n")
+                if k_aL["kz"]:
+                    new_lines.append(f"dimz {int(N_ref*k/1.5)}\n")
+                else:
+                    new_lines.append(f"dimz {int(N_ref*k)}\n")
             elif line.startswith("delta"):
                 new_lines.append("delta _delta_\n")
             else:
