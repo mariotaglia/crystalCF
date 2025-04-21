@@ -119,22 +119,25 @@ def process_secundario_binario(lines, name_bin, output_folder, dim, n_k_bin, dir
         def N_round(N_ref):
             if N_ref%2 == 0:
                 N_ref += 1
-            return N_ref
+                return N_ref
+            else:
+                return N_ref
+                
         if k_aL["kx"] == 2:
-            Nx = N_round(N_ref/1.5)
+            Nx = N_round(int(N_ref/1.5))
         else:
-            Nx = N_round(N_ref)
+            Nx = N_round(int(N_ref*1.2))
 
         if k_aL["ky"] == 2:
-            Ny = N_round(N_ref/1.5)
+            Ny = N_round(int(N_ref/1.5))
         else:
-            Ny = N_round(N_ref)
+            Ny = N_round(int(N_ref*1.2))
 
         if k_aL["kz"] == 2:
-            Nz = N_round(N_ref/1.5)
+            Nz = N_round(int(N_ref/1.5))
         else:
-            Nz = N_round(N_ref) 
-              
+            Nz = N_round(int(N_ref*1.2))
+
         center_ref_list = calculate_center_ref(N_ref, centers, dimx, dimy, dimz, delta, cdiva, PBC)
         pos_out, _ = process_positions(center_ref_list)
 
