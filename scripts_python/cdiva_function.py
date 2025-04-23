@@ -51,6 +51,21 @@ def update_cdiva(DEF, name_bin, gamma, flag_reflexion):
                     pos1, pos2, pos3 = [pos_list[0],pos_list[1],pos_list[2]]
                     lines[size_index] = f"{pos1} {pos2} {pos3}\n"
 
+    if name_bin == 'CaB6':
+        cdiva, vector = pos_func_gamma(gamma, name_bin)
+
+        for i, line in enumerate(lines):
+            if line == "!cdiva\n":
+                size_index = i + 1
+                lines[size_index] = f"{str(cdiva)}\n"
+
+            if line.strip() == "!Center":
+                for j, vec in enumerate(vector):
+                    size_index = i + 1 + j
+                    pos_list = vec
+                    pos1, pos2, pos3 = [pos_list[0],pos_list[1],pos_list[2]]
+                    lines[size_index] = f"{pos1} {pos2} {pos3}\n"
+
     write_DEF("DEFINITIONS.txt", lines)
 
 def cdiva_calc(name,gamma):
@@ -186,4 +201,26 @@ def pos_func_gamma(gam, name_bin):
         # Convertir a array y normalizar en fracción de celda
         v_vector = np.array(v_vector)
         vector_primer_oct = v_vector[np.all((v_vector/c_fac >= 0.0) & (v_vector/c_fac <= 0.5), axis=1)]*2/c_fac
-        return cdiva, np.round(vector_primer_oct,8)
+        return cdiva, np.round(vector_primer_oct,10)
+
+    if name_bin == "CaB6":
+        if gam < 1 / (1 + np.sqrt(2)):
+            c_fac = 1
+            u_val = (1 - np.sqrt(2) * gam) / 2.0
+        else:
+            c_fac = gam * (1 + np.sqrt(2))
+            u_val = 1 / (2.0 * np.sqrt(2) + 2.0)
+
+        cdiva = 1.0
+        v_vector = []
+
+        v_vector.append(np.array([0.0, 0.0, 0.0]))
+        v_vector.append(np.array([0.5, 0.5, u_val]))
+        v_vector.append(np.array([0.5, 0.5, 1.0 - u_val]))
+        v_vector.append(np.array([u_val, 0.5, 0.5]))
+        v_vector.append(np.array([1 - u_val, 0.5, 0.5]))
+        v_vector.append(np.array([0.5, u_val, 0.5]))
+        v_vector.append(np.array([0.5, 1 - u_val, 0.5]))
+        v_vector = np.array(v_vector)
+
+        return cdiva, np.round(v_vector,10)

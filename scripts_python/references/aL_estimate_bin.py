@@ -65,6 +65,11 @@ elif name == "NaZn13":
 	N1 = 1
 	N2 = 12
 
+elif name == "CaB6":
+	V_pol = 0.031
+	N1 = 1
+	N2 = 6
+
 if name=="MgZn2":
 	if R2<=R1*1.12/2:
 		R = R1*0.88/2
