@@ -1,12 +1,13 @@
 !## Montecarlo - Molecular theory for the adsorption of a particle on a brush
 
 use MPI
-use ellipsoid, only : NNN
+use ellipsoid, only : NNN, Aell
 use const, only : infile, stdout
 use montecarlo, only : free_energy
 use ematrix, only : vscan, systemtype
 use kaist, only : nst, st, sts, kp, kps, nkp
 use clusters, only : dumpcluster
+use system, only : flagsim
 
 implicit none
 integer counter, counterr
@@ -14,7 +15,7 @@ integer saveevery
 real*8, external :: rands
 logical flag
 character*10 filename
-integer j, i, ii
+integer j, i, ii, flag_vol
 integer flagcrash
 real*8 stOK,kpOK
 
@@ -43,10 +44,32 @@ call initconst
 call inittransf ! Create transformation matrixes
 call initellpos ! calculate real positions for ellipsoid centers
 
+flag_vol = 0
+
+! check radius
+do j = 1, NNN
+if ((Aell(1,j).eq.Aell(2,j)).and.(Aell(1,j).eq.Aell(3,j))) then
+  flag_vol = 1
+endif
+enddo
+
 if(dumpcluster.gt.1) then
         call dumpclusterinfo
         call endall
 endif
+
+if((systemtype.eq.1).and.(flag_vol.eq.1)) then
+  if(flagsim.eq.1) then
+    if(rank.eq.0)write(10,*) 'Flagsim = 0, Skip simulations.'
+    call calcvolumeoverlap
+    call endall
+  elseif(flagsim.ne.0) then
+    if(rank.eq.0)write(10,*) 'Wrong input for flag sim. Set flagsim = 0 or 1.'
+    call endall
+  endif
+endif
+
+call endall
 
 call initall
 call allocation

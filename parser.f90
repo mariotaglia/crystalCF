@@ -92,7 +92,7 @@ transform_type = ndi
 dumpcluster = ndi
 cluster_same = ndi
 cutoffcluster = ndr
-
+flagsim = ndi
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Control file variables
@@ -144,6 +144,10 @@ do while (ios == 0)
 
  case ('cluster_same') ! 1: treat all particles as equivalent for clustering
    read(buffer, *, iostat=ios) cluster_same
+   if(rank.eq.0)write(stdout,*) 'parser:','Set ',trim(label),' = ',trim(buffer)
+ 
+ case ('flagsim') ! flagsim = 0, skips simulations
+   read(buffer, *, iostat=ios) flagsim
    if(rank.eq.0)write(stdout,*) 'parser:','Set ',trim(label),' = ',trim(buffer)
 
 

@@ -38,6 +38,7 @@ integer  dimz
 integer PBC(6)
 integer vtkflag
 integer flagmu
+integer flagsim
 integer eqs ! number of set of equations 
 endmodule
 
