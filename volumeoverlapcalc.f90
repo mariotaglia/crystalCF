@@ -14,7 +14,7 @@ real*8, external :: pos2x, pos2y, pos2z
 real*8, parameter :: pi = acos(-1.0)
 integer Nradius, Ntita, Nphi
 real*8 dradius, dtita, dphi
-real*8 sum, sum2, rlig
+real*8 sum, rlig
 real*8 rA, rB, tita, phi
 real*8 r2, radius
 integer flag
@@ -28,13 +28,18 @@ Nradius = 200
 rlig = 0.088*(long+1)+0.525
 dradius = rlig/float(Nradius)
 sum = 0.0
-sum2 = 0.0
 
 do j = 1, NNN
 	do k = 1, NNN
-
+		if (k.ge.j) then
 		rA = Aell(1,j)
 		rB = Aell(1,k)
+
+		vect1T(1) = pos2x(j,0) 
+		vect1T(2) = pos2y(j,0)
+		vect1T(3) = pos2z(j,0)
+		vect1R = MATMUL(IMAT,vect1T) ! coordinates of particle in real space
+
 		do ir = 1, Nradius
 		radius = float(ir)*dradius + rA
 		do it = 1, Ntita
@@ -42,26 +47,25 @@ do j = 1, NNN
 		do ip = 1, Nphi
 			phi = dphi*float(ip-1)
 
-			x = radius*sin(phi)*cos(tita)
-			y = radius*sin(phi)*sin(tita)
-			z = radius*cos(phi)
+			x = radius*sin(phi)*cos(tita) + vect1R(1)
+			y = radius*sin(phi)*sin(tita) + vect1R(2)
+			z = radius*cos(phi) + vect1R(3)
 
 			flag = 0
 
 			do ix = -nn, nn
 			do iy = -nn, nn
 			do iz = -nn, nn
-			vect1R = MATMUL(IMAT,vect1T) ! coordinates of particle in real space
 
-			vect2T(1) = pos2x(k,iz) 
-			vect2T(2) = pos2y(k,ix)
+			vect2T(1) = pos2x(k,ix) 
+			vect2T(2) = pos2y(k,iy)
 			vect2T(3) = pos2z(k,iz)
 			vect2R = MATMUL(IMAT,vect2T) ! coordinates of particle in real space
-
+			
 			if(j.eq.k) then
 			if((ix.ne.0).or.(iy.ne.0).or.(iz.ne.0)) then
 				vect2 = (vect2R(1) - x)**2 + (vect2R(2) - y)**2 + (vect2R(3) - z)**2
-				r2 = (rA+rlig)**2
+				r2 = (rlig+rA)**2
 				if(vect2.lt.r2) then
 	  				flag = 1
 	  				exit
@@ -86,6 +90,7 @@ do j = 1, NNN
 		enddo
 		enddo
 		enddo
+	end if
 	enddo
 enddo
 

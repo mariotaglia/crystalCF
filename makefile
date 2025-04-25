@@ -26,7 +26,7 @@ endif
 # some definitions
 SHELL = /bin/bash
 #FFLAGS= -Wunused -fbacktrace -fbounds-check # -O3
-FFLAGS= -Wunused -O3 #-fbacktrace -fbounds-check -O3
+FFLAGS= -Wunused -fallow-argument-mismatch -O3 #-fbacktrace -fbounds-check -O3
 
 GIT_VERSION := $(shell git describe --abbrev=6 --dirty --always --tags)
 GFLAGS=-cpp -D_VERSION=\"$(GIT_VERSION)\"
