@@ -86,7 +86,7 @@ do j = 1, NNN
 			if(flag.eq.1)exit
 			enddo
 
-			if(flag.eq.0) sum = sum + radius*radius*sin(phi)*dtita*dphi*dradius
+			if(flag.eq.1) sum = sum + radius*radius*sin(phi)*dtita*dphi*dradius
 		enddo
 		enddo
 		enddo
