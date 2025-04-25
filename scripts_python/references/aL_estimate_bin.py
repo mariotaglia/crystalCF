@@ -47,16 +47,16 @@ elif name == "Li3Bi":
 
 elif name == "AuCu":
 	if R2<=R1*0.88/2:
-		V_pol = 0.031
+		V_pol = 0.030
 		N1 = 2
 		N2 = 2
 	else:
-		V_pol = 0.04
+		V_pol = 0.035
 		N1 = 2
 		N2 = 2
 
 elif name == "Cu3Au":
-	V_pol = 0.085
+	V_pol = 0.038
 	N1 = 1
 	N2 = 3
 

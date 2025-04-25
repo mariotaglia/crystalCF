@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import csv
 from scipy.interpolate import CubicSpline
 from collections import defaultdict
-from function import run_command, extract_R_bin, gamma_calc
+from function import run_command, extract_R_bin, extract_cdiva, gamma_calc
 from function import path_carpeta, extract_params_init, read_DEF, join_F_csv, join_F_csv_ref
 from function_part import extract_R_part
 from export_output import process_principal, process_reference_bin, process_principal_part, process_reference_part
@@ -52,12 +52,9 @@ n = {"part1": n1, "part2": n2}
 gamma_list = params_init['gamma list']
 
 gamm_delta_dim = params_init['list gamma delta sum dim']
-factor_aL_bin = params_init['aL cell bin factor']
-
 delta_part = params_init["list delta part"]
 cell_part = params_init["cell part"]
 k_part = params_init["num cell part"]
-factor_aL_part = params_init['aL cell part factor']
 
 gen_curves_flag = params_init["flag generate energy vs aL curves"]
 if os.path.isdir(f"results_{name_bin}"):
@@ -65,6 +62,7 @@ if os.path.isdir(f"results_{name_bin}"):
 os.makedirs(f"results_{name_bin}", exist_ok=True)
 final_output = os.path.join(dir_origin,f"results_{name_bin}")
 
+factor_aL_part = {"fcc": 2**(-1.0/6.0), "bcc": 1}
 
 k_aL = {"kx": 1,"ky": 1,"kz": 1}
 if flag_reflexion == True:
@@ -178,6 +176,7 @@ for gamma_folder in gamma_folder_list:
 	DEF = os.path.join(dir_fuente,'binary','DEFINITIONS.txt')
 	lines = read_DEF(DEF)
 	R1_np, R2_np = extract_R_bin(DEF)
+	cdiva_bin = extract_cdiva(DEF)
 	size_index = None
 	for i, line in enumerate(lines):
 		if line.strip() == "!properties of ligand chains":
@@ -218,6 +217,7 @@ for gamma_folder in gamma_folder_list:
 				list = [part,cell,aL_min,U,S,F_part]
 				dict_delta[key].append(list[i])
 
+	factor_aL_bin = cdiva_bin**(-1.0/3.0)
 	result_bin = estimate_bin_F(name_bin, factor_aL_bin, k_bin, n1, n2, ax1, np.round(gamma,2), gen_curves_flag, k_aL)
 	aL_min = result_bin[0]
 	F_bin = result_bin[1]

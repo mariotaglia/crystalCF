@@ -31,8 +31,7 @@ def extract_params_init(params_init, cond):
         "name": None, "n1": None, "n2": None, "R1": None,
         "gamma list": [], "list delta bin": [], "list gamma delta sum dim": [],
         "cell part": [], "list delta part": {}, "num cell part": {},
-        "num cell bin": None, "aL cell bin factor": None, 
-        "aL cell part factor": {}, "flag generate energy vs aL curves": None,
+        "num cell bin": None, "flag generate energy vs aL curves": None,
         "flag reflexion binary": None, "flag reflexion part": None, "PBC": []
     }
 
@@ -96,9 +95,6 @@ def extract_params_init(params_init, cond):
         elif line == "!num cell bin":
             data["num cell bin"] = int(lines[i+1].split()[1])
             i += 1
-        elif line == "!aL cell bin factor":
-            data["aL cell bin factor"] = eval(lines[i + 1].strip('\n'))
-            i += 1
         elif line == "!cell part":
             j = i + 1
             while j < len(lines) and not lines[j].startswith("!"):
@@ -126,16 +122,6 @@ def extract_params_init(params_init, cond):
                         data["num cell part"][key] = int(parts[1])
                 j += 1
             i = j - 1  # Saltar líneas procesadas
-        elif line == "!aL cell part factor":
-            j = i + 1
-            while j < len(lines) and not lines[j].startswith("!"):
-                parts = lines[j].split(maxsplit=1)
-                if len(parts) > 1 and parts[0] in data["cell part"]: 
-                    key = parts[0]
-                    if key in data["cell part"]:
-                        data["aL cell part factor"][key] = eval(parts[1].strip('\n'))
-                j += 1
-            i = j - 1
         elif line == "!flag generate energy vs aL curves":
             value = lines[i + 1].strip("\n")
             if value == "True":
@@ -280,6 +266,20 @@ def extract_R_bin(definitions_path):
             R2_np = R1_np
     
     return R1_np, R2_np
+
+def extract_cdiva(definitions_path):
+    cdiva = None
+    lines = read_DEF(definitions_path)
+    size_index = None
+    for i, line in enumerate(lines):
+        if line.strip() == "!cdiva":
+            size_index = i + 1
+            break
+
+    if size_index is not None:
+        cdiva = float(lines[size_index]) 
+
+    return cdiva
 
 def extract_references(csv_path):
     """Extrae los datos del archivo referencias.csv."""
