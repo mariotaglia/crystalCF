@@ -60,7 +60,6 @@ endif
 
 if((systemtype.eq.1).and.(flag_vol.eq.1)) then
   if(flagsim.eq.1) then
-    if(rank.eq.0)write(10,*) 'Flagsim = 0, Skip simulations.'
     call calcvolumeoverlap
     call endall
   elseif(flagsim.ne.0) then
@@ -68,8 +67,6 @@ if((systemtype.eq.1).and.(flag_vol.eq.1)) then
     call endall
   endif
 endif
-
-call endall
 
 call initall
 call allocation

@@ -95,7 +95,7 @@ do j = 1, NNN
 enddo
 
 if(rank.eq.0) then
-open(unit=46, file= 'volume_overlap.dat', access='APPEND')
+open(unit=46, file= 'volume_overlap.dat', status='replace', action='write')
 write(46,*) sum
 close(46)
 endif
