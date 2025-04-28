@@ -51,7 +51,7 @@ def update_cdiva(DEF, name_bin, gamma, flag_reflexion):
                     pos1, pos2, pos3 = [pos_list[0],pos_list[1],pos_list[2]]
                     lines[size_index] = f"{pos1} {pos2} {pos3}\n"
 
-    if name_bin == 'CaB6':
+    if name_bin == 'CaB6' or name_bin == 'Fe4C':
         cdiva, vector = pos_func_gamma(gamma, name_bin)
 
         for i, line in enumerate(lines):
@@ -221,6 +221,27 @@ def pos_func_gamma(gam, name_bin):
         v_vector.append(np.array([1 - u_val, 0.5, 0.5]))
         v_vector.append(np.array([0.5, u_val, 0.5]))
         v_vector.append(np.array([0.5, 1 - u_val, 0.5]))
+        v_vector = np.array(v_vector)
+
+        return cdiva, np.round(v_vector,10)
+
+    if name_bin == "Fe4C":
+        if gam > (np.sqrt(3.0)-1)/(np.sqrt(0.5*3)+1):
+            u_val = 0.5*(1/gam+1)/(np.sqrt(3.0/2.0)+1+1.0/gam)
+            c_fac = gam/(np.sqrt(2.0)*(1-2*u_val))
+        else:
+            gamma_c = (np.sqrt(3)-1)/(np.sqrt(3.0/2.0)+1)
+            u_val = 0.5*(1/gamma_c+1)/(np.sqrt(3.0/2.0)+1+1.0/gamma_c)
+            c_fac = 1.0
+
+        cdiva = 1.0
+        v_vector = []
+
+        v_vector.append(np.array([0.0, 0.0, 0.0]))
+        v_vector.append(np.array([u_val, u_val, u_val]))
+        v_vector.append(np.array([1.0-u_val, 1.0-u_val, u_val]))
+        v_vector.append(np.array([1.0-u_val, u_val, 1.0-u_val]))
+        v_vector.append(np.array([u_val, 1.0-u_val, 1.0-u_val]))
         v_vector = np.array(v_vector)
 
         return cdiva, np.round(v_vector,10)
