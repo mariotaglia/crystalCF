@@ -424,7 +424,7 @@ def gamma_calc(definitions_path):
 
 def join_F_csv(folder, name, bin_true):
     ruta_archivos = folder
-    pattern = re.compile(rf"{name}_results_(.+)\.csv$")
+    pattern = re.compile(rf"{name}_results_F_(.+)\.csv$")
 
     # Filtrar archivos que cumplen con el patrón
     csv_DEFs = [f for f in glob.glob(os.path.join(ruta_archivos, "*.csv")) if pattern.search(os.path.basename(f))]
@@ -444,7 +444,7 @@ def join_F_csv(folder, name, bin_true):
         else:
             df = pd.read_csv(file,usecols=["F_value"])
 
-        df.rename(columns={"F_value": f"{f_name}"}, inplace=True)
+        df.rename(columns={"F_value": f"F_{f_name}"}, inplace=True)
         data_dict[f_name] = df
 
         os.remove(file)

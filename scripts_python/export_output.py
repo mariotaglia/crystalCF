@@ -12,6 +12,10 @@ def run_command(command):
     return result.stdout.strip()
 
 def process_principal(output_file, name_bin, R, delta_dim_bin, aL, k_aL, F):
+    if F == 'volume_overlap':
+        F_name = 'volume overlap [nm³]'
+    else:
+        F_name = 'F_value'
     structure = os.getcwd()
     R1_np = R["part1"]; R2_np = R["part2"]
     k = 1
@@ -19,7 +23,7 @@ def process_principal(output_file, name_bin, R, delta_dim_bin, aL, k_aL, F):
         k = 2
     if not os.path.isfile(output_file):
         with open(output_file, "w") as out_file:
-            out_file.write("radius [nm],radius [nm],delta,dimx,dimy,dimz,F_value\n")
+            out_file.write(f"radius [nm],radius [nm],delta,dimx,dimy,dimz,{F_name}\n")
 
     delta_list = sorted({entry["delta"] for entry in delta_dim_bin if entry["delta"] is not None})
     for delta in delta_list:
@@ -40,8 +44,11 @@ def process_principal(output_file, name_bin, R, delta_dim_bin, aL, k_aL, F):
                 try:
                     with open(file_path, "r") as file:
                         first_line = file.readline().strip().split()
-                        if len(first_line) > 1:
-                            value = first_line[1]  # Segunda columna
+                        if len(first_line) >= 1:
+                            if not F == 'volume_overlap':
+                                value = first_line[1]  # Segunda columna
+                            else:
+                                value = first_line[0]
                             with open(output_file, "a") as out_file:
                                 out_file.write(f"{R1_np},{R2_np},{delta},{dim},{int(dim*k_aL['kx']/k_aL['ky'])},{int(dim*k_aL['kx']*k/k_aL['kz'])},{value}\n")
                         else:
@@ -130,10 +137,14 @@ def process_reference_bin(output_file, dir_inicial, F, R, gamma_folder):
                         writer.writerow([label,R[label], delta_value, dimx, dimy, dimz, f_ref])
 
 def process_principal_part(output_file, label_struc,R_np, delta_list, aL, k_aL, F):
+    if F == 'volume_overlap':
+        F_name = 'volume overlap [nm³]'
+    else:
+        F_name = 'F_value'
     structure = os.getcwd()
     if not os.path.isfile(output_file):
         with open(output_file, "w") as out_file:
-            out_file.write("cell, radius [nm],delta,dimx,dimy,dimz,F_value\n")
+            out_file.write(f"cell, radius [nm],delta,dimx,dimy,dimz,{F_name}\n")
 
     for delta in delta_list:
         delta_folder = str(delta).replace('.', '_')
@@ -150,8 +161,11 @@ def process_principal_part(output_file, label_struc,R_np, delta_list, aL, k_aL, 
                 try:
                     with open(file_path, "r") as file:
                         first_line = file.readline().strip().split()
-                        if len(first_line) > 1:
-                            value = first_line[1]  # Segunda columna
+                        if len(first_line) >= 1:
+                            if not F == 'volume_overlap':
+                                value = first_line[1]  # Segunda columna
+                            else:
+                                value = first_line[0]
                             with open(output_file, "a") as out_file:
                                 out_file.write(f"{label_struc},{R_np},{delta},{j},{j},{j},{value}\n")
                         else:
@@ -230,4 +244,3 @@ def process_reference_part(output_file, base_folder, cell_part, label_struc, F):
                         dimx, dimy, dimz = dim
                         delta_value = delta.replace('_', '.')  # Asegurarse de que el delta se escribe correctamente
                         writer.writerow([label_struc, R, delta_value, dimx, dimy, dimz, f_ref])  # Escribir en el archivo CSV
-

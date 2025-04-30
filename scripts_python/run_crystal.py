@@ -88,7 +88,7 @@ def extract_params_init(params_init):
 
 ################### START ##################
 dir_origin = os.getcwd()
-dir_script = os.path.expanduser("~/develop/crystalCF/scripts_python")
+dir_script = os.path.expanduser("~/develop/branch/crystalCF/scripts_python")
 
 params_init = extract_params_init('init_params.txt')
 name_bin = params_init['name']

@@ -13,11 +13,12 @@ from function import path_carpeta, extract_params_init, read_DEF, join_F_csv, jo
 from function_part import extract_R_part
 from export_output import process_principal, process_reference_bin, process_principal_part, process_reference_part
 from calculate_energy import estimate_part_F, estimate_part_contrib, estimate_bin_F, estimate_bin_contrib, delta_energy_F, delta_energy_US, delta_energy_contrib
+from calculate_energy import estimate_bin_volume_overlap, estimate_part_volume_overlap
 
 ################### INICIO ##################
 
 dir_origin= os.getcwd()
-dir_script = os.path.expanduser("~/develop/crystalCF/scripts_python")
+dir_script = os.path.expanduser("~/develop/branch/crystalCF/scripts_python")
 
 params_init = extract_params_init('init_params.txt', False)
 name_bin = params_init['name']
@@ -90,7 +91,7 @@ gamma_folder_list = ["{:.3f}".format(g).replace('.','_') for g in gamma_list]
 
 F_U = ["F_trans","F_trans_sv","F_vdW"]
 F_ST = ["F_conf","F_conf_sv","F_mixs", "F_HS"]
-F_name = F_U+F_ST+['F_tot_gcanon']
+F_name = F_U+F_ST+['F_tot_gcanon']+['volume_overlap']
 
 while True:
 	check_extract = input("¿Quiere extraer los F.data? (s/n): ").strip().lower()
@@ -198,7 +199,7 @@ for gamma_folder in gamma_folder_list:
 
 	keys_list = ["#part", "cell"]+F_U+F_ST
 	dict_contrib = {key: [] for key in keys_list}
-	dict_delta = {"#part": [],"cell": [], "aL_min": [], "ΔU_min": [], "-ΔST_min": [], "ΔF_min": []}
+	dict_delta = {"#part": [],"cell": [], "aL_min": [], "Vol overlap [nm³]": [], "ΔU_min": [], "-ΔST_min": [], "ΔF_min": []}
 
 	k_aL_part = 1
 	if flag_reflexion_part == True:
@@ -212,9 +213,9 @@ for gamma_folder in gamma_folder_list:
 			aL_array = result_cell[2]
 			U = estimate_part_contrib(part, cell, factor_aL_part[cell], n[part], k_part[cell], n1, n2, F_U, aL_array, aL_min, gen_curves_flag, k_aL_part)
 			S = estimate_part_contrib(part, cell, factor_aL_part[cell], n[part], k_part[cell], n1, n2, F_ST, aL_array, aL_min, gen_curves_flag, k_aL_part)
-
-			for i,key in enumerate(dict_delta):
-				list = [part,cell,aL_min,U,S,F_part]
+			V_part = estimate_part_volume_overlap(part, cell, factor_aL_part[cell], n[part], k_part[cell], n1, n2, aL_array, aL_min, gen_curves_flag, k_aL_part)
+			for i, key in enumerate(dict_delta):
+				list = [part,cell,aL_min,V_part,U,S,F_part]
 				dict_delta[key].append(list[i])
 
 	factor_aL_bin = cdiva_bin**(-1.0/3.0)
@@ -225,13 +226,14 @@ for gamma_folder in gamma_folder_list:
 
 	U_bin = estimate_bin_contrib(name_bin, factor_aL_bin, k_bin, n1, n2, F_U, aL_array, aL_min, ax2, np.round(gamma,2), gen_curves_flag, k_aL)
 	S_bin = estimate_bin_contrib(name_bin, factor_aL_bin, k_bin, n1, n2, F_ST, aL_array, aL_min, ax3, np.round(gamma,2), gen_curves_flag, k_aL)
+	Vol_bin = estimate_bin_volume_overlap(name_bin, factor_aL_bin, k_bin, n1, n2, aL_array, aL_min, ax3, np.round(gamma,2), gen_curves_flag, k_aL)
 
 	for i,key in enumerate(dict_delta):
-		list = ["R2 [nm]", R2_np, "", "", "", ""]
+		list = ["R2 [nm]", R2_np, "", "", "", "", ""]
 		dict_delta[key].append(list[i])
 
 	for i,key in enumerate(dict_delta):
-		list = ["binary",name_bin,aL_min,U_bin,S_bin,F_bin]
+		list = ["binary",name_bin,aL_min,Vol_bin,U_bin,S_bin,F_bin]
 		dict_delta[key].append(list[i])
 
 	for key in dict_delta:
@@ -243,7 +245,7 @@ for gamma_folder in gamma_folder_list:
 	DS = delta_energy_US(dict_delta, "-ΔST", cell_min=result[1], n1=n1, n2=n2)
 	
 	for i,key in enumerate(dict_delta):
-		list = ["gamma",gamma,"Global X",DU,DS,DF]
+		list = ["gamma",gamma, "","Global X",DU,DS,DF]
 		dict_delta[key].append(list[i])
 
 	df_delta = pd.DataFrame.from_dict(dict_delta)
@@ -275,6 +277,7 @@ DU_global = []
 DS_global = []
 DF_global = []
 
+Vol_overlap = [[],[],[]]
 DU_values = [[],[],[],[]]
 DS_values = [[],[],[],[]]
 DF_values = [[],[],[],[]]
@@ -285,15 +288,16 @@ for gamma_folder in gamma_folder_list:
 	
 	for j, name in enumerate(["part1", "part2", "binary", "Global"]):
 		if j<3:
-			values = df.loc[df["#part"] == name, ["ΔU_min", "-ΔST_min", "ΔF_min"]]
-			gamma = df.loc[df["aL_min"] == "Global X", ["cell"]].iloc[0]
+			values = df.loc[df["#part"] == name, ["Vol overlap [nm³]","ΔU_min", "-ΔST_min", "ΔF_min"]]
+			gamma = df.loc[df["Vol overlap [nm³]"] == "Global X", ["cell"]].iloc[0]
 			if name != "binary":
-				DU, DS, DF = values.sort_values(by="ΔF_min").iloc[0]
+				Vol, DU, DS, DF = values.sort_values(by="ΔF_min").iloc[0]
 			else:
-				DU, DS, DF = values.iloc[0]
+				Vol, DU, DS, DF = values.iloc[0]
+			Vol_overlap[j].append(Vol)
 
 		elif j == 3:
-			values = df.loc[df["aL_min"] == "Global X", ["cell", "ΔU_min", "-ΔST_min", "ΔF_min"]]
+			values = df.loc[df["Vol overlap [nm³]"] == "Global X", ["cell", "ΔU_min", "-ΔST_min", "ΔF_min"]]
 			gamma, DU, DS, DF = values.iloc[0]
 		
 		DU_values[j].append(DU)
@@ -406,3 +410,18 @@ for i in range(len(label)):
 	plt.title(f"{name_bin}",fontsize=22,weight='bold')
 	plt.legend(fontsize=13)
 	plt.savefig(f'{final_output}/{name_bin}_contrib_results_ΔF.png',format='png',dpi=300,bbox_inches='tight')
+
+DVol = pd.DataFrame(Vol_overlap).to_numpy()
+plt.figure(figsize=(8, 6))
+for i in range(len(label)-1):
+	plt.plot(gamma_value,DVol[i],marker=marker[i],ms=7, label=label[i])
+
+	plt.axhline(0,ls='--',c='darkgray',zorder=-3)
+	plt.xticks(fontsize=14)
+	plt.yticks(fontsize=14)
+	plt.xlim(min(gamma_value)-0.05,max(gamma_value)+0.05)
+	plt.ylabel(r'Vol. overlap [nm$^3$]',fontsize=18)
+	plt.xlabel(r'$\gamma$',fontsize=18)
+	plt.title(f"{name_bin}",fontsize=22,weight='bold')
+	plt.legend(fontsize=13)
+	plt.savefig(f'{final_output}/{name_bin}_contrib_results_Vol_overlap.png',format='png',dpi=300,bbox_inches='tight')

@@ -13,6 +13,13 @@ def mean_al(df):
         'F_norm': 'mean'
     })
 
+def mean_al_vol(df):
+    return df.groupby('aL', as_index=False).agg({
+        'aL': 'mean',
+        'volume overlap [nm³]': 'mean',
+        'Vol': 'mean'
+    })
+
 def estimate_part_F(part, part_cell, factor_aL_part, ni, k_part, n1, n2, gen_curves_flag, k_reflex_part):
     F_norm = []
     csv_file = [f"{part}_results_output.csv", f"{part}_references_output.csv"]
@@ -244,3 +251,78 @@ def delta_energy_contrib(dict_contrib, File_name, cell_min, n1, n2):
 
     return DF_calc
 
+def estimate_part_volume_overlap(part, part_cell, factor_aL_part, ni, k_part, n1, n2, aL_array, aL_min, gen_curves_flag, k_reflex_part):
+    F_cell = []
+    csv_file = f"{part}_results_volume_overlap.csv"
+
+    data_part = pd.read_csv(csv_file, skiprows=0)
+
+    data_part_cell = data_part[data_part["cell"] == part_cell].copy()
+    data_part_cell['aL'] = data_part_cell['delta'] * data_part_cell['dimx'] * factor_aL_part*k_reflex_part
+    data_part_cell['aL'] = data_part_cell['aL'].round(4) #si no lo redondeo no puede promediar.
+    data_part_cell["Vol"] = data_part_cell['volume overlap [nm³]']
+    data_part_cell.sort_values(by='aL', inplace=True)
+
+    k_reflex = k_reflex_part**3
+    print(k_reflex,k_part,n1+n2)
+    df_cell = mean_al_vol(data_part_cell)
+    aL_cell = df_cell['aL'].to_numpy()
+    F_cell.append(df_cell['Vol'].to_numpy()*k_reflex/k_part)
+
+    F_norm_cell = np.sum(F_cell, axis=0)
+    y_cell = CubicSpline(aL_cell, F_norm_cell)(aL_array)
+    F_min_cell = y_cell[aL_array==aL_min]/(n1+n2)
+    F_calc = F_min_cell[0]
+
+    if gen_curves_flag == True:
+        fig_sub, ax_sub = plt.subplots()
+        ax_sub.scatter(aL_cell, F_norm_cell/(n1+n2))
+        ax_sub.plot(aL_array,y_cell/(n1+n2))
+        ax_sub.axvline(aL_min,ls='--',c='darkgray',zorder=-1)
+        ax_sub.set_xlabel(r'a$_{\text{L}}$',fontsize=14)
+        ax_sub.set_ylabel(r'Vol. overlap [nm$^3$]',fontsize=14)
+        fig_sub.savefig(f"Vol_overlap_{part}_{part_cell}.png", format="png")
+
+        plt.close(fig_sub)
+
+    return F_calc
+
+def estimate_bin_volume_overlap(name, factor_bin_cell, k_bin, n1, n2, aL_array, aL_min, ax, gamma, gen_curves_flag, k_reflex):
+    F_bin = []
+    k = k_reflex["kx"]*k_reflex["ky"]*k_reflex["kz"]
+
+    csv_file = f"{name}_results_volume_overlap.csv"
+    data_bin = pd.read_csv(csv_file, skiprows=0)
+
+    data_bin['aL'] = (data_bin['delta'] * data_bin['dimx'] * float(factor_bin_cell)*k_reflex["kx"]).round(4)
+    data_bin["Vol"] = data_bin['volume overlap [nm³]']
+
+    # Ordenar por 'aL'
+    data_bin.sort_values(by='aL', inplace=True)
+
+    # Promediar valores repetidos de aL
+    df_bin = mean_al_vol(data_bin)
+    aL_bin = df_bin['aL'].to_numpy()
+    F_bin.append(df_bin['Vol'].to_numpy()*k/k_bin)
+
+    F_norm_bin = np.sum(F_bin, axis=0)
+    y_bin = CubicSpline(aL_bin, F_norm_bin)(aL_array)
+
+    F_min_bin = y_bin[aL_array==aL_min]/(n1+n2)
+    F_calc = F_min_bin[0]
+
+    if gen_curves_flag == True:
+        ax.scatter(aL_bin, F_norm_bin/(n1+n2), label=fr'$\gamma:$ {gamma}')
+        ax.plot(aL_array,y_bin/(n1+n2))
+        ax.scatter(aL_min,F_min_bin,marker='|', color='black',s=50,zorder=10)
+
+        fig_sub, ax_sub = plt.subplots()
+        ax_sub.scatter(aL_bin, F_norm_bin/(n1+n2))
+        ax_sub.plot(aL_array,y_bin/(n1+n2))
+        ax_sub.set_xlabel(r'a$_{\text{L}}$',fontsize=14)
+        ax_sub.axvline(aL_min,ls='--',c='darkgray',zorder=-1)
+        ax_sub.set_ylabel(r'Vol. overlap [nm$^3$]',fontsize=14)
+        fig_sub.savefig(f"Vol_overlap_{name}.png", format="png")
+        plt.close(fig_sub)
+
+    return F_calc

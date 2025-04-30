@@ -8,6 +8,9 @@ sigmar 0.0
 seed 938121
 seed_lig 14258825
 
+! skip simulations?
+flagsim 1
+
 !!! SCAN !!!
 
 !infile
