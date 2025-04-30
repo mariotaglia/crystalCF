@@ -264,7 +264,6 @@ def estimate_part_volume_overlap(part, part_cell, factor_aL_part, ni, k_part, n1
     data_part_cell.sort_values(by='aL', inplace=True)
 
     k_reflex = k_reflex_part**3
-    print(k_reflex,k_part,n1+n2)
     df_cell = mean_al_vol(data_part_cell)
     aL_cell = df_cell['aL'].to_numpy()
     F_cell.append(df_cell['Vol'].to_numpy()*k_reflex/k_part)
