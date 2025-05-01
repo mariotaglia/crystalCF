@@ -440,9 +440,9 @@ def join_F_csv(folder, name, bin_true):
         f_name = match.groups()
         # Cargar el CSV
         if i==0:
-            df = pd.read_csv(file)
+            df = pd.read_csv(file, delimiter = ',')
         else:
-            df = pd.read_csv(file,usecols=["F_value"])
+            df = pd.read_csv(file, delimiter = ',',usecols=["F_value"])
 
         df.rename(columns={"F_value": f"F_{f_name}"}, inplace=True)
         data_dict[f_name] = df
@@ -484,9 +484,9 @@ def join_F_csv_ref(folder, name):
         f_name = match.groups()
         # Cargar el CSV
         if i==0:
-            df = pd.read_csv(file)
+            df = pd.read_csv(file,delimiter=',')
         else:
-            df = pd.read_csv(file,usecols=["F_reference"])
+            df = pd.read_csv(file,delimiter=',',usecols=["F_reference"])
 
         df.rename(columns={"F_reference": f"{f_name}_reference"}, inplace=True)
         data_dict[f_name] = df

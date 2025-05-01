@@ -89,6 +89,30 @@ close(46)
 
 end subroutine
 
+subroutine volume_np
+! This subroutine exports NP discretize volume and number of monomers for packing coef calc
+
+use ematrix
+use molecules
+use system
+use results
+use MPI, only : rank
+implicit none
+
+real*8 V_np
+
+if(rank.eq.0) then
+	open(unit=47, file= 'volume_np_discrete.dat', status='replace', action='write')
+endif
+
+V_np = sum(volprot)*delta**3
+if(rank.eq.0) then
+write(47,*) V_np
+close(47)
+endif
+
+end subroutine
+
 double precision function pos2x(j,jx)
 use ellipsoid
 use transform

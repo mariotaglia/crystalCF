@@ -21,9 +21,13 @@ def process_principal(output_file, name_bin, R, delta_dim_bin, aL, k_aL, F):
     k = 1
     if name_bin == "MgZn2":
         k = 2
+
     if not os.path.isfile(output_file):
         with open(output_file, "w") as out_file:
-            out_file.write(f"radius [nm],radius [nm],delta,dimx,dimy,dimz,{F_name}\n")
+            if F == 'volume_overlap':
+                out_file.write(f"radius [nm];radius [nm];delta;dimx;dimy;dimz;#monomers;{F_name}\n")
+            else:
+                out_file.write(f"radius [nm],radius [nm],delta,dimx,dimy,dimz,{F_name}\n")
 
     delta_list = sorted({entry["delta"] for entry in delta_dim_bin if entry["delta"] is not None})
     for delta in delta_list:
@@ -40,24 +44,57 @@ def process_principal(output_file, name_bin, R, delta_dim_bin, aL, k_aL, F):
             
             file_path = os.path.join(os.getcwd(), F+".dat")
 
-            if os.path.isfile(file_path):
-                try:
-                    with open(file_path, "r") as file:
-                        first_line = file.readline().strip().split()
-                        if len(first_line) >= 1:
-                            if not F == 'volume_overlap':
-                                value = first_line[1]  # Segunda columna
-                            else:
-                                value = first_line[0]
-                            with open(output_file, "a") as out_file:
-                                out_file.write(f"{R1_np},{R2_np},{delta},{dim},{int(dim*k_aL['kx']/k_aL['ky'])},{int(dim*k_aL['kx']*k/k_aL['kz'])},{value}\n")
+            if F == 'volume_overlap':
+                file_monomers = os.path.join(os.getcwd(),"system.001.dat")
+                if os.path.isfile(file_monomers):
+                    try:
+                        if os.path.isfile(file_path):
+                            try:
+                                with open(file_path, "r") as file:
+                                    values = []
+                                    lines = file.readlines()
+                                    for i, line in enumerate(lines):
+                                        if len(line.strip().split()) == 1:
+                                            values.append(line.strip().split()[0])
+                                        else:
+                                            print(f"Advertencia: No se encontró un valor en {file_path}")
+
+                                with open(file_monomers, "r") as file:    
+                                    lines = file.readlines()
+                                    for i, line in enumerate(lines):
+                                        if "Number of segments" in line:
+                                            monomers = line.strip().split()[-1]
+                                            break
+                                with open(output_file, "a") as out_file:
+                                    out_file.write(f"{R1_np};{R2_np};{delta};{dim};{int(dim*k_aL['kx']/k_aL['ky'])};{int(dim*k_aL['kx']*k/k_aL['kz'])};{monomers};{values}\n")
+
+                            except Exception as e:
+                                print(f"Error al procesar {file_path}: {e}")
                         else:
-                            print(f"Advertencia: No se encontró un valor en {file_path}")
-                except Exception as e:
-                    print(f"Error al procesar {file_path}: {e}")
-            else:
-                print(f"Advertencia: Archivo no encontrado en {file_path}")
-            os.chdir("..")
+                            print(f"Advertencia: Archivo no encontrado en {file_path}")
+
+                    except Exception as e:
+                        print(f"Error al procesar {file_monomers}: {e}")
+                else:
+                    print(f"Advertencia: Archivo no encontrado en {file_path}")
+                os.chdir("..")
+
+            else:  
+                if os.path.isfile(file_path):
+                    try:
+                        with open(file_path, "r") as file:
+                            first_line = file.readline().strip().split()
+                            if len(first_line) > 1:
+                                value = first_line[1]  # Segunda columna
+                                with open(output_file, "a") as out_file:
+                                    out_file.write(f"{R1_np},{R2_np},{delta},{dim},{int(dim*k_aL['kx']/k_aL['ky'])},{int(dim*k_aL['kx']*k/k_aL['kz'])},{value}\n")
+                            else:
+                                print(f"Advertencia: No se encontró un valor en {file_path}")
+                    except Exception as e:
+                        print(f"Error al procesar {file_path}: {e}")
+                else:
+                    print(f"Advertencia: Archivo no encontrado en {file_path}")
+                os.chdir("..")
 
 def process_reference_bin(output_file, dir_inicial, F, R, gamma_folder):
     if not F == 'volume_overlap':
@@ -145,7 +182,10 @@ def process_principal_part(output_file, label_struc,R_np, delta_list, aL, k_aL, 
     structure = os.getcwd()
     if not os.path.isfile(output_file):
         with open(output_file, "w") as out_file:
-            out_file.write(f"cell, radius [nm],delta,dimx,dimy,dimz,{F_name}\n")
+            if F == 'volume_overlap':
+                out_file.write(f"cell;radius [nm];delta;dimx;dimy;dimz;#monomers;{F_name}\n")
+            else:
+                out_file.write(f"cell,radius [nm],delta,dimx,dimy,dimz,{F_name}\n")
 
     for delta in delta_list:
         delta_folder = str(delta).replace('.', '_')
@@ -158,24 +198,56 @@ def process_principal_part(output_file, label_struc,R_np, delta_list, aL, k_aL, 
             
             file_path = os.path.join(os.getcwd(), F+".dat")
             
-            if os.path.isfile(file_path):
-                try:
-                    with open(file_path, "r") as file:
-                        first_line = file.readline().strip().split()
-                        if len(first_line) >= 1:
-                            if not F == 'volume_overlap':
-                                value = first_line[1]  # Segunda columna
-                            else:
-                                value = first_line[0]
-                            with open(output_file, "a") as out_file:
-                                out_file.write(f"{label_struc},{R_np},{delta},{j},{j},{j},{value}\n")
+            if F == 'volume_overlap':
+                file_monomers = os.path.join(os.getcwd(),"system.001.dat")
+                if os.path.isfile(file_monomers):
+                    try:
+                        if os.path.isfile(file_path):
+                            try:
+                                with open(file_path, "r") as file:
+                                    values = []
+                                    lines = file.readlines()
+                                    for i, line in enumerate(lines):
+                                        if len(line.strip().split()) == 1:
+                                            values.append(line.strip().split()[0])
+                                        else:
+                                            print(f"Advertencia: No se encontró un valor en {file_path}")
+
+                                with open(file_monomers, "r") as file:    
+                                    lines = file.readlines()
+                                    for i, line in enumerate(lines):
+                                        if "Number of segments" in line:
+                                            monomers = line.strip().split()[-1]
+                                            break
+                                with open(output_file, "a") as out_file:
+                                    out_file.write(f"{label_struc};{R_np};{delta};{j};{j};{j};{monomers};{values}\n")
+
+                            except Exception as e:
+                                print(f"Error al procesar {file_path}: {e}")
                         else:
-                            print(f"Advertencia: No se encontró un valor en {file_path}")
-                except Exception as e:
-                    print(f"Error al procesar {file_path}: {e}")
+                            print(f"Advertencia: Archivo no encontrado en {file_path}")
+
+                    except Exception as e:
+                        print(f"Error al procesar {file_monomers}: {e}")
+                else:
+                    print(f"Advertencia: Archivo no encontrado en {file_path}")
+                os.chdir("..")
             else:
-                print(f"Advertencia: Archivo no encontrado en {file_path}")
-            os.chdir("..")
+                if os.path.isfile(file_path):
+                    try:
+                        with open(file_path, "r") as file:
+                            first_line = file.readline().strip().split()
+                            if len(first_line) > 1:
+                                value = first_line[1]
+                                with open(output_file, "a") as out_file:
+                                    out_file.write(f"{label_struc},{R_np},{delta},{j},{j},{j},{value}\n")
+                            else:
+                                print(f"Advertencia: No se encontró un valor en {file_path}")
+                    except Exception as e:
+                        print(f"Error al procesar {file_path}: {e}")
+                else:
+                    print(f"Advertencia: Archivo no encontrado en {file_path}")
+                os.chdir("..")
 
 def process_reference_part(output_file, base_folder, cell_part, label_struc, F):
     if not F == 'volume_overlap':

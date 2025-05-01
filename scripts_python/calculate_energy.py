@@ -5,6 +5,7 @@ from scipy.interpolate import CubicSpline
 from scipy.optimize import minimize_scalar
 import matplotlib.pyplot as plt
 import math
+from ast import literal_eval
 
 def mean_al(df):
     return df.groupby('aL', as_index=False).agg({
@@ -13,12 +14,10 @@ def mean_al(df):
         'F_norm': 'mean'
     })
 
+
 def mean_al_vol(df):
-    return df.groupby('aL', as_index=False).agg({
-        'aL': 'mean',
-        'volume overlap [nm³]': 'mean',
-        'Vol': 'mean'
-    })
+    return df.groupby("aL")["Vol"].apply(lambda x: np.mean(np.stack(x), axis=0).tolist()).reset_index()
+
 
 def estimate_part_F(part, part_cell, factor_aL_part, ni, k_part, n1, n2, gen_curves_flag, k_reflex_part):
     F_norm = []
@@ -251,77 +250,104 @@ def delta_energy_contrib(dict_contrib, File_name, cell_min, n1, n2):
 
     return DF_calc
 
-def estimate_part_volume_overlap(part, part_cell, factor_aL_part, ni, k_part, n1, n2, aL_array, aL_min, gen_curves_flag, k_reflex_part):
-    F_cell = []
+def estimate_part_volume_overlap(part, part_cell, factor_aL_part, k_part, aL_array, aL_min, k_reflex_part, gen_curves_flag, ax1, ax2):
     csv_file = f"{part}_results_volume_overlap.csv"
-
-    data_part = pd.read_csv(csv_file, skiprows=0)
+    data_part = pd.read_csv(csv_file, skiprows=0, delimiter=';')
 
     data_part_cell = data_part[data_part["cell"] == part_cell].copy()
     data_part_cell['aL'] = data_part_cell['delta'] * data_part_cell['dimx'] * factor_aL_part*k_reflex_part
-    data_part_cell['aL'] = data_part_cell['aL'].round(4) #si no lo redondeo no puede promediar.
-    data_part_cell["Vol"] = data_part_cell['volume overlap [nm³]']
+    data_part_cell['aL'] = data_part_cell['aL'].round(4)
+    data_part_cell["Vol"] = data_part_cell['volume overlap [nm³]'].apply(lambda x: [float(i) for i in literal_eval(x)])
     data_part_cell.sort_values(by='aL', inplace=True)
 
     k_reflex = k_reflex_part**3
     df_cell = mean_al_vol(data_part_cell)
     aL_cell = df_cell['aL'].to_numpy()
-    F_cell.append(df_cell['Vol'].to_numpy()*k_reflex/k_part)
+    
+    V_cell = np.array([np.array(x) for x in df_cell['Vol']])
+    V_sum = df_cell['Vol'].apply(lambda x: np.sum(np.array(x), axis=0)).to_numpy()/k_part
 
-    F_norm_cell = np.sum(F_cell, axis=0)
-    y_cell = CubicSpline(aL_cell, F_norm_cell)(aL_array)
-    F_min_cell = y_cell[aL_array==aL_min]/(n1+n2)
-    F_calc = F_min_cell[0]
+    y_cell = []; V_cell_min = []
+    for i in range(2):
+        cs = CubicSpline(aL_cell, V_cell.T[i])(aL_array)
+        y_cell.append(cs)
+        V_cell_min.append(cs[aL_array==aL_min])
+
+    y_sum_cell = CubicSpline(aL_cell, V_sum)(aL_array)
+    V_sum_cell_min = y_sum_cell[aL_array==aL_min]
 
     if gen_curves_flag == True:
-        fig_sub, ax_sub = plt.subplots()
-        ax_sub.scatter(aL_cell, F_norm_cell/(n1+n2))
-        ax_sub.plot(aL_array,y_cell/(n1+n2))
-        ax_sub.axvline(aL_min,ls='--',c='darkgray',zorder=-1)
-        ax_sub.set_xlabel(r'a$_{\text{L}}$',fontsize=14)
-        ax_sub.set_ylabel(r'Vol. overlap [nm$^3$]',fontsize=14)
-        fig_sub.savefig(f"Vol_overlap_{part}_{part_cell}.png", format="png")
+        for i in range(2):
+            ax1.scatter(aL_cell, V_cell.T[i], label=part_cell)
+            ax1.plot(aL_array,y_cell[i])
+            ax1.scatter(aL_min,V_cell_min[i],marker='|', color='black',s=50,zorder=10)
 
-        plt.close(fig_sub)
+        ax2.scatter(aL_cell, V_sum, label=part_cell)
+        ax2.plot(aL_array,y_sum_cell)
+        ax2.scatter(aL_min,V_sum_cell_min,marker='|', color='black',s=50,zorder=10)
+        for ax in [ax1,ax2]:
+            ax.set_xlabel(r'a$_{\text{L}}$',fontsize=14)
+            ax.axvline(aL_min,ls='--',c='darkgray',zorder=-1)
+            ax.set_ylabel(r'Vol. overlap [nm$^3$]',fontsize=14)
+            ax.legend()
 
-    return F_calc
+    return V_cell_min, V_sum_cell_min
 
-def estimate_bin_volume_overlap(name, factor_bin_cell, k_bin, n1, n2, aL_array, aL_min, ax, gamma, gen_curves_flag, k_reflex):
-    F_bin = []
+def estimate_bin_volume_overlap(name, factor_bin_cell, k_bin, k_reflex, n1, n2, aL_array, aL_min, gamma, gen_curves_flag):
+    V_bin_min = {"part1": [], "part2": []}
     k = k_reflex["kx"]*k_reflex["ky"]*k_reflex["kz"]
 
     csv_file = f"{name}_results_volume_overlap.csv"
-    data_bin = pd.read_csv(csv_file, skiprows=0)
+    data_bin = pd.read_csv(csv_file, skiprows=0, delimiter=';')
 
     data_bin['aL'] = (data_bin['delta'] * data_bin['dimx'] * float(factor_bin_cell)*k_reflex["kx"]).round(4)
-    data_bin["Vol"] = data_bin['volume overlap [nm³]']
-
+    data_bin["Vol"] = data_bin['volume overlap [nm³]'].apply(lambda x: [float(i) for i in literal_eval(x)])
+    
     # Ordenar por 'aL'
     data_bin.sort_values(by='aL', inplace=True)
+    aL_bin = data_bin['aL'].to_numpy()
 
-    # Promediar valores repetidos de aL
     df_bin = mean_al_vol(data_bin)
     aL_bin = df_bin['aL'].to_numpy()
-    F_bin.append(df_bin['Vol'].to_numpy()*k/k_bin)
+    
+    V_bin = np.array([np.array(x) for x in df_bin['Vol']])
+    V_sum = df_bin['Vol'].apply(lambda x: np.sum(np.array(x), axis=0)).to_numpy()/k_bin
 
-    F_norm_bin = np.sum(F_bin, axis=0)
-    y_bin = CubicSpline(aL_bin, F_norm_bin)(aL_array)
+    y_bin = []; V_min = []
+    for i in range((n1+n2)*k_bin):
+        cs = CubicSpline(aL_bin, V_bin.T[i])(aL_array)
+        y_bin.append(cs)
+        V_min.append(cs[aL_array==aL_min])
 
-    F_min_bin = y_bin[aL_array==aL_min]/(n1+n2)
-    F_calc = F_min_bin[0]
+    for j, part in zip([(0,n1*k_bin),(n1*k_bin,(n1+n2)*k_bin)],["part1", "part2"]):
+        for k in range(j[0],j[1]):
+            V_bin_min[part].append(V_min[k])
+
+    y_sum_bin = CubicSpline(aL_bin, V_sum)(aL_array)
+    V_sum_bin_min = y_sum_bin[aL_array==aL_min]
 
     if gen_curves_flag == True:
-        ax.scatter(aL_bin, F_norm_bin/(n1+n2), label=fr'$\gamma:$ {gamma}')
-        ax.plot(aL_array,y_bin/(n1+n2))
-        ax.scatter(aL_min,F_min_bin,marker='|', color='black',s=50,zorder=10)
+        fig, (ax1,ax2) = plt.subplots(ncols = 2, nrows = 1)
+        for i in range((n1+n2)*k_bin):
+            ax1.scatter(aL_bin, V_bin.T[i], label=fr'$part {i}')
+            ax1.plot(aL_array,y_bin[i])
+            ax1.scatter(aL_min,V_min[i],marker='|', color='black',s=50,zorder=10)
 
-        fig_sub, ax_sub = plt.subplots()
-        ax_sub.scatter(aL_bin, F_norm_bin/(n1+n2))
-        ax_sub.plot(aL_array,y_bin/(n1+n2))
-        ax_sub.set_xlabel(r'a$_{\text{L}}$',fontsize=14)
-        ax_sub.axvline(aL_min,ls='--',c='darkgray',zorder=-1)
-        ax_sub.set_ylabel(r'Vol. overlap [nm$^3$]',fontsize=14)
-        fig_sub.savefig(f"Vol_overlap_{name}.png", format="png")
-        plt.close(fig_sub)
+        ax2.scatter(aL_bin, V_sum, label=fr'$\gamma:$ {gamma}')
+        ax2.plot(aL_array,y_sum_bin)
+        ax2.scatter(aL_min,V_sum_bin_min,marker='|', color='black',s=50,zorder=10)
+        for ax in [ax1,ax2]:
+            ax.set_xlabel(r'a$_{\text{L}}$',fontsize=14)
+            ax.axvline(aL_min,ls='--',c='darkgray',zorder=-1)
+            ax.set_ylabel(r'Vol. overlap [nm$^3$]',fontsize=14)
+            ax.legend()
 
-    return F_calc
+        fig.savefig(f"Vol_overlap_{name}.png", format="png")
+        plt.close(fig)
+
+    return V_bin_min, V_sum_bin_min
+
+def packing_frac_part(part, part_cell, factor_aL_part, aL_array, aL_min, k_reflex_part):
+    return
+def packing_frac_bin(name, factor_bin_cell, k_bin, aL_array, aL_min, gamma, k_reflex):
+    return

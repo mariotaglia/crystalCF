@@ -7,7 +7,7 @@ integer*2, allocatable :: pzsv(:,:)
 integer*2, allocatable :: ntranssv(:)
 integer ingsv ! number of transs in current chain
 real*8, ALLOCATABLE :: in1sv(:,:)  ! segment positions 
-end module
+endmodule
 
 
 module mparameters_monomer
@@ -16,7 +16,7 @@ integer N_monomer ! number of different monomer types
 real*8, allocatable :: st_matrix(:,:) ! interaction between monomer types in fraction of st, scaled by st-scale during running....
 integer, allocatable :: hydroph(:) ! 0: hydrophilic, 1 < x < N_poorsol, type of poor solvent
 real*8 interaction_00, interaction_11
-endmodule mparameters_monomer
+endmodule
 
 module branches
 integer longb(3), longbb

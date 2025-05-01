@@ -54,25 +54,15 @@ endif
 enddo
 
 if(dumpcluster.gt.1) then
-        call dumpclusterinfo
-        call endall
+  call dumpclusterinfo
+  call endall
 endif
 
-if((systemtype.eq.1).and.(flag_vol.eq.1)) then
-  if(flagsim.eq.1) then
-    call calcvolumeoverlap
-    call endall
-  elseif(flagsim.ne.0) then
-    if(rank.eq.0)write(10,*) 'Wrong input for flag sim. Set flagsim = 0 or 1.'
-    call endall
-  endif
-endif
-
-call initall
+if(flag_vol.ne.1)call initall
 call allocation
 
 !!! General files
-
+if(flag_vol.ne.1) then
 if(systemtype.eq.1) then
  do j = 1, NNN
  write(filename,'(A3,I3.3, A4)')'pos',j,'.dat'
@@ -85,7 +75,7 @@ if(systemtype.eq.1) then
 endif
 
 open(file='free_energy.dat', unit=9000)
-
+endif
 call kais
 if(rank.eq.0)write(stdout,*) 'Kai OK'
 
@@ -117,15 +107,26 @@ elseif (systemtype.eq.81) then
 call update_matrix_superellipse(flag) ! superellipse
 endif
 
-  if(flag.eqv..true.) then
-    write(stdout,*) 'Initial position of particle does not fit in z'
-    write(stdout,*) 'or particles collide'
-    stop
-  else
-    if(rank.eq.0)write(stdout,*) 'Particle OK'
-  endif
+if(flag.eqv..true.) then
+  write(stdout,*) 'Initial position of particle does not fit in z'
+  write(stdout,*) 'or particles collide'
+  stop
+else
+  if(rank.eq.0)write(stdout,*) 'Particle OK'
+endif
 
-call  graftpoints
+if((systemtype.eq.1).and.(flag_vol.eq.1)) then
+  if(flagsim.eq.1) then
+    call volume_np
+    call calcvolumeoverlap
+    call endall
+  elseif(flagsim.ne.0) then
+    if(rank.eq.0)write(10,*) 'Wrong input for flag sim. Set flagsim = 0 or 1.'
+    call endall
+  endif
+endif
+
+call graftpoints
 if(rank.eq.0)write(stdout,*) 'Graftpoints OK'
 
 call creador ! Genera cadenas
