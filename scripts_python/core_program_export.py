@@ -199,7 +199,7 @@ for gamma_folder in gamma_folder_list:
 
 	keys_list = ["#part", "cell"]+F_U+F_ST
 	dict_contrib = {key: [] for key in keys_list}
-	dict_delta = {"#part": [],"cell": [], "aL_min": [], "ΔU_min": [], "-ΔST_min": [], "ΔF_min": []}
+	dict_delta = {"#part": [],"cell": [], "aL_min": [], "eta": [], "ΔU_min": [], "-ΔST_min": [], "ΔF_min": []}
 	V_part_sum = {"part1":{"fcc": [], "bcc": []}, "part2": {"fcc": [], "bcc": []}}
 	V_part = {"part1":{"fcc": [], "bcc": []}, "part2": {"fcc": [], "bcc": []}}
 
@@ -220,8 +220,9 @@ for gamma_folder in gamma_folder_list:
 			V_cell_min, V_sum_cell_min = estimate_part_volume_overlap(part, cell, factor_aL_part[cell], k_part[cell], aL_array, aL_min, k_reflex_part, gen_curves_flag, axp1, axp2)
 			V_part_sum[part][cell] =+ V_sum_cell_min
 			V_part[part][cell] = V_cell_min
+			eta_part = packing_frac_part(part, cell, factor_aL_part[cell], k_part[cell], aL_array, aL_min, k_reflex_part, gen_curves_flag)
 			for i, key in enumerate(dict_delta):
-				list_params = [part,cell,aL_min,U,S,F_part]
+				list_params = [part,cell,aL_min, eta_part,U,S,F_part]
 				dict_delta[key].append(list_params[i])
 		fig.savefig(f"Vol_overlap_{part}.png", format="png")
 		plt.close(fig)
@@ -235,13 +236,13 @@ for gamma_folder in gamma_folder_list:
 	U_bin = estimate_bin_contrib(name_bin, factor_aL_bin, k_bin, n1, n2, F_U, aL_array, aL_min, ax2, np.round(gamma,2), gen_curves_flag, k_reflex_bin)
 	S_bin = estimate_bin_contrib(name_bin, factor_aL_bin, k_bin, n1, n2, F_ST, aL_array, aL_min, ax3, np.round(gamma,2), gen_curves_flag, k_reflex_bin)
 	V_bin_min, V_sum_bin_min = estimate_bin_volume_overlap(name_bin, factor_aL_bin, k_bin, k_reflex_bin, n1, n2, aL_array, aL_min, gamma, gen_curves_flag)
-
+	eta_bin = packing_frac_bin(name_bin, factor_aL_bin, aL_array, aL_min, k_reflex_bin, gen_curves_flag)
 	for i,key in enumerate(dict_delta):
-		list_params = ["R2 [nm]", R2_np, "", "", "", ""]
+		list_params = ["R2 [nm]", R2_np, "", "", "", "", ""]
 		dict_delta[key].append(list_params[i])
 
 	for i,key in enumerate(dict_delta):
-		list_params = ["binary",name_bin,aL_min,U_bin,S_bin,F_bin]
+		list_params = ["binary",name_bin, aL_min, eta_bin ,U_bin,S_bin,F_bin]
 		dict_delta[key].append(list_params[i])
 
 	for key in dict_delta:
@@ -253,7 +254,7 @@ for gamma_folder in gamma_folder_list:
 	DS = delta_energy_US(dict_delta, "-ΔST", cell_min=result[1], n1=n1, n2=n2)
 	
 	for i,key in enumerate(dict_delta):
-		list_params = ["gamma",gamma,"Global X",DU,DS,DF]
+		list_params = ["gamma",gamma, "","Global X",DU,DS,DF]
 		dict_delta[key].append(list_params[i])
 
 	df_delta = pd.DataFrame.from_dict(dict_delta)
@@ -320,6 +321,7 @@ DF_global = []
 DU_values = [[],[],[],[]]
 DS_values = [[],[],[],[]]
 DF_values = [[],[],[],[]]
+eta_values = [[],[],[]]
 
 dfs = []; columnas = 2
 for gamma_folder in gamma_folder_list:
@@ -327,15 +329,16 @@ for gamma_folder in gamma_folder_list:
 	
 	for j, name in enumerate(["part1", "part2", "binary", "Global"]):
 		if j<3:
-			values = df.loc[df["#part"] == name, ["ΔU_min", "-ΔST_min", "ΔF_min"]]
-			gamma = df.loc[df["aL_min"] == "Global X", ["cell"]].iloc[0]
+			values = df.loc[df["#part"] == name, ["eta","ΔU_min", "-ΔST_min", "ΔF_min"]]
+			gamma = df.loc[df["eta"] == "Global X", ["cell"]].iloc[0]
 			if name != "binary":
-				DU, DS, DF = values.sort_values(by="ΔF_min").iloc[0]
+				eta, DU, DS, DF = values.sort_values(by="ΔF_min").iloc[0]
 			else:
-				DU, DS, DF = values.iloc[0]
+				eta, DU, DS, DF = values.iloc[0]
 
+			eta_values[j].append(eta)
 		elif j == 3:
-			values = df.loc[df["aL_min"] == "Global X", ["cell", "ΔU_min", "-ΔST_min", "ΔF_min"]]
+			values = df.loc[df["eta"] == "Global X", ["cell", "ΔU_min", "-ΔST_min", "ΔF_min"]]
 			gamma, DU, DS, DF = values.iloc[0]
 		
 		DU_values[j].append(DU)
@@ -393,8 +396,6 @@ for gamma_folder in gamma_folder_list:
 		Vol_overlap_dict[("binary", name_bin, 'Tot')].append(float("nan"))
 
 	os.chdir(dir_origin)
-
-print(Vol_overlap_dict)
 
 #datos MD:
 ref_MD = pd.read_excel(os.path.join(dir_script,"references","ref_MD_backup.xlsx"), engine="openpyxl")
@@ -552,3 +553,51 @@ for ax in [ax1,ax2]:
 
 plt.savefig(f'{final_output}/{name_bin}_contrib_volume_overlap.png',format='png',dpi=300,bbox_inches='tight')
 
+# eta
+label = ["part1", "part2", "binary", "global"]
+marker = ["o", "v", "d", "s"]
+color = ['tab:blue', 'tab:orange', 'tab:green', 'tab:red']
+
+DF = pd.DataFrame(DF_values).to_numpy()
+eta = pd.DataFrame(eta_values).to_numpy()
+
+fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(8, 10), sharex=True)
+
+# Primer subplot: ΔF
+for i in range(len(label)):
+    ax1.plot(gamma_value, DF[i], color=color[i], marker=marker[i], ms=7, label=label[i])
+ax1.axhline(0, ls='--', c='darkgray', zorder=-3)
+ax1.set_xlim(min(gamma_value) - 0.05, max(gamma_value) + 0.05)
+ax1.set_ylabel(r'$\Delta$F (k$_{\text{B}}$T)', fontsize=18)
+ax1.tick_params(axis='both', labelsize=14)
+ax1.set_title(f"{name_bin}", fontsize=22, weight='bold')
+ax1.legend(fontsize=13, loc='best')
+
+# Segundo subplot: η
+for i in range(len(label)-1):  # Asumes que eta tiene len(label)-1 filas
+    ax2.plot(gamma_value, eta[i], ls='--', marker=marker[i], color=color[i], label=label[i], linewidth=2)
+ax2.set_xlim(min(gamma_value) - 0.05, max(gamma_value) + 0.05)
+ax2.set_xlabel(r'$\gamma$', fontsize=18)
+ax2.set_ylabel(r'$\eta$', fontsize=18)
+ax2.tick_params(axis='both', labelsize=14)
+ax2.legend(fontsize=13, loc='best')
+
+plt.tight_layout()
+plt.savefig(f'{final_output}/{name_bin}_DF_and_eta_results.png', format='png', dpi=300, bbox_inches='tight')
+plt.close()
+
+F_plot = DF_values[3]
+eta_values = np.array(eta_values)
+eta_plot = eta_values[2]
+
+plt.figure(figsize=(8, 6))
+plt.plot(eta_plot,F_plot,ls='none',marker='s',color='red',ms=7,label='MoltCF')
+plt.axhline(0,ls='--',c='darkgray',zorder=-3)
+plt.xticks(fontsize=14)
+plt.yticks(fontsize=14)
+plt.ylabel(r'$\Delta$F (k$_{\text{B}}$T)',fontsize=18)
+plt.xlabel(rf'$\eta\ {name_bin} $',fontsize=18)
+plt.title(f"{name_bin}",fontsize=22,weight='bold')
+plt.legend(fontsize=13)
+plt.savefig(f'{final_output}/{name_bin}_results_F_vs_eta.png',format='png',dpi=300,bbox_inches='tight')
+plt.close()

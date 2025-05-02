@@ -47,7 +47,15 @@ Redirects output to fort.*int*
   
 Random number generator for randominput only  
 *int* is the seed for the random number generator used for randominput = 1  
-  
+
+## simflag *int* 
+
+skip simulation?
+
+*int* =  
+0 : don't skip
+1 : skip  
+
 ---  
 # Scan options  
   

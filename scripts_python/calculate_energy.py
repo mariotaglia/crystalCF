@@ -14,6 +14,11 @@ def mean_al(df):
         'F_norm': 'mean'
     })
 
+def mean_al_eta(df):
+    return df.groupby('aL', as_index=False).agg({
+        'aL': 'mean',
+        'eta': 'mean',
+    })
 
 def mean_al_vol(df):
     return df.groupby("aL")["Vol"].apply(lambda x: np.mean(np.stack(x), axis=0).tolist()).reset_index()
@@ -347,7 +352,56 @@ def estimate_bin_volume_overlap(name, factor_bin_cell, k_bin, k_reflex, n1, n2, 
 
     return V_bin_min, V_sum_bin_min
 
-def packing_frac_part(part, part_cell, factor_aL_part, aL_array, aL_min, k_reflex_part):
-    return
-def packing_frac_bin(name, factor_bin_cell, k_bin, aL_array, aL_min, gamma, k_reflex):
-    return
+def packing_frac_part(part, part_cell, factor_aL_part, k_part, aL_array, aL_min, k_reflex_part, gen_curves_flag):
+    csv_file = f"{part}_results_volume_overlap.csv"
+    data_part = pd.read_csv(csv_file, skiprows=0, delimiter=';')
+
+    data_part_cell = data_part[data_part["cell"] == part_cell].copy()
+    data_part_cell['aL'] = data_part_cell['delta'] * data_part_cell['dimx'] * factor_aL_part*k_reflex_part
+    data_part_cell['aL'] = data_part_cell['aL'].round(4)
+    data_part_cell["eta"] = data_part_cell['packing fraction']
+    data_part_cell.sort_values(by='aL', inplace=True)
+
+    df_part = mean_al_eta(data_part_cell)
+    aL_part = df_part['aL'].to_numpy()
+    eta_part = df_part["eta"].to_numpy()
+
+    y_cell = CubicSpline(aL_part, eta_part)(aL_array)
+    eta_min = y_cell[aL_array==aL_min]
+
+    if gen_curves_flag == True:
+        fig_sub, ax_sub = plt.subplots()
+        ax_sub.scatter(aL_part, eta_part)
+        ax_sub.plot(aL_array,y_cell)
+        ax_sub.set_xlabel(r'a$_{\text{L}}$',fontsize=14)
+        ax_sub.set_ylabel(r'$\eta$',fontsize=14)
+        ax_sub.axvline(aL_min,ls='--',c='darkgray',zorder=-1)
+        fig_sub.savefig(f"eta_{part}_{part_cell}.png", format="png")
+        plt.close(fig_sub)
+    return eta_min[0]
+
+def packing_frac_bin(name, factor_bin_cell, aL_array, aL_min, k_reflex, gen_curves_flag):
+    csv_file = f"{name}_results_volume_overlap.csv"
+    data_bin = pd.read_csv(csv_file, skiprows=0, delimiter=';')
+    k = k_reflex["kx"]*k_reflex["ky"]*k_reflex["kz"]
+    data_bin['aL'] = (data_bin['delta'] * data_bin['dimx'] * float(factor_bin_cell)*k_reflex["kx"]).round(4)
+    data_bin["eta"] = data_bin['packing fraction']
+    data_bin.sort_values(by='aL', inplace=True)
+
+    df_bin = mean_al_eta(data_bin)
+    aL_bin = df_bin['aL'].to_numpy()
+    eta_bin = df_bin["eta"].to_numpy()
+
+    y_bin = CubicSpline(aL_bin, eta_bin)(aL_array)
+    eta_min = y_bin[aL_array==aL_min]
+
+    if gen_curves_flag == True:
+        fig_sub, ax_sub = plt.subplots()
+        ax_sub.scatter(aL_bin, eta_bin)
+        ax_sub.plot(aL_array,y_bin)
+        ax_sub.set_xlabel(r'a$_{\text{L}}$',fontsize=14)
+        ax_sub.set_ylabel(r'$\eta$',fontsize=14)
+        ax_sub.axvline(aL_min,ls='--',c='darkgray',zorder=-1)
+        fig_sub.savefig(f"eta_{name}.png", format="png")
+        plt.close(fig_sub)
+    return eta_min[0]
