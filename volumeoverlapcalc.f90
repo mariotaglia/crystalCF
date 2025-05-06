@@ -34,9 +34,9 @@ endif
 do j = 1, NNN
 	sum = 0.0
 	rA = Aell(1,j)
-	vect1T(1) = pos2x(j,0) 
-	vect1T(2) = pos2y(j,0)
-	vect1T(3) = pos2z(j,0)
+	vect1T(1) = pos2x(j,0,0) 
+	vect1T(2) = pos2y(j,0,0)
+	vect1T(3) = pos2z(j,0,0)
 	vect1R = MATMUL(IMAT,vect1T) ! coordinates of particle in real space
 	do ir = 1, Nradius
 	radius = float(ir)*dradius + rA
@@ -55,9 +55,18 @@ do j = 1, NNN
 			do iy = -nn, nn
 			do iz = -nn, nn
 			rB = Aell(1,k)
-			vect2T(1) = pos2x(k,ix) 
-			vect2T(2) = pos2y(k,iy)
-			vect2T(3) = pos2z(k,iz)
+			if((PBC(1).eq.1).and.(PBC(2).eq.1))vect2T(1) = pos2x(k,ix,1)
+			if((PBC(3).eq.1).and.(PBC(4).eq.1))vect2T(2) = pos2y(k,iy,1)
+			if((PBC(5).eq.1).and.(PBC(6).eq.1))vect2T(3) = pos2z(k,iz,1)
+
+			if((PBC(1).eq.3).and.(PBC(2).eq.3))vect2T(1) = pos2x(k,ix,2)
+			if((PBC(3).eq.3).and.(PBC(4).eq.3))vect2T(2) = pos2y(k,iy,2)
+			if((PBC(5).eq.3).and.(PBC(6).eq.3))vect2T(3) = pos2z(k,iz,2)
+
+			if(((PBC(1).eq.0).and.(PBC(2).eq.0)).or.((PBC(1).eq.2).and.(PBC(2).eq.2)))vect2T(1) = pos2x(k,0,0)
+			if(((PBC(3).eq.0).and.(PBC(4).eq.0)).or.((PBC(1).eq.2).and.(PBC(2).eq.2)))vect2T(2) = pos2y(k,0,0)
+			if(((PBC(5).eq.0).and.(PBC(6).eq.0)).or.((PBC(1).eq.2).and.(PBC(2).eq.2)))vect2T(3) = pos2z(k,0,0)
+
 			vect2R = MATMUL(IMAT,vect2T) ! coordinates of particle in real space
 			if((j.ne.k).or.(ix.ne.0).or.(iy.ne.0).or.(iz.ne.0)) then
 				vect2 = (vect2R(1) - x)**2 + (vect2R(2) - y)**2 + (vect2R(3) - z)**2
@@ -113,29 +122,29 @@ endif
 
 end subroutine
 
-double precision function pos2x(j,jx)
+double precision function pos2x(j,jx,kx)
 use ellipsoid
 use transform
 use system
 implicit none
-integer j, jx
-pos2x =  Rellf(1,j)*delta*dfloat(dimx)+dfloat(dimx*jx)*delta
+integer j, jx, kx
+pos2x =  Rellf(1,j)*delta*dfloat(dimx)+kx*dfloat(dimx*jx)*delta
 end
 
-double precision function pos2y(j,jy)
+double precision function pos2y(j,jy,ky)
 use ellipsoid
 use transform
 use system
 implicit none
-integer j, jy
-pos2y =  Rellf(2,j)*delta*dfloat(dimy)+dfloat(dimy*jy)*delta
+integer j, jy, ky
+pos2y =  Rellf(2,j)*delta*dfloat(dimy)+ky*dfloat(dimy*jy)*delta
 end
 
-double precision function pos2z(j,jz)
+double precision function pos2z(j,jz,kz)
 use ellipsoid
 use transform
 use system
 implicit none
-integer j, jz
-pos2z =  Rellf(3,j)*delta*dfloat(dimz)+dfloat(dimz*jz)*delta
+integer j, jz, kz
+pos2z =  Rellf(3,j)*delta*dfloat(dimz)+kz*dfloat(dimz*jz)*delta
 end
