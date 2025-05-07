@@ -75,10 +75,14 @@ def process_principal_part(reference_DEF, delta_list, aL, tosubmit, dir_fuente, 
     structure = os.getcwd()
     DEF =  os.path.join(structure, "DEFINITIONS.txt")
     lines = read_DEF(DEF)
-
+    if ("bcc" and "part2") in structure:
+        delta_list.append(0.26)
     for delta in delta_list:
         round_value = int(np.round(float(aL/k_aL) / float(delta)))
-        dims = [round_value - 1, round_value, round_value + 1]
+        if not delta == 0.26:
+            dims = [round_value - 1, round_value, round_value + 1]
+        else:
+            dims = [round_value]
         delta_folder = str(delta).replace('.','_')
         for j in dims:
             folder_name = f"delta_{delta_folder}_dim_{j}"
