@@ -11,7 +11,7 @@ def run_command(command):
     result = subprocess.run(command, shell=True, text=True, capture_output=True)
     return result.stdout.strip()
 
-def process_principal(output_file, name_bin, R, delta_dim_bin, aL, k_aL, F):
+def process_principal(output_file, name_bin, R, delta_dim_bin, aL, k_aL, F, v_sol):
     if F == 'volume_overlap':
         F_name = 'volume overlap [nm³]'
     else:
@@ -25,7 +25,7 @@ def process_principal(output_file, name_bin, R, delta_dim_bin, aL, k_aL, F):
     if not os.path.isfile(output_file):
         with open(output_file, "w") as out_file:
             if F == 'volume_overlap':
-                out_file.write(f"radius [nm];radius [nm];delta;dimx;dimy;dimz;packing fraction;{F_name}\n")
+                out_file.write(f"radius [nm];radius [nm];delta;dimx;dimy;dimz;monomers;sum volume discrete np [nm³];packing fraction;{F_name}\n")
             else:
                 out_file.write(f"radius [nm],radius [nm],delta,dimx,dimy,dimz,{F_name}\n")
 
@@ -77,11 +77,9 @@ def process_principal(output_file, name_bin, R, delta_dim_bin, aL, k_aL, F):
                                             print(f"Advertencia: No se encontró un valor en {file_v_np}")
 
                                 v_cell = (delta*dim)**3.0
-                                v_sol = 22.5/1000 #nm³
                                 eta = (v_np + monomers*v_sol)/v_cell
-                                print(eta)
                                 with open(output_file, "a") as out_file:
-                                    out_file.write(f"{R1_np};{R2_np};{delta};{dim};{int(dim*k_aL['kx']/k_aL['ky'])};{int(dim*k_aL['kx']*k/k_aL['kz'])};{eta};{values}\n")
+                                    out_file.write(f"{R1_np};{R2_np};{delta};{dim};{int(dim*k_aL['kx']/k_aL['ky'])};{int(dim*k_aL['kx']*k/k_aL['kz'])};{monomers};{v_np};{eta};{values}\n")
 
                             except Exception as e:
                                 print(f"Error al procesar {file_path}: {e}")
@@ -189,7 +187,7 @@ def process_reference_bin(output_file, dir_inicial, F, R, gamma_folder):
                             delta_value = delta.replace('_', '.')  
                             writer.writerow([label,R[label], delta_value, dimx, dimy, dimz, f_ref])
 
-def process_principal_part(output_file, label_struc,R_np, delta_list, aL, k_aL, F):
+def process_principal_part(output_file, label_struc,R_np, delta_list, aL, k_aL, F, v_sol):
     if F == 'volume_overlap':
         F_name = 'volume overlap [nm³]'
     else:
@@ -198,7 +196,7 @@ def process_principal_part(output_file, label_struc,R_np, delta_list, aL, k_aL, 
     if not os.path.isfile(output_file):
         with open(output_file, "w") as out_file:
             if F == 'volume_overlap':
-                out_file.write(f"cell;radius [nm];delta;dimx;dimy;dimz;packing fraction;{F_name}\n")
+                out_file.write(f"cell;radius [nm];delta;dimx;dimy;dimz;monomers;sum volume discrete np [nm³];packing fraction;{F_name}\n")
             else:
                 out_file.write(f"cell,radius [nm],delta,dimx,dimy,dimz,{F_name}\n")
 
@@ -245,11 +243,9 @@ def process_principal_part(output_file, label_struc,R_np, delta_list, aL, k_aL, 
                                             print(f"Advertencia: No se encontró un valor en {file_v_np}")
 
                                 v_cell = (delta*j)**3.0
-                                v_sol = 22.5/1000 #nm³
                                 eta = (v_np + monomers*v_sol)/v_cell
-
                                 with open(output_file, "a") as out_file:
-                                    out_file.write(f"{label_struc};{R_np};{delta};{j};{j};{j};{eta};{values}\n")
+                                    out_file.write(f"{label_struc};{R_np};{delta};{j};{j};{j};{monomers};{v_np};{eta};{values}\n")
 
                             except Exception as e:
                                 print(f"Error al procesar {file_path}: {e}")

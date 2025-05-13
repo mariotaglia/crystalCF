@@ -92,6 +92,7 @@ gamma_folder_list = ["{:.3f}".format(g).replace('.','_') for g in gamma_list]
 F_U = ["F_trans","F_trans_sv","F_vdW"]
 F_ST = ["F_conf","F_conf_sv","F_mixs", "F_HS"]
 F_name = F_U+F_ST+['F_tot_gcanon']+['volume_overlap']
+v_sol = 28.5/1000
 
 while True:
 	check_extract = input("¿Quiere extraer los F.data? (s/n): ").strip().lower()
@@ -117,7 +118,7 @@ while True:
 				gamma = float(gamma_folder.replace('_','.'))
 				aL = float(run_command(f"python3 {dir_script}/references/aL_estimate_bin.py {name_bin} {R1_np} {R2_np}"))
 				delta_dim_bin = [entry for entry in gamm_delta_dim if entry["gamma"] == gamma]
-				process_principal(output_file, name_bin, R, delta_dim_bin, aL, k_reflex_bin, f_name)
+				process_principal(output_file, name_bin, R, delta_dim_bin, aL, k_reflex_bin, f_name, v_sol)
 				os.chdir(os.path.join(dir_origin,f"gamma_{gamma_folder}"))
 
 				output_file = os.path.join(output_folder, f"{name_bin}_references_{f_name}.csv")
@@ -136,7 +137,7 @@ while True:
 						k_reflex_part = 1
 						if flag_reflexion_part == True:
 							k_reflex_part = 2
-						process_principal_part(output_file, label_struc, R_np, delta_list, aL, k_reflex_part, f_name)
+						process_principal_part(output_file, label_struc, R_np, delta_list, aL, k_reflex_part, f_name, v_sol)
 
 						os.chdir(os.path.join(dir_fuente[label], f"{label_struc}_ref"))
 						output_file = os.path.join(output_folder, f"{label}_references_{f_name}.csv")
@@ -210,12 +211,12 @@ for gamma_folder in gamma_folder_list:
 		result_cell = []
 		fig, (axp1,axp2) = plt.subplots(ncols = 2, nrows = 1)
 		for i, cell in enumerate(cell_part):
-			result_cell = estimate_part_F(part, cell, factor_aL_part[cell], n[part], k_part[cell], n1, n2, gen_curves_flag, k_reflex_part)
+			result_cell = estimate_part_F(part, cell, factor_aL_part[cell], n[part], k_part[cell], gen_curves_flag, k_reflex_part)
 			aL_min = result_cell[0]
 			F_part = result_cell[1]
 			aL_array = result_cell[2]
-			U = estimate_part_contrib(part, cell, factor_aL_part[cell], n[part], k_part[cell], n1, n2, F_U, aL_array, aL_min, gen_curves_flag, k_reflex_part)
-			S = estimate_part_contrib(part, cell, factor_aL_part[cell], n[part], k_part[cell], n1, n2, F_ST, aL_array, aL_min, gen_curves_flag, k_reflex_part)
+			U = estimate_part_contrib(part, cell, factor_aL_part[cell], n[part], k_part[cell], F_U, aL_array, aL_min, gen_curves_flag, k_reflex_part)
+			S = estimate_part_contrib(part, cell, factor_aL_part[cell], n[part], k_part[cell], F_ST, aL_array, aL_min, gen_curves_flag, k_reflex_part)
 			
 			V_cell_min, V_sum_cell_min = estimate_part_volume_overlap(part, cell, factor_aL_part[cell], k_part[cell], aL_array, aL_min, k_reflex_part, gen_curves_flag, axp1, axp2)
 			V_part_sum[part][cell] =+ V_sum_cell_min
@@ -314,6 +315,7 @@ if gen_curves_flag == True:
 os.chdir(dir_origin)
 
 gamma_value = []
+alpha_value = []
 DU_global = []
 DS_global = []
 DF_global = []
@@ -331,6 +333,8 @@ for gamma_folder in gamma_folder_list:
 		if j<3:
 			values = df.loc[df["#part"] == name, ["eta","ΔU_min", "-ΔST_min", "ΔF_min"]]
 			gamma = df.loc[df["eta"] == "Global X", ["cell"]].iloc[0]
+			R2 = df.loc[df["#part"] == "R2 [nm]", ["cell"]].iloc[0]
+			alpha = R2/R1_np
 			if name != "binary":
 				eta, DU, DS, DF = values.sort_values(by="ΔF_min").iloc[0]
 			else:
@@ -345,6 +349,7 @@ for gamma_folder in gamma_folder_list:
 		DS_values[j].append(DS)
 		DF_values[j].append(DF)
 
+	alpha_value.append(alpha)
 	gamma_value.append(gamma)
 
 	os.chdir(dir_origin)
@@ -420,6 +425,20 @@ for i, (lista, F) in enumerate(zip(F_plot,["ΔU", "-TΔS", "ΔF"])):
 	plt.legend(fontsize=13)
 	plt.savefig(f'{final_output}/{name_bin}_results_{F}.png',format='png',dpi=300,bbox_inches='tight')
 	plt.close()
+
+for i, (lista, F) in enumerate(zip(F_plot,["ΔU", "-TΔS", "ΔF"])):
+	plt.figure(figsize=(8, 6))
+	plt.plot(alpha_value,F_plot[i],ls='none',marker='s',color='red',ms=7,label='MoltCF')
+
+	plt.axhline(0,ls='--',c='darkgray',zorder=-3)
+	plt.xticks(fontsize=14)
+	plt.yticks(fontsize=14)
+	plt.xlim(np.min(alpha_value)-0.05,np.max(alpha_value)+0.05)
+	plt.ylabel(y_label[i],fontsize=18)
+	plt.xlabel(r'$\alpha$',fontsize=18)
+	plt.title(f"{name_bin}",fontsize=22,weight='bold')
+	plt.legend(fontsize=13)
+	plt.savefig(f'{final_output}/{name_bin}_results_{F}_alpha.png',format='png',dpi=300,bbox_inches='tight')
 
 #####################################################
 df_export = pd.DataFrame.from_dict(Vol_overlap_dict, orient="index")

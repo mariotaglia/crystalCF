@@ -295,7 +295,7 @@ def update_particle_sizes(lines, gamma, R_np, n1_k_bin, n2_k_bin):
     for i, line in enumerate(lines):
         if line.strip() == "!properties of ligand chains":
             size_index = i+1
-            n_seg = float(lines[size_index].split()[1])
+            nseg = float(lines[size_index].split()[1])
             size_index = None
         if line.startswith("! segment lengths"):
             size_index = i+1
@@ -319,8 +319,10 @@ def update_particle_sizes(lines, gamma, R_np, n1_k_bin, n2_k_bin):
             for n in np.arange(0,n1_k_bin):
                 lines[size_index] = f"{R_np} {R_np} {R_np}\n"
             D = 2*R_np
-            lamda = 2*n_seg*lseg/D
-            a = 6*n_seg*lseg/2
+            l = lseg*np.cos(68*np.pi/180/2)
+            h = (nseg*l+0.2)
+            lamda = 2*h/D
+            a = 6*h/2
             b = (gamma*R_np)**3 *(1 + 3*lamda)
 
             factor = solve_cubic(a, b)
@@ -399,7 +401,7 @@ def gamma_calc(definitions_path):
     for i, line in enumerate(lines):
         if line.strip() == "!properties of ligand chains":
             size_index = i+1
-            n_seg = float(lines[size_index].split()[1])
+            nseg = float(lines[size_index].split()[1])
             size_index = None
         if line.startswith("! segment lengths"):
             size_index = i+1
@@ -416,8 +418,9 @@ def gamma_calc(definitions_path):
                     R2_np = R1_np
                 j += 1
             size_index = None
-
-    lamda_fact = 2*lseg*n_seg
+    l = lseg*np.cos(68*np.pi/180/2)
+    h = (nseg*l+0.2)
+    lamda_fact = 2*h
     D1 = 2*R1_np ;D2 = 2*R2_np
     gamma = R2_np*(1+3*lamda_fact/D2)**(1./3.) / (R1_np*(1+3*lamda_fact/D1)**(1./3.))
     return gamma
