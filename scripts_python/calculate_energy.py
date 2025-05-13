@@ -13,7 +13,7 @@ def mean_al(df):
         'F_norm': 'mean'
     })
 
-def estimate_part_F(part, part_cell, factor_aL_part, ni, k_part, n1, n2, gen_curves_flag, k_reflex_part):
+def estimate_part_F(part, part_cell, factor_aL_part, ni, k_part, gen_curves_flag, k_reflex_part):
     F_norm = []
     csv_file = [f"{part}_results_output.csv", f"{part}_references_output.csv"]
     data_part = pd.read_csv(csv_file[0], skiprows=0)
@@ -34,13 +34,19 @@ def estimate_part_F(part, part_cell, factor_aL_part, ni, k_part, n1, n2, gen_cur
     x_cell =  np.arange(aL_cell[0], aL_cell[-1], 0.001)
     y_cell = CubicSpline(aL_cell, F_norm_cell)(x_cell)
 
-    F_min_cell = y_cell.min()/(n1+n2)
+    # Ajuste cúbico (polinomio de grado 3)
+    coeficientes = np.polyfit(aL_cell, F_norm_cell, 4)
+    polinomio = np.poly1d(coeficientes)
+
+    # Evaluación del polinomio ajustado
+    y_cell = polinomio(x_cell)
+    F_min_cell = y_cell.min()
     aL_min_cell = x_cell[y_cell.argmin()]
 
     if gen_curves_flag == True:
         fig_sub, ax_sub = plt.subplots()
-        ax_sub.scatter(aL_cell, F_norm_cell/(n1+n2))
-        ax_sub.plot(x_cell,y_cell/(n1+n2))
+        ax_sub.scatter(aL_cell, F_norm_cell)
+        ax_sub.plot(x_cell,y_cell)
         ax_sub.set_xlabel(r'a$_{\text{L}}$',fontsize=14)
         ax_sub.set_ylabel(r'$\Delta$F (k$_{\text{B}}$T)',fontsize=14)
         ax_sub.axvline(aL_min_cell,ls='--',c='darkgray',zorder=-1)
@@ -48,7 +54,7 @@ def estimate_part_F(part, part_cell, factor_aL_part, ni, k_part, n1, n2, gen_cur
         plt.close(fig_sub)
 
         fig_sub, ax_sub = plt.subplots()
-        ax_sub.scatter(aL_cell, F_tot/(n1+n2))
+        ax_sub.scatter(aL_cell, F_tot)
         ax_sub.set_xlabel(r'a$_{\text{L}}$',fontsize=14)
         ax_sub.set_ylabel(r'$\Delta$F (k$_{\text{B}}$T)',fontsize=14)
         ax_sub.axvline(aL_min_cell,ls='--',c='darkgray',zorder=-1)
@@ -57,7 +63,7 @@ def estimate_part_F(part, part_cell, factor_aL_part, ni, k_part, n1, n2, gen_cur
 
     return aL_min_cell, F_min_cell, x_cell
 
-def estimate_part_contrib(part, part_cell, factor_aL_part, ni, k_part, n1, n2, F, aL_array, aL_min, gen_curves_flag, k_reflex_part):
+def estimate_part_contrib(part, part_cell, factor_aL_part, ni, k_part, F, aL_array, aL_min, gen_curves_flag, k_reflex_part):
     F_cell = []
     for f_name in F:
         csv_file = [f"{part}_results_output.csv", f"{part}_references_output.csv"]
@@ -78,13 +84,18 @@ def estimate_part_contrib(part, part_cell, factor_aL_part, ni, k_part, n1, n2, F
 
     F_norm_cell = np.sum(F_cell, axis=0)
     y_cell = CubicSpline(aL_cell, F_norm_cell)(aL_array)
-    F_min_cell = y_cell[aL_array==aL_min]/(n1+n2)
+    
+    coeficientes = np.polyfit(aL_cell, F_norm_cell, 4)
+    polinomio = np.poly1d(coeficientes)
+    y_cell = polinomio(aL_array)
+
+    F_min_cell = y_cell[aL_array==aL_min]
     F_calc = F_min_cell[0]
 
     if gen_curves_flag == True:
         fig_sub, ax_sub = plt.subplots()
-        ax_sub.scatter(aL_cell, F_norm_cell/(n1+n2))
-        ax_sub.plot(aL_array,y_cell/(n1+n2))
+        ax_sub.scatter(aL_cell, F_norm_cell)
+        ax_sub.plot(aL_array,y_cell)
         ax_sub.axvline(aL_min,ls='--',c='darkgray',zorder=-1)
         ax_sub.set_xlabel(r'a$_{\text{L}}$',fontsize=14)
         if "F_trans" in F:
@@ -122,7 +133,11 @@ def estimate_bin_F(name, factor_bcell, k_bin, n1, n2, ax, gamma, gen_curves_flag
     x_bin =  np.arange(aL_bin[0], aL_bin[-1], 0.001)
     y_bin = CubicSpline(aL_bin, F_norm_bin)(x_bin)
 
-    F_min_bin = y_bin.min()/(n1+n2)
+    coeficientes = np.polyfit(aL_bin, F_norm_bin, 4)
+    polinomio = np.poly1d(coeficientes)
+    y_bin = polinomio(x_bin)
+
+    F_min_bin = y_bin.min()
     aL_min_bin = x_bin[y_bin.argmin()]
 
     if gen_curves_flag == True:
@@ -178,7 +193,11 @@ def estimate_bin_contrib(name, factor_bin_cell, k_bin, n1, n2, F, aL_array, aL_m
     F_norm_bin = np.sum(F_bin, axis=0)
     y_bin = CubicSpline(aL_bin, F_norm_bin)(aL_array)
 
-    F_min_bin = y_bin[aL_array==aL_min]/(n1+n2)
+    coeficientes = np.polyfit(aL_bin, F_norm_bin, 4)
+    polinomio = np.poly1d(coeficientes)
+    y_bin = polinomio(aL_array)
+
+    F_min_bin = y_bin[aL_array==aL_min]
     F_calc = F_min_bin[0]
 
     if gen_curves_flag == True:
@@ -203,9 +222,9 @@ def estimate_bin_contrib(name, factor_bin_cell, k_bin, n1, n2, F, aL_array, aL_m
 
 def delta_energy_F(dict_delta, cell, n1, n2):
     df_delta = pd.DataFrame.from_dict(dict_delta)
-    F_part1 = (df_delta.loc[df_delta["#part"] == "part1", "ΔF_min"]*n1).tolist()
-    F_part2 = (df_delta.loc[df_delta["#part"] == "part2", "ΔF_min"]*n2).tolist()
-    F_min_bin = df_delta.loc[df_delta["#part"] == "binary", "ΔF_min"].values[0]  # Tomar único valor binario
+    F_part1 = (df_delta.loc[df_delta["#part"] == "part1", "ΔF_min"]*n1/(n1+n2)).tolist()
+    F_part2 = (df_delta.loc[df_delta["#part"] == "part2", "ΔF_min"]*n2/(n1+n2)).tolist()
+    F_min_bin = df_delta.loc[df_delta["#part"] == "binary", "ΔF_min"].values[0]/(n1+n2)  # Tomar único valor binario
     struc_part_min = []
     for i, part in enumerate(["part1", "part2"]):
         F_part = F_part1 if part == "part1" else F_part2  # Seleccionar la lista correcta
@@ -225,9 +244,9 @@ def delta_energy_F(dict_delta, cell, n1, n2):
 
 def delta_energy_US(dict_delta, US, cell_min, n1, n2):
     df_delta = pd.DataFrame.from_dict(dict_delta)
-    F_part1 = df_delta.loc[(df_delta["#part"] == "part1") & (df_delta["cell"] == cell_min[0]), f"{US}_min"].values[0]
-    F_part2 = df_delta.loc[(df_delta["#part"] == "part2") & (df_delta["cell"] == cell_min[1]), f"{US}_min"].values[0]
-    F_min_bin = df_delta.loc[df_delta["#part"] == "binary", f"{US}_min"].values[0]  # Tomar único valor binario
+    F_part1 = df_delta.loc[(df_delta["#part"] == "part1") & (df_delta["cell"] == cell_min[0]), f"{US}_min"].values[0]/(n1+n2)
+    F_part2 = df_delta.loc[(df_delta["#part"] == "part2") & (df_delta["cell"] == cell_min[1]), f"{US}_min"].values[0]/(n1+n2)
+    F_min_bin = df_delta.loc[df_delta["#part"] == "binary", f"{US}_min"].values[0]/(n1+n2)  # Tomar único valor binario
     DF = F_min_bin - F_part1*n1 - F_part2*n2
 
     return DF
@@ -236,9 +255,9 @@ def delta_energy_contrib(dict_contrib, File_name, cell_min, n1, n2):
     DF_calc = []
     df_contrib = pd.DataFrame.from_dict(dict_contrib)
     for i, F in enumerate(File_name):
-        F_part1 = df_contrib.loc[(df_contrib["#part"] == "part1") & (df_contrib["cell"] == cell_min[0]), f"{F}"].values[0]
-        F_part2 = df_contrib.loc[(df_contrib["#part"] == "part2") & (df_contrib["cell"] == cell_min[1]), f"{F}"].values[0]
-        F_min_bin = df_contrib.loc[df_contrib["#part"] == "binary", f"{F}"].values[0]  # Tomar único valor binario
+        F_part1 = df_contrib.loc[(df_contrib["#part"] == "part1") & (df_contrib["cell"] == cell_min[0]), f"{F}"].values[0]/(n1+n2)
+        F_part2 = df_contrib.loc[(df_contrib["#part"] == "part2") & (df_contrib["cell"] == cell_min[1]), f"{F}"].values[0]/(n1+n2)
+        F_min_bin = df_contrib.loc[df_contrib["#part"] == "binary", f"{F}"].values[0]/(n1+n2)  # Tomar único valor binario
 
         DF_calc.append(F_min_bin - F_part1*n1 - F_part2*n2)
 

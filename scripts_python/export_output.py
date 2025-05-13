@@ -129,16 +129,21 @@ def process_reference_bin(output_file, dir_inicial, F, R, gamma_folder):
                         delta_value = delta.replace('_', '.')  
                         writer.writerow([label,R[label], delta_value, dimx, dimy, dimz, f_ref])
 
-def process_principal_part(output_file, label_struc,R_np, delta_list, aL, k_aL, F):
+def process_principal_part(output_file, label_struc,R_np, delta_list, aL, k_aL, F, check_bcc):
     structure = os.getcwd()
     if not os.path.isfile(output_file):
         with open(output_file, "w") as out_file:
             out_file.write("cell, radius [nm],delta,dimx,dimy,dimz,F_value\n")
+    if ("bcc" in structure and "part2" in structure) and check_bcc == False:
+        delta_list.append(0.26)
 
     for delta in delta_list:
         delta_folder = str(delta).replace('.', '_')
         round_value = int(np.round(float(aL/k_aL) / float(delta)))
-        dims = [round_value - 1, round_value, round_value + 1]
+        if not delta == 0.26:
+            dims = [round_value - 1, round_value, round_value + 1]
+        else:
+            dims = [round_value]
         
         for j in dims:
             folder_name = f"delta_{delta_folder}_dim_{j}"

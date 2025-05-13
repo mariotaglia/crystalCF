@@ -96,6 +96,7 @@ while True:
 	check_extract = input("¿Quiere extraer los F.data? (s/n): ").strip().lower()
 	if check_extract in ["s", "si"]:
 		print("Extrayendo F.data...")
+		check_bcc = False
 		for gamma_folder in gamma_folder_list:
 			os.chdir(os.path.join(dir_origin,f"gamma_{gamma_folder}"))
 
@@ -135,12 +136,14 @@ while True:
 						k_aL_part = 1
 						if flag_reflexion_part == True:
 							k_aL_part = 2
-						process_principal_part(output_file, label_struc, R_np, delta_list, aL, k_aL_part, f_name)
+						process_principal_part(output_file, label_struc, R_np, delta_list, aL, k_aL_part, f_name, check_bcc)
 
 						os.chdir(os.path.join(dir_fuente[label], f"{label_struc}_ref"))
 						output_file = os.path.join(output_folder, f"{label}_references_{f_name}.csv")
 						base_folder = os.path.join(dir_fuente[label], f"{label_struc}_ref")
 						process_reference_part(output_file, base_folder, cell_part, label_struc, f_name)
+						if (label_struc == 'bcc' and label == 'part2'):
+							check_bcc = True
 
 			join_F_csv(output_folder, name_bin, True)
 			join_F_csv_ref(output_folder, name_bin)
@@ -206,12 +209,12 @@ for gamma_folder in gamma_folder_list:
 	for part in ["part1", "part2"]:
 		result_cell = []
 		for i, cell in enumerate(cell_part):
-			result_cell = estimate_part_F(part, cell, factor_aL_part[cell], n[part], k_part[cell], n1, n2, gen_curves_flag, k_aL_part)
+			result_cell = estimate_part_F(part, cell, factor_aL_part[cell], n[part], k_part[cell], gen_curves_flag, k_aL_part)
 			aL_min = result_cell[0]
 			F_part = result_cell[1]
 			aL_array = result_cell[2]
-			U = estimate_part_contrib(part, cell, factor_aL_part[cell], n[part], k_part[cell], n1, n2, F_U, aL_array, aL_min, gen_curves_flag, k_aL_part)
-			S = estimate_part_contrib(part, cell, factor_aL_part[cell], n[part], k_part[cell], n1, n2, F_ST, aL_array, aL_min, gen_curves_flag, k_aL_part)
+			U = estimate_part_contrib(part, cell, factor_aL_part[cell], n[part], k_part[cell], F_U, aL_array, aL_min, gen_curves_flag, k_aL_part)
+			S = estimate_part_contrib(part, cell, factor_aL_part[cell], n[part], k_part[cell], F_ST, aL_array, aL_min, gen_curves_flag, k_aL_part)
 
 			for i,key in enumerate(dict_delta):
 				list = [part,cell,aL_min,U,S,F_part]
@@ -271,6 +274,7 @@ if gen_curves_flag == True:
 os.chdir(dir_origin)
 
 gamma_value = []
+alpha_value = []
 DU_global = []
 DS_global = []
 DF_global = []
@@ -287,6 +291,8 @@ for gamma_folder in gamma_folder_list:
 		if j<3:
 			values = df.loc[df["#part"] == name, ["ΔU_min", "-ΔST_min", "ΔF_min"]]
 			gamma = df.loc[df["aL_min"] == "Global X", ["cell"]].iloc[0]
+			R2 = df.loc[df["#part"] == "R2 [nm]", ["cell"]].iloc[0]
+			alpha = R2/R1_np
 			if name != "binary":
 				DU, DS, DF = values.sort_values(by="ΔF_min").iloc[0]
 			else:
@@ -301,6 +307,7 @@ for gamma_folder in gamma_folder_list:
 		DF_values[j].append(DF)
 
 	gamma_value.append(gamma)
+	alpha_value.append(alpha)
 
 	os.chdir(dir_origin)
 
@@ -331,6 +338,22 @@ for i, (lista, F) in enumerate(zip(F_plot,["ΔU", "-TΔS", "ΔF"])):
 	plt.title(f"{name_bin}",fontsize=22,weight='bold')
 	plt.legend(fontsize=13)
 	plt.savefig(f'{final_output}/{name_bin}_results_{F}.png',format='png',dpi=300,bbox_inches='tight')
+
+F_plot = [DU_values[3],DS_values[3],DF_values[3]]
+for i, (lista, F) in enumerate(zip(F_plot,["ΔU", "-TΔS", "ΔF"])):
+	plt.figure(figsize=(8, 6))
+	plt.plot(alpha_value,F_plot[i],ls='none',marker='s',color='red',ms=7,label='MoltCF')
+
+	plt.axhline(0,ls='--',c='darkgray',zorder=-3)
+	plt.xticks(fontsize=14)
+	plt.yticks(fontsize=14)
+	plt.xlim(np.min(alpha_value)-0.05,np.max(alpha_value)+0.05)
+	plt.ylabel(y_label[i],fontsize=18)
+	plt.xlabel(r'$\alpha$',fontsize=18)
+	plt.title(f"{name_bin}",fontsize=22,weight='bold')
+	plt.legend(fontsize=13)
+	plt.savefig(f'{final_output}/{name_bin}_results_{F}_alpha.png',format='png',dpi=300,bbox_inches='tight')
+
 
 #####################################################
 

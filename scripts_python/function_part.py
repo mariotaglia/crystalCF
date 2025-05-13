@@ -71,12 +71,13 @@ def path_carpeta(folder_init,n):
         x = os.path.dirname(x)
     return x
 
-def process_principal_part(reference_DEF, delta_list, aL, tosubmit, dir_fuente, k_aL):
+def process_principal_part(reference_DEF, delta_list, aL, tosubmit, dir_fuente, k_aL, check_bcc):
     structure = os.getcwd()
     DEF =  os.path.join(structure, "DEFINITIONS.txt")
     lines = read_DEF(DEF)
-    if ("bcc" and "part2") in structure:
+    if ("bcc" in structure and "part2" in structure) and check_bcc == False:
         delta_list.append(0.26)
+
     for delta in delta_list:
         round_value = int(np.round(float(aL/k_aL) / float(delta)))
         if not delta == 0.26:
