@@ -105,6 +105,8 @@ character*5  title
 real*8 temp(dimx,dimy,dimz)
 real*8 sumpol
 integer ix,iy,iz, im
+real*8 minpol
+integer minpolpos(3)
 !----------------------------------------------------------
 !  OUTPUT
 !----------------------------------------------------------
@@ -128,6 +130,8 @@ if(rank.eq.0) then ! solo el jefe escribe a disco....
 
   title = 'avpol'
   call savetodisk(temp, title, cccc)
+
+  minpolpos = minloc(temp)
 
 ! Polimero, por tipo
   
@@ -180,6 +184,8 @@ endif
   write(310,*)'phipol Oh =', avpol(dimx/2+1,1,1,1)
   write(310,*)'phisolv Th =', xh(dimx/2+1, 1, dimz/4+1)
   write(310,*)'phipol Th =', avpol(dimx/2+1, 1, dimz/4+1,1)
+  write(310,*)'minpol =', minpol
+  write(310,*)'minpolpos =', minpolpos
  
 
   sumpol = 0.0
