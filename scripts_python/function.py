@@ -321,6 +321,7 @@ def update_particle_sizes(lines, gamma, R_np, n1_k_bin, n2_k_bin):
             D = 2*R_np
             l = lseg*np.cos(68*np.pi/180/2)
             h = (nseg*l+0.2)
+            h = nseg*lseg
             lamda = 2*h/D
             a = 6*h/2
             b = (gamma*R_np)**3 *(1 + 3*lamda)
