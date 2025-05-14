@@ -39,7 +39,7 @@ def process_principal_binario(reference_DEF, name_bin, delta_dim_bin, aL, n_k_bi
                 content = file.read()
             
             k = 1
-            if name_bin == 'MgZn2':
+            if name_bin == 'MgZn2' or name_bin == "C14":
                 k = 2
 
             content = content.replace("dimx _DIM_", f'dimx {str(dim)}').replace("dimy _DIM_", f'dimy {str(int(dim*k_aL["kx"]/k_aL["ky"]))}')
@@ -47,8 +47,11 @@ def process_principal_binario(reference_DEF, name_bin, delta_dim_bin, aL, n_k_bi
 
             write_DEF("DEFINITIONS.txt", content)
             lines = read_DEF("DEFINITIONS.txt")
-            dir_origen = os.path.abspath(os.path.join(dir_fuente, os.pardir))
-            output_DEF_ref = {"part1": os.path.join(dir_origen,"sim_part1","binary_ref","part1"),"part2": os.path.join(dir_fuente,"binary_ref","part2")}
+            dir_origen = os.path.abspath(dir_fuente)
+            if n_k_bin["part2"] != 0:
+                output_DEF_ref = {"part1": os.path.join(dir_origen,"sim_part1","binary_ref","part1"),"part2": os.path.join(dir_fuente,"binary_ref","part2")}
+            else:
+                output_DEF_ref = {"part1": os.path.join(dir_origen,"sim_part1","binary_ref","part1"),"part2": None}
             process_secundario_binario(lines, name_bin, output_DEF_ref, int(dim*k_aL["kx"]), n_k_bin, dir_fuente, delta_list, k_aL, gamma)
             os.chdir(dir_fuente)
             os.chdir(structure)
@@ -94,11 +97,12 @@ def process_secundario_binario(lines, name_bin, output_folder, dim, n_k_bin, dir
                 for line in reversed(new_block):
                     modified_lines.insert(start_index, line)
 
-        output_DEF = os.path.join(output_folder[label], f"DEFINITIONS.txt")
-        with open(output_DEF, "w") as f:
-            f.writelines(modified_lines)
+        if label != "part2":
+            output_DEF = os.path.join(output_folder[label], f"DEFINITIONS.txt")
+            with open(output_DEF, "w") as f:
+                f.writelines(modified_lines)
 
-    for label in ["part1", "part2"]:
+    for label in ["part1"]:
         os.chdir(output_folder[label])
         # Extraer datos y procesar posiciones
         data = extract_definitions("DEFINITIONS.txt")

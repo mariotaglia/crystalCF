@@ -20,7 +20,7 @@ def write_DEF(file_path, lines):
         
 def update_cdiva(DEF, name_bin, gamma, flag_reflexion):
     lines = read_DEF(DEF)
-    if name_bin == 'MgZn2':
+    if name_bin == 'MgZn2' or name_bin == 'C14':
         for i, line in enumerate(lines):
             if line == "!cdiva\n":
                 size_index = i + 1

@@ -264,9 +264,9 @@ if gen_curves_flag == True:
 	ax2.set_ylabel(r'$\Delta$U (k$_{\text{b}}$T)',fontsize=16)
 	ax3.set_ylabel(r'-T$\Delta$S (k$_{\text{b}}$T)',fontsize=16)
 
-	fig1.savefig(f"{final_output}/F_binary.png", format="png", dpi=300)
-	fig2.savefig(f"{final_output}/U_binary.png", format="png", dpi=300)
-	fig3.savefig(f"{final_output}/S_binary.png", format="png", dpi=300)
+	fig1.savefig(f"{final_output}/F_binary.png", format="png", dpi=300,bbox_inches='tight')
+	fig2.savefig(f"{final_output}/U_binary.png", format="png", dpi=300,bbox_inches='tight')
+	fig3.savefig(f"{final_output}/S_binary.png", format="png", dpi=300,bbox_inches='tight')
 	for fig in [fig1,fig2,fig3]:
 		plt.close(fig)
 

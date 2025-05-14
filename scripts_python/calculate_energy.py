@@ -50,7 +50,7 @@ def estimate_part_F(part, part_cell, factor_aL_part, ni, k_part, gen_curves_flag
         ax_sub.set_xlabel(r'a$_{\text{L}}$',fontsize=14)
         ax_sub.set_ylabel(r'$\Delta$F (k$_{\text{B}}$T)',fontsize=14)
         ax_sub.axvline(aL_min_cell,ls='--',c='darkgray',zorder=-1)
-        fig_sub.savefig(f"F_{part}_{part_cell}.png", format="png")
+        fig_sub.savefig(f"F_{part}_{part_cell}.png", format="png",bbox_inches='tight')
         plt.close(fig_sub)
 
         fig_sub, ax_sub = plt.subplots()
@@ -58,7 +58,7 @@ def estimate_part_F(part, part_cell, factor_aL_part, ni, k_part, gen_curves_flag
         ax_sub.set_xlabel(r'a$_{\text{L}}$',fontsize=14)
         ax_sub.set_ylabel(r'$\Delta$F (k$_{\text{B}}$T)',fontsize=14)
         ax_sub.axvline(aL_min_cell,ls='--',c='darkgray',zorder=-1)
-        fig_sub.savefig(f"F_without_ref_{part}_{part_cell}.png", format="png")
+        fig_sub.savefig(f"F_without_ref_{part}_{part_cell}.png", format="png",bbox_inches='tight')
         plt.close(fig_sub)
 
     return aL_min_cell, F_min_cell, x_cell
@@ -100,10 +100,10 @@ def estimate_part_contrib(part, part_cell, factor_aL_part, ni, k_part, F, aL_arr
         ax_sub.set_xlabel(r'a$_{\text{L}}$',fontsize=14)
         if "F_trans" in F:
             ax_sub.set_ylabel(r'$\Delta$U (k$_{\text{B}}$T)',fontsize=14)
-            fig_sub.savefig(f"U_{part}_{part_cell}.png", format="png")
+            fig_sub.savefig(f"U_{part}_{part_cell}.png", format="png",bbox_inches='tight')
         if "F_HS" in F:
             ax_sub.set_ylabel(r'-T$\Delta$S (k$_{\text{B}}$T)',fontsize=14)
-            fig_sub.savefig(f"S_{part}_{part_cell}.png", format="png")
+            fig_sub.savefig(f"S_{part}_{part_cell}.png", format="png",bbox_inches='tight')
         plt.close(fig_sub)
 
     return F_calc
@@ -160,7 +160,7 @@ def estimate_bin_F(name, factor_bcell, k_bin, n1, n2, ax, gamma, gen_curves_flag
 
         ax.scatter(aL_bin, F_norm_bin/(n1+n2), label=fr'$\gamma:$ {gamma}')
         ax.plot(x_bin,y_bin/(n1+n2))
-        ax.scatter(aL_min_bin,F_min_bin,marker='|', color='black',s=50,zorder=10)
+        ax.scatter(aL_min_bin,F_min_bin/(n1+n2),marker='|', color='black',s=50,zorder=10)
 
     return aL_min_bin, F_min_bin, x_bin
 
@@ -203,7 +203,7 @@ def estimate_bin_contrib(name, factor_bin_cell, k_bin, n1, n2, F, aL_array, aL_m
     if gen_curves_flag == True:
         ax.scatter(aL_bin, F_norm_bin/(n1+n2), label=fr'$\gamma:$ {gamma}')
         ax.plot(aL_array,y_bin/(n1+n2))
-        ax.scatter(aL_min,F_min_bin,marker='|', color='black',s=50,zorder=10)
+        ax.scatter(aL_min,F_min_bin/(n1+n2),marker='|', color='black',s=50,zorder=10)
 
         fig_sub, ax_sub = plt.subplots()
         ax_sub.scatter(aL_bin, F_norm_bin/(n1+n2))
@@ -212,10 +212,10 @@ def estimate_bin_contrib(name, factor_bin_cell, k_bin, n1, n2, F, aL_array, aL_m
         ax_sub.axvline(aL_min,ls='--',c='darkgray',zorder=-1)
         if "F_trans" in F:
             ax_sub.set_ylabel(r'$\Delta$U (k$_{\text{B}}$T)',fontsize=14)
-            fig_sub.savefig(f"U_{name}.png", format="png")
+            fig_sub.savefig(f"U_{name}.png", format="png",bbox_inches='tight')
         if "F_HS" in F:
             ax_sub.set_ylabel(r'-T$\Delta$S (k$_{\text{B}}$T)',fontsize=14)
-            fig_sub.savefig(f"S_{name}.png", format="png")
+            fig_sub.savefig(f"S_{name}.png", format="png",bbox_inches='tight')
         plt.close(fig_sub)
 
     return F_calc

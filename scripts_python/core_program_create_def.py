@@ -9,7 +9,7 @@ from collections import defaultdict
 from transform_refs import calculate_center_ref, process_positions
 from references.dependecies_init import list_reflexion
 from function import run_command, read_DEF, write_DEF, path_carpeta, extract_params_init
-from function import extract_R_bin, extract_references, update_particle_sizes, update_R1, extract_definitions, gamma_calc
+from function import extract_R_bin, extract_references, update_particle_sizes, update_R1, extract_definitions, update_nseg_cov
 from cdiva_function import update_cdiva
 from function_part import generate_references_part_csv, extract_R_part, process_principal_part, process_secundario_part
 from function_part import process_terciario_part
@@ -24,8 +24,9 @@ name_bin = params_init['name']
 n1 = params_init['n1']; n2 = params_init['n2']
 R1_np = params_init['R1']
 
-gamma_list = params_init['gamma list']
-gamm_delta_dim = params_init['list gamma delta sum dim']
+Nseg_list = params_init['nseg list']
+Cov_list = params_init['coverage list']
+Nseg_cov_delta_dim = params_init['list nseg coverage delta sum dim']
 k_bin = params_init['num cell bin']
 n_k_bin = {"part1": n1*k_bin, "part2": n2*k_bin}
 flag_reflexion = params_init["flag reflexion binary"]
@@ -34,7 +35,8 @@ flag_reflexion_part = params_init["flag reflexion part"]
 delta_part = params_init["list delta part"]
 cell_part = params_init["cell part"]
 k_part = params_init["num cell part"]
-gamma_folder_list = ["{:.3f}".format(g).replace('.','_') for g in gamma_list]
+nseg_folder_list = ["{:.0f}".format(n).replace('.','_') for n in Nseg_list]
+cov_folder_list = ["{:.2f}".format(c).replace('.','_') for c in Cov_list]
 
 update_R1("DEFINITIONS.txt", n_k_bin["part1"], R1_np)
 DEF = os.path.join(dir_inicial, "DEFINITIONS.txt")
@@ -64,129 +66,126 @@ if flag_reflexion == True:
 			else:
 				k_aL[k] = 1
 
-for gamma_folder in gamma_folder_list:
-	os.makedirs(f'gamma_{gamma_folder}', exist_ok=True)
+for nseg_folder in nseg_folder_list:
+	os.makedirs(f'nseg_{nseg_folder}', exist_ok=True)
+	os.chdir(f'nseg_{nseg_folder}')
 
-part1_folder = ["sim_part1/binary_ref","sim_part1/binary_ref/part1"]
-for cell in cell_part:
-	part1_folder.append(f"sim_part1/{cell}")
-	part1_folder.append(f"sim_part1/{cell}_ref")
+	for cov_folder in cov_folder_list:
+		os.makedirs(f'cov_{cov_folder}', exist_ok=True)
+		os.chdir(f'cov_{cov_folder}')
+		part1_folder = ["sim_part1/binary_ref","sim_part1/binary_ref/part1"]
+		for cell in cell_part:
+			part1_folder.append(f"sim_part1/{cell}")
+			part1_folder.append(f"sim_part1/{cell}_ref")
 
-for folder in part1_folder:
-	os.makedirs(folder, exist_ok=True)
-	if os.path.exists(folder):
-		try:
-			#shutil.rmtree(folder)
-			os.remove(os.path.join(folder, 'tot_references.csv'))
-		except Exception as e:
-			continue
+		for folder in part1_folder:
+			os.makedirs(folder, exist_ok=True)
+			if os.path.exists(folder):
+				try:
+					#shutil.rmtree(folder)
+					os.remove(os.path.join(folder, 'tot_references.csv'))
+				except Exception as e:
+					continue
+		os.chdir(os.path.join(dir_inicial,f'nseg_{nseg_folder}'))
 
-for gamma_folder in gamma_folder_list:
 	os.chdir(dir_inicial)
-	DEF = os.path.join(dir_inicial, "DEFINITIONS.txt")
-	tosubmit = os.path.join(dir_inicial, "tosubmit.sh")
-	os.chdir(os.path.join(dir_inicial,f"gamma_{gamma_folder}"))
 
-	dir_fuente = os.getcwd()
-	folders = []
-	folders = ["binary", "binary_ref", "binary_ref/part2"]
-	for cell in cell_part:
-		folders.append(f"part2/{cell}")
-		folders.append(f"part2/{cell}_ref")
+for nseg_folder in nseg_folder_list:
+	os.chdir(dir_inicial)
+	for cov_folder in cov_folder_list:
+		DEF = os.path.join(dir_inicial, "DEFINITIONS.txt")
+		tosubmit = os.path.join(dir_inicial, "tosubmit.sh")
+		os.chdir(os.path.join(dir_inicial,f"nseg_{nseg_folder}",f"cov_{cov_folder}"))
 
-	for folder in folders:
-		os.makedirs(folder, exist_ok=True)
-		if os.path.exists(folder):
-			try:
-				#shutil.rmtree(folder)
-				os.remove(os.path.join(folder, 'tot_references.csv'))
-			except Exception as e:
-				continue
+		dir_fuente = os.getcwd()
+		folders = ["binary"]
 
-	lines = read_DEF(DEF)
-	gamma = float(gamma_folder.replace('_','.'))
-	lines = update_particle_sizes(lines, gamma, R1_np, n_k_bin["part1"], n_k_bin["part2"])
-	output_DEF = os.path.join("binary", "DEFINITIONS.txt")
-	write_DEF(output_DEF, lines)
+		for folder in folders:
+			os.makedirs(folder, exist_ok=True)
+			if os.path.exists(folder):
+				try:
+					#shutil.rmtree(folder)
+					os.remove(os.path.join(folder, 'tot_references.csv'))
+				except Exception as e:
+					continue
 
-	os.chdir("binary")
-	DEF = os.path.join(os.getcwd(), "DEFINITIONS.txt")
-	R1_np, R2_np = extract_R_bin(DEF)
+		lines = read_DEF(DEF)
+		nseg = float(nseg_folder.replace('_','.'))
+		cov = float(cov_folder.replace('_','.'))
+		lines = update_nseg_cov(lines, nseg, cov, n_k_bin["part1"], n_k_bin["part2"])
+		output_DEF = os.path.join("binary", "DEFINITIONS.txt")
+		write_DEF(output_DEF, lines)
 
-	update_cdiva("DEFINITIONS.txt", name_bin, gamma_calc(DEF), flag_reflexion)
-	aL = float(run_command(f'python3 {dir_script}/references/aL_estimate_bin.py {name_bin} {R1_np} {R2_np}'))
-	delta_dim_bin = [entry for entry in gamm_delta_dim if entry["gamma"] == gamma]
-	process_principal_binario(DEF, name_bin, delta_dim_bin, aL, n_k_bin, tosubmit, dir_fuente, k_aL, gamma)
-	os.chdir(dir_fuente)
+		os.chdir("binary")
+		DEF = os.path.join(os.getcwd(), "DEFINITIONS.txt")
 
-	DEF_part = {}
-	for cell in cell_part:
-		if flag_reflexion_part == True:
-			DEF_part[cell] = os.path.join(dir_script,"references", f"DEFINITIONS_{cell}_reflex.txt")
-		else:
-			DEF_part[cell] = os.path.join(dir_script,"references", f"DEFINITIONS_{cell}.txt")
-	R_part = {"part1": R1_np, "part2": R2_np}
-	
-	if os.path.exists(os.path.join(dir_fuente,"part2")):
-		dir_fuente = {"part1": os.path.join(dir_inicial,"sim_part1"),"part2": os.path.join(os.getcwd(),"part2")}
-		for label in ["part1", "part2"]:
-			os.chdir(dir_fuente[label])
+		update_cdiva("DEFINITIONS.txt", name_bin, 1, flag_reflexion)
+		aL = float(run_command(f'python3 {dir_script}/references/aL_estimate_bin.py {name_bin} {R1_np} {cov} {nseg}'))
+		delta_dim_bin = [entry for entry in Nseg_cov_delta_dim if entry["nseg"] == nseg and entry["coverage"] == cov]
+		process_principal_binario(DEF, name_bin, delta_dim_bin, aL, n_k_bin, tosubmit, dir_fuente, k_aL, nseg)
+		os.chdir(dir_fuente)
+
+		DEF_part = {}
+		for cell in cell_part:
+			if flag_reflexion_part == True:
+				DEF_part[cell] = os.path.join(dir_script,"references", f"DEFINITIONS_{cell}_reflex.txt")
+			else:
+				DEF_part[cell] = os.path.join(dir_script,"references", f"DEFINITIONS_{cell}.txt")
+		
+		R_part = {"part1": R1_np}
+		
+		dir_fuente_part = {"part1": os.path.join(dir_fuente,"sim_part1")}
+		os.chdir(dir_fuente_part["part1"])
+		for label_struc in cell_part:
+			os.chdir(os.path.join(dir_fuente_part["part1"],label_struc))
+			shutil.copy(DEF_part[label_struc], os.path.join(os.getcwd(),"DEFINITIONS.txt"))
+			DEF = os.path.join(os.getcwd(), "DEFINITIONS.txt")
+			lines = read_DEF(DEF)
+			size_index = None
+			for i, line in enumerate(lines):
+				if line.strip() == "!seed":
+					size_index = i + 1
+					lines[size_index] = seed
+					lines[size_index + 1] = seed_lig
+				elif line.strip() == "!particle semiaxis x y z in nm":
+					size_index = i + 1
+					for n in np.arange(0,k_part[label_struc]):
+						lines[size_index + n] = f"{R_part["part1"]} {R_part["part1"]} {R_part["part1"]}\n"
+					break
+
+			write_DEF(DEF, lines) 
+
+			DEF = os.path.join(os.getcwd(), "DEFINITIONS.txt")
+			R_np = extract_R_part(DEF)
+			aL = float(run_command(f'python3 {dir_script}/references/aL_min_{label_struc}.py {R_np}'))
+			k_aL_part = 1
+			if flag_reflexion_part == True:
+				k_aL_part = 2
+			process_principal_part(DEF, delta_part[label_struc], aL, tosubmit, dir_fuente_part["part1"], k_aL_part, check_bcc)
+
+		folder_ref = [os.path.join(dir_fuente,"sim_part1/binary_ref")]
+		for cell in cell_part:
+			folder_ref.append(os.path.join(dir_fuente,f"sim_part1/{cell}_ref"))
+
+		for folder in folder_ref:
+			os.chdir(folder)
+			df = pd.read_csv('tot_references.csv')
+			df_fixed = df.drop_duplicates()
+			df_fixed.to_csv('tot_references.csv', index=False)
+
+		for label in ["part1"]:
+			dir_fuente_part = {"part1": os.path.join(dir_fuente,"sim_part1")}
+			os.chdir(dir_fuente_part[label])
+			os.chdir("binary_ref")
+			references_delta = extract_references("tot_references.csv")
+			process_terciario_binario(os.getcwd(), name_bin, references_delta[1:], tosubmit, dir_fuente_part[label], n_k_bin)
+			print(f'created {name_bin} nseg = {nseg_folder.replace("_",".")} cov = {cov_folder.replace("_",".")}')
+
 			for label_struc in cell_part:
-				os.chdir(os.path.join(dir_fuente[label],label_struc))
-				dir_fuente_part = dir_fuente[label]
-				shutil.copy(DEF_part[label_struc], os.path.join(os.getcwd(),"DEFINITIONS.txt"))
-				DEF = os.path.join(os.getcwd(), "DEFINITIONS.txt")
-				lines = read_DEF(DEF)
-				size_index = None
-				for i, line in enumerate(lines):
-					if line.strip() == "!seed":
-						size_index = i + 1
-						lines[size_index] = seed
-						lines[size_index + 1] = seed_lig
-					elif line.strip() == "!particle semiaxis x y z in nm":
-						size_index = i + 1
-						for n in np.arange(0,k_part[label_struc]):
-							lines[size_index + n] = f"{R_part[label]} {R_part[label]} {R_part[label]}\n"
-						break
-
-				write_DEF(DEF, lines) 
-
-				DEF = os.path.join(os.getcwd(), "DEFINITIONS.txt")
-				R_np = extract_R_part(DEF)
-				aL = float(run_command(f'python3 {dir_script}/references/aL_min_{label_struc}.py {R_np}'))
-				k_aL_part = 1
-				if flag_reflexion_part == True:
-					k_aL_part = 2
-				process_principal_part(DEF, delta_part[label_struc], aL, tosubmit, dir_fuente[label], k_aL_part, check_bcc)
-				if (label_struc == 'bcc' and label == 'part2'):
-					check_bcc = True
-					
-folder_ref = [os.path.join(dir_inicial,"sim_part1/binary_ref")]
-for cell in cell_part:
-	folder_ref.append(os.path.join(dir_inicial,f"sim_part1/{cell}_ref"))
-
-for folder in folder_ref:
-	os.chdir(folder)
-	df = pd.read_csv('tot_references.csv')
-	df_fixed = df.drop_duplicates()
-	df_fixed.to_csv('tot_references.csv', index=False)
-
-for label in ["part1", "part2"]:
-	for gamma_folder in gamma_folder_list:
-		dir_fuente = {"part1": os.path.join(dir_inicial,"sim_part1"),"part2": os.path.join(dir_inicial,f'gamma_{gamma_folder}')}
-		os.chdir(dir_fuente[label])
-		os.chdir("binary_ref")
-		references_delta = extract_references("tot_references.csv")
-		process_terciario_binario(os.getcwd(), name_bin, references_delta[1:], tosubmit, dir_fuente[label], n_k_bin)
-		print(f'created binary {label} gamma = {gamma_folder.replace("_",".")}')
-
-		dir_fuente["part2"] = os.path.join(dir_inicial,f"gamma_{gamma_folder}","part2")
-		if os.path.exists(dir_fuente["part2"]):
-			for label_struc in cell_part:
-				os.chdir(dir_fuente[label])
-				DEF = os.path.join(dir_fuente[label], label_struc, "DEFINITIONS.txt")
-				os.chdir(os.path.join(dir_fuente[label], f"{label_struc}_ref"))
+				os.chdir(dir_fuente_part[label])
+				DEF = os.path.join(dir_fuente_part[label], label_struc, "DEFINITIONS.txt")
+				os.chdir(os.path.join(dir_fuente_part[label], f"{label_struc}_ref"))
 				references_delta = extract_references("tot_references.csv")
 				process_terciario_part(os.getcwd(), references_delta[1:], DEF, tosubmit)
 
-			print(f'created {label} gamma = {gamma_folder.replace("_",".")}')
+			print(f'created {label} nseg = {nseg_folder.replace("_",".")} cov = {cov_folder.replace("_",".")}')

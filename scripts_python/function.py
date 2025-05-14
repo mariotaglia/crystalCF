@@ -29,7 +29,7 @@ def write_DEF(file_path, lines):
 def extract_params_init(params_init, cond):
     data = {
         "name": None, "n1": None, "n2": None, "R1": None,
-        "gamma list": [], "list delta bin": [], "list gamma delta sum dim": [],
+        "nseg list": [], "coverage list": [], "list delta bin": [], "list nseg delta sum dim": [],
         "cell part": [], "list delta part": {}, "num cell part": {},
         "num cell bin": None, "flag generate energy vs aL curves": None,
         "flag reflexion binary": None, "flag reflexion part": None, "PBC": []
@@ -50,47 +50,76 @@ def extract_params_init(params_init, cond):
         elif line == "!radius part1":
             data["R1"] = float(lines[i+1].split()[1])
             i += 1
-        elif line == "!list gamma":
-            data["gamma list"] = [float(x) for x in lines[i+1].strip("[]\n").split(",")]
+        elif line == "!list long":
+            data["nseg list"] = [float(x) for x in lines[i+1].strip("[]\n").split(",")]
+            i += 1
+        elif line == "!list coverage":
+            data["coverage list"] = [float(x) for x in lines[i+1].strip("[]\n").split(",")]
             i += 1
         elif line == "!list delta bin":
             data["list delta bin"] = [float(x) for x in lines[i+1].strip("[]\n").split(",")]
             i += 1
         elif line == "!point sum dims bin":
             j = i + 1
-            ref = [-1, 0, 1]
-            delta_ref = data["list delta bin"]
-            gamma_delta_map = {(g, d): dims for g, d, dims in data["list gamma delta sum dim"]}  # Mapeo para evitar duplicados
+            default_dims = [-1, 0, 1]
+            delta_ref = data.get("list delta bin", [])
+            coverage_ref = data.get("coverage list", [])
+            nseg_ref = data.get("nseg list", [])
             
+            nseg_coverage_delta_map = {}
+
             while j < len(lines) and not lines[j].startswith("!"):
-                parts = lines[j].split(maxsplit=2)  # ["gamma", value, list] o ["gamma", value, list, "delta", delta_value]
-                if len(parts) >= 3 and parts[0] == "gamma":
-                    gamma_value = float(parts[1])
-                    if "delta" in parts[2]:
-                        sum_dim_part, delta_part = parts[2].split("delta")
-                        sum_dim_values = [int(x) for x in re.findall(r'-?\d+', parts[2])[:-2]]
-                        delta_value = float(delta_part.strip())
-                    else:
-                        delta_value = None  # No hay delta explícito
-                        sum_dim_values = [int(x) for x in re.findall(r'-?\d+', parts[2])]
-                    
-                    if delta_value is None:
-                        for delta in delta_ref:
-                            gamma_delta_map[(gamma_value, delta)] = sum_dim_values  # Reemplazo si existe
-                    else:
-                        gamma_delta_map[(gamma_value, delta_value)] = sum_dim_values  # Reemplazo si existe
-                
+                line_j = lines[j].strip()
+                if line_j.startswith("long"):
+                    try:
+                        # Extraer nseg
+                        nseg_match = re.match(r"long\s+([\d.]+)", line_j)
+                        if nseg_match:
+                            nseg = float(nseg_match.group(1))
+                        else:
+                            j += 1
+                            continue
+
+                        # Extraer todos los corchetes
+                        list_brackets = re.findall(r"\[([^\]]+)\]", line_j)
+                        if len(list_brackets) >= 1:
+                            coverage_values = [float(x) for x in list_brackets[0].split(",")]
+                        else:
+                            coverage_values = coverage_ref.copy()
+
+                        if len(list_brackets) >= 2:
+                            dim_values = [int(x) for x in list_brackets[1].split(",")]
+                        else:
+                            dim_values = default_dims.copy()
+
+                        # Extraer delta
+                        delta_match = re.search(r"delta\s+([\d.eE+-]+)", line_j)
+                        if delta_match:
+                            delta_values = [float(delta_match.group(1))]
+                        else:
+                            delta_values = delta_ref.copy()
+
+                        for cov in coverage_values:
+                            for delta in delta_values:
+                                nseg_coverage_delta_map[(nseg, cov, delta)] = dim_values
+                    except Exception as e:
+                        print(f"Error procesando línea: {line_j} -> {e}")
                 j += 1
             i = j - 1
 
-            for gamma in data["gamma list"]:
-                for delta in delta_ref:
-                    if (gamma, delta) not in gamma_delta_map:
-                        gamma_delta_map[(gamma, delta)] = ref.copy()
-            
-            # Convertir el diccionario de nuevo en la lista con la estructura adecuada
-            data["list gamma delta sum dim"] = [{"gamma": g, "delta": d, "dim": dims} for (g, d), dims in gamma_delta_map.items()]
-            data["list gamma delta sum dim"].sort(key=lambda x: (x["gamma"], x["delta"]))
+            # Completar combinaciones faltantes
+            for nseg in nseg_ref:
+                for cov in coverage_ref:
+                    for delta in delta_ref:
+                        key = (nseg, cov, delta)
+                        if key not in nseg_coverage_delta_map:
+                            nseg_coverage_delta_map[key] = default_dims.copy()
+
+            # Convertir a lista de diccionarios ordenada
+            data["list nseg coverage delta sum dim"] = [
+                {"nseg": n, "coverage": c, "delta": d, "dim": dims}
+                for (n, c, d), dims in sorted(nseg_coverage_delta_map.items())
+            ]
 
         elif line == "!num cell bin":
             data["num cell bin"] = int(lines[i+1].split()[1])
@@ -394,36 +423,20 @@ def generate_references_csv(references, output_folder, delta_value, R, dimx, dim
             gamma_str = ','.join(f"{g:.3f}" for g in sorted(gamma_set))
             writer.writerow(row_base + (gamma_str,))
 
-def gamma_calc(definitions_path):
-    lines = read_DEF(definitions_path)
+def update_nseg_cov(lines, nseg, cov, n1_k_bin, n2_k_bin):
     size_index = None
-    R2_np = None
     for i, line in enumerate(lines):
         if line.strip() == "!properties of ligand chains":
-            size_index = i+1
-            nseg = float(lines[size_index].split()[1])
-            size_index = None
-        if line.startswith("! segment lengths"):
-            size_index = i+1
-            lseg = float(lines[size_index].split()[1])
-        if line.strip() == "!particle semiaxis x y z in nm":
             size_index = i + 1
-            R1_np = float(lines[size_index].split()[0])
-            j = 0
-            while R2_np == None:
-                try:
-                    if R1_np != float(lines[size_index + j].split()[0]):
-                        R2_np = float(lines[size_index + j].split()[0])
-                except ValueError:
-                    R2_np = R1_np
-                j += 1
-            size_index = None
-    l = lseg*np.cos(68*np.pi/180/2)
-    h = (nseg*l+0.2)
-    lamda_fact = 2*h
-    D1 = 2*R1_np ;D2 = 2*R2_np
-    gamma = R2_np*(1+3*lamda_fact/D2)**(1./3.) / (R1_np*(1+3*lamda_fact/D1)**(1./3.))
-    return gamma
+            lines[size_index] = f"long {int(nseg)}\n"
+            continue
+        if line.strip() == "! coverage":
+            size_index = i + 1
+            for n in np.arange(0,n1_k_bin+n2_k_bin):
+                 lines[size_index+n] = f"{cov}\n"
+            break
+    
+    return lines
 
 def join_F_csv(folder, name, bin_true):
     ruta_archivos = folder
