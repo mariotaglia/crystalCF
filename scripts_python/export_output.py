@@ -15,7 +15,7 @@ def process_principal(output_file, name_bin, R, delta_dim_bin, aL, k_aL, F):
     structure = os.getcwd()
     R1_np = R["part1"]; R2_np = R["part2"]
     k = 1
-    if name_bin == "MgZn2":
+    if name_bin == "MgZn2" or name_bin == "C14":
         k = 2
     if not os.path.isfile(output_file):
         with open(output_file, "w") as out_file:
@@ -52,12 +52,13 @@ def process_principal(output_file, name_bin, R, delta_dim_bin, aL, k_aL, F):
                 print(f"Advertencia: Archivo no encontrado en {file_path}")
             os.chdir("..")
 
-def process_reference_bin(output_file, dir_inicial, F, R, gamma_folder):
-    gamma = gamma_folder.replace('_', '.')
+def process_reference_bin(output_file, dir_inicial, F, R, cov_folder):
+    gamma = 1
+    cov = float(cov_folder.replace('_','.'))
     dir_fuente = {"part1": os.path.join(dir_inicial,"sim_part1"),"part2": os.path.join(os.getcwd())}
     data = defaultdict(lambda: defaultdict(lambda: defaultdict(float)))
 
-    for labels in ["part1", "part2"]:
+    for labels in ["part1"]:
         references_file = os.path.join(dir_fuente[labels], "binary_ref", "tot_references.csv")
         contadores = defaultdict(lambda: defaultdict(int))
         delta_map = defaultdict(lambda: defaultdict(set))
@@ -119,7 +120,7 @@ def process_reference_bin(output_file, dir_inicial, F, R, gamma_folder):
                 else:
                     print(f"Advertencia: Archivo no encontrado en {file_path}")
 
-    for label in ["part1", "part2"]:
+    for label in ["part1"]:
         if label in data:  # Verificar si hay datos para esa etiqueta
             with open(output_file, "a", newline="") as csvfile:
                 writer = csv.writer(csvfile)

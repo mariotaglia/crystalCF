@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import csv
 from scipy.interpolate import CubicSpline
 from collections import defaultdict
-from function import run_command, extract_R_bin, extract_cdiva, gamma_calc
+from function import run_command, extract_R_bin, extract_cdiva
 from function import path_carpeta, extract_params_init, read_DEF, join_F_csv, join_F_csv_ref
 from function_part import extract_R_part
 from export_output import process_principal, process_reference_bin, process_principal_part, process_reference_part
@@ -49,9 +49,9 @@ else:
 	k_bin = params_init['num cell bin']
 
 n = {"part1": n1, "part2": n2}
-gamma_list = params_init['gamma list']
-
-gamm_delta_dim = params_init['list gamma delta sum dim']
+Nseg_list = params_init['nseg list']
+Cov_list = params_init['coverage list']
+Nseg_cov_delta_dim = params_init['list nseg coverage delta sum dim']
 delta_part = params_init["list delta part"]
 cell_part = params_init["cell part"]
 k_part = params_init["num cell part"]
@@ -86,7 +86,8 @@ if flag_reflexion == True:
 					k_aL[k] = 1
 
 ################## EXPORTACTION #############
-gamma_folder_list = ["{:.3f}".format(g).replace('.','_') for g in gamma_list]
+nseg_folder_list = ["{:.0f}".format(n).replace('.','_') for n in Nseg_list]
+cov_folder_list = ["{:.2f}".format(c).replace('.','_') for c in Cov_list]
 
 F_U = ["F_trans","F_trans_sv","F_vdW"]
 F_ST = ["F_conf","F_conf_sv","F_mixs", "F_HS"]
@@ -97,61 +98,65 @@ while True:
 	if check_extract in ["s", "si"]:
 		print("Extrayendo F.data...")
 		check_bcc = False
-		for gamma_folder in gamma_folder_list:
-			os.chdir(os.path.join(dir_origin,f"gamma_{gamma_folder}"))
+		for nseg_folder in nseg_folder_list:
+			os.chdir(f'nseg_{nseg_folder}')
+			dir_origin= os.getcwd()
+			for cov_folder in cov_folder_list:
+				os.chdir(os.path.join(dir_origin,f"cov_{cov_folder}"))
 
-			dir_fuente = os.getcwd()
-			if os.path.isdir("data_analysis"):
-				shutil.rmtree("data_analysis")
+				dir_fuente = os.getcwd()
+				if os.path.isdir("data_analysis"):
+					shutil.rmtree("data_analysis")
 
-			os.makedirs("data_analysis", exist_ok=True)
-			output_folder = os.path.join(dir_fuente,"data_analysis")
+				os.makedirs("data_analysis", exist_ok=True)
+				output_folder = os.path.join(dir_fuente,"data_analysis")
 
-			for f_name in F_name:
-				os.chdir(os.path.join(dir_origin,f"gamma_{gamma_folder}"))
-				os.chdir("binary")
-				output_file = os.path.join(output_folder, f"{name_bin}_results_{f_name}.csv")
-				DEF = os.path.join(os.getcwd(), "DEFINITIONS.txt")
-				R1_np, R2_np = extract_R_bin(DEF)
-				R = {"part1": R1_np, "part2": R2_np}
-				gamma = float(gamma_folder.replace('_','.'))
-				aL = float(run_command(f"python3 {dir_script}/references/aL_estimate_bin.py {name_bin} {R1_np} {R2_np}"))
-				delta_dim_bin = [entry for entry in gamm_delta_dim if entry["gamma"] == gamma]
-				process_principal(output_file, name_bin, R, delta_dim_bin, aL, k_aL, f_name)
-				os.chdir(os.path.join(dir_origin,f"gamma_{gamma_folder}"))
+				for f_name in F_name:
+					os.chdir(os.path.join(dir_origin,f"cov_{cov_folder}"))
+					os.chdir("binary")
+					output_file = os.path.join(output_folder, f"{name_bin}_results_{f_name}.csv")
+					DEF = os.path.join(os.getcwd(), "DEFINITIONS.txt")
+					R1_np, R2_np = extract_R_bin(DEF)
+					R = {"part1": R1_np, "part2": R2_np}
+					nseg = float(nseg_folder.replace('_','.'))
+					cov = float(cov_folder.replace('_','.'))
+					aL = float(run_command(f'python3 {dir_script}/references/aL_estimate_bin.py {name_bin} {R1_np} {cov} {nseg}'))
+					delta_dim_bin = [entry for entry in Nseg_cov_delta_dim if entry["nseg"] == nseg and entry["coverage"] == cov]
+					process_principal(output_file, name_bin, R, delta_dim_bin, aL, k_aL, f_name)
+					os.chdir(os.path.join(dir_origin,f"cov_{cov_folder}"))
 
-				output_file = os.path.join(output_folder, f"{name_bin}_references_{f_name}.csv")
-				process_reference_bin(output_file, dir_origin, f_name, R, gamma_folder)
+					output_file = os.path.join(output_folder, f"{name_bin}_references_{f_name}.csv")
+					process_reference_bin(output_file, dir_fuente, f_name, R, cov_folder)
 
-				dir_fuente = {"part1": os.path.join(dir_origin,"sim_part1"),"part2": os.path.join(os.getcwd(),"part2")}
-				for label in ["part1", "part2"]:
-					for label_struc in cell_part:
-						os.chdir(dir_fuente[label])
-						output_file = os.path.join(output_folder, f"{label}_results_{f_name}.csv")
-						DEF = os.path.join(dir_fuente[label], label_struc, "DEFINITIONS.txt")
-						os.chdir(f"{label_struc}")
-						R_np = extract_R_part(DEF)
-						aL = float(run_command(f"python3 {dir_script}/references/aL_min_{label_struc}.py {R_np}"))
-						delta_list = delta_part[label_struc]
-						k_aL_part = 1
-						if flag_reflexion_part == True:
-							k_aL_part = 2
-						process_principal_part(output_file, label_struc, R_np, delta_list, aL, k_aL_part, f_name, check_bcc)
+					dir_fuente_part = {"part1": os.path.join(dir_origin, f"cov_{cov_folder}","sim_part1"),"part2": os.path.join(os.getcwd(),"part2")}
+					for label in ["part1"]:
+						for label_struc in cell_part:
+							os.chdir(dir_fuente_part[label])
+							output_file = os.path.join(output_folder, f"{label}_results_{f_name}.csv")
+							DEF = os.path.join(dir_fuente_part[label], label_struc, "DEFINITIONS.txt")
+							os.chdir(f"{label_struc}")
+							R_np = extract_R_part(DEF)
+							aL = float(run_command(f"python3 {dir_script}/references/aL_min_{label_struc}.py {R_np}"))
+							delta_list = delta_part[label_struc]
+							k_aL_part = 1
+							if flag_reflexion_part == True:
+								k_aL_part = 2
+							process_principal_part(output_file, label_struc, R_np, delta_list, aL, k_aL_part, f_name, check_bcc)
 
-						os.chdir(os.path.join(dir_fuente[label], f"{label_struc}_ref"))
-						output_file = os.path.join(output_folder, f"{label}_references_{f_name}.csv")
-						base_folder = os.path.join(dir_fuente[label], f"{label_struc}_ref")
-						process_reference_part(output_file, base_folder, cell_part, label_struc, f_name)
-						if (label_struc == 'bcc' and label == 'part2'):
-							check_bcc = True
+							os.chdir(os.path.join(dir_fuente_part[label], f"{label_struc}_ref"))
+							output_file = os.path.join(output_folder, f"{label}_references_{f_name}.csv")
+							base_folder = os.path.join(dir_fuente_part[label], f"{label_struc}_ref")
+							process_reference_part(output_file, base_folder, cell_part, label_struc, f_name)
+							if (label_struc == 'bcc' and label == 'part2'):
+								check_bcc = True
 
-			join_F_csv(output_folder, name_bin, True)
-			join_F_csv_ref(output_folder, name_bin)
-			for label in ["part1","part2"]:
-				join_F_csv(output_folder, label, False)
-				join_F_csv_ref(output_folder, label)
+				join_F_csv(output_folder, name_bin, True)
+				join_F_csv_ref(output_folder, name_bin)
+				for label in ["part1"]:
+					join_F_csv(output_folder, label, False)
+					join_F_csv_ref(output_folder, label)
 
-			print(f"Exportado gamma {gamma_folder.replace('_','.')}")
+				print(f"Exportado nseg = {nseg_folder.replace("_",".")} cov = {cov_folder.replace("_",".")}")
 		break
 
 	elif check_extract in ["n", "no"]:
