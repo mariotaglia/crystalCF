@@ -35,6 +35,7 @@ real*8 F_conf_sv, F_trans_sv
 real*8 Free_Energy_plusSv
 real*8 pro0(cuantas, maxcpp)
 real*8 entropy(dimx,dimy,dimz)
+real*8 logq(dimx,dimy,dimz)
 character*5  title
 real*8 eta
 
@@ -64,6 +65,7 @@ real*8 sumprotrans0(dimx,dimy,dimz)
 ! Polymer
 !
 
+logq = 0.0
 entropy = 0.0
 q0 = 0.0
 q_tosend = 0.0
@@ -132,8 +134,8 @@ Free_Energy2 = 0.0
       
          F_Conf = F_Conf + (pro(i, jj)/q0(iii)) &
       *dlog((pro(i, jj))/q0(iii))*ngpol(iii)
-
-       entropy(p0(iii,1),p0(iii,2),p0(iii,3)) =  - dlog(q0(iii)/shift) 
+         logq(p0(iii,1),p0(iii,2),p0(iii,3)) =  - dlog(q0(iii)/shift) 
+         entropy(p0(iii,1),p0(iii,2),p0(iii,3)) =  - (pro0(i, jj)/q0(iii))*dlog((pro0(i, jj))/q0(iii))
        enddo
        enddo 
 
@@ -151,8 +153,8 @@ Free_Energy2 = 0.0
        do i = 1, newcuantas0(iii)
 
          F_Conf = F_Conf + (pro0(i, jj)/q0(iii))*dlog((pro0(i, jj))/q0(iii))*ngpol(iii)
-
-       entropy(p0(iii,1),p0(iii,2),p0(iii,3)) =  - dlog(q0(iii)/shift) 
+         logq(p0(iii,1),p0(iii,2),p0(iii,3)) =  - dlog(q0(iii)/shift) 
+         entropy(p0(iii,1),p0(iii,2),p0(iii,3)) =  - (pro0(i, jj)/q0(iii))*dlog((pro0(i, jj))/q0(iii))
 
        enddo
        enddo
@@ -162,18 +164,6 @@ Free_Energy2 = 0.0
        endif ! rank
 
       Free_Energy = Free_Energy + F_Conf
-
-if(rank.eq.0) then
-
-!      title = 'entpy'
-!      call savetodisk(entropy, title, looped)
- 
-      open (unit=8, file='entropy.out', form='unformatted')
-      write(8)dimx,dimy,dimz
-      write(8)entropy
-      close(8)
-endif
-
 
 ! 6.5 Energy of trans bonds
 
@@ -206,6 +196,16 @@ if(rank.eq.0) then
       open (unit=8, file='entropy.out', form='unformatted')
       write(8)dimx,dimy,dimz
       write(8)entropy
+      close(8)
+endif
+
+if(rank.eq.0) then
+      title = 'mlogq'
+      call savetodisk(logq, title, looped)
+ 
+      open (unit=8, file='minus_logq.out', form='unformatted')
+      write(8)dimx,dimy,dimz
+      write(8)logq
       close(8)
 endif
 
@@ -490,7 +490,3 @@ enddo
          return
 
          end
-
-
-
-
