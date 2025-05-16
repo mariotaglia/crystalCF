@@ -3,12 +3,13 @@ import math
 import sys
 import os
 
-if len(sys.argv) < 4:
+if len(sys.argv) < 5:
     raise ValueError("You need to set name_bin, R1 and R2 params")
 
 name = str(sys.argv[1])
 R1 = float(sys.argv[2])
 R2 = float(sys.argv[3])
+gamma = float(sys.argv[4])
 
 sigma = 5.85 #1/nm^2
 pi = math.pi
@@ -26,10 +27,6 @@ elif name == "CsCl":
 	V_pol = 0.028 #nm^3
 	N1 = 1
 	N2 = 1
-elif name == "MgZn2":
-	V_pol = 0.013
-	N1 = 4
-	N2 = 8
 elif name == "CaCu5":
 	V_pol = 0.031
 	N1 = 1
@@ -46,14 +43,17 @@ elif name == "Li3Bi":
 	N2 = 6
 
 elif name == "AuCu":
-	if R2<=R1*0.88/2:
+	N1 = 2
+	N2 = 2
+	if gamma<=np.sqrt(3)-1:
 		V_pol = 0.030
-		N1 = 2
-		N2 = 2
+		R2 = R1*0.88/2
+		Vol_NP_1 = pi*(4/3)*R1**3
+		Vol_NP_2 = pi*(4/3)*R2**3
+		A_1 = 4*pi*R1**2
+		A_2 = 4*pi*R2**2
 	else:
 		V_pol = 0.035
-		N1 = 2
-		N2 = 2
 
 elif name == "Cu3Au":
 	V_pol = 0.038
@@ -76,11 +76,13 @@ elif name == "Fe4C":
 	N2 = 4
 
 if name=="MgZn2":
+	N1 = 4
+	N2 = 8
 	if R2<=R1*1.12/2:
-		R = R1*0.88/2
+		R2 = R1*0.88/2
 		V_pol = 0.014
-		A_2 = 4*pi*R**2
-		Vol_NP_2 = pi*(4./3.)*R**3
+		A_2 = 4*pi*R2**2
+		Vol_NP_2 = pi*(4./3.)*R2**3
 
 	elif R2<=R1*1.48/2:
 		V_pol = 0.0115

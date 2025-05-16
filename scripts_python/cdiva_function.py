@@ -100,7 +100,7 @@ def cdiva_calc(name,gamma):
     if name == "AuCu":
         if (0 < gamma) and (gamma < np.sqrt(3.0)-1):
             a_fac = np.sqrt(2)
-            c_fac = np.sqrt(2)
+            c_fac = 1
 
         elif (gamma >= np.sqrt(3.0)-1) and (gamma <= 1.0):
             a_fac = np.sqrt(2)
