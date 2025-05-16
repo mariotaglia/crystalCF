@@ -224,7 +224,7 @@ def process_terciario_binario(output_folder, name_bin, references, tosubmit, dir
             with open(DEF_ref, "r") as file:
                 content = file.read()
             k = 1
-            if name_bin == 'MgZn2':
+            if name_bin == 'MgZn2' or name_bin == 'C14':
                 k = 2
             content = content.replace("dimx _DIM_", f'dimx {str(N_ref)}').replace("dimy _DIM_", f'dimy {str(N_ref)}')
             content = content.replace("dimz _DIM_", f'dimz {str(N_ref*k)}').replace("_delta_", str(delta_num))

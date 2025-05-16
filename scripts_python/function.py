@@ -192,6 +192,10 @@ def extract_params_init(params_init, cond):
             data["n1"] = 1
             data["n2"] = 32
             data["num cell bin"] = 1
+        elif data["name"] == "C14":
+            data["n1"] = 9
+            data["n2"] = 0
+            data["num cell bin"] = 1
     return data
 
 def extract_definitions(definitions_path):
