@@ -96,7 +96,6 @@ while True:
 	check_extract = input("¿Quiere extraer los F.data? (s/n): ").strip().lower()
 	if check_extract in ["s", "si"]:
 		print("Extrayendo F.data...")
-		check_bcc = False
 		for gamma_folder in gamma_folder_list:
 			os.chdir(os.path.join(dir_origin,f"gamma_{gamma_folder}"))
 
@@ -132,18 +131,16 @@ while True:
 						os.chdir(f"{label_struc}")
 						R_np = extract_R_part(DEF)
 						aL = float(run_command(f"python3 {dir_script}/references/aL_min_{label_struc}.py {R_np}"))
-						delta_list = delta_part[label_struc]
+						delta_list_part = delta_part[label_struc]
 						k_aL_part = 1
 						if flag_reflexion_part == True:
 							k_aL_part = 2
-						process_principal_part(output_file, label_struc, R_np, delta_list, aL, k_aL_part, f_name, check_bcc)
+						process_principal_part(output_file, label_struc, R_np, delta_list_part, aL, k_aL_part, f_name)
 
 						os.chdir(os.path.join(dir_fuente[label], f"{label_struc}_ref"))
 						output_file = os.path.join(output_folder, f"{label}_references_{f_name}.csv")
 						base_folder = os.path.join(dir_fuente[label], f"{label_struc}_ref")
 						process_reference_part(output_file, base_folder, cell_part, label_struc, f_name)
-						if (label_struc == 'bcc' and label == 'part2'):
-							check_bcc = True
 
 			join_F_csv(output_folder, name_bin, True)
 			join_F_csv_ref(output_folder, name_bin)
