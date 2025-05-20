@@ -97,7 +97,6 @@ while True:
 	check_extract = input("¿Quiere extraer los F.data? (s/n): ").strip().lower()
 	if check_extract in ["s", "si"]:
 		print("Extrayendo F.data...")
-		check_bcc = False
 		for nseg_folder in nseg_folder_list:
 			os.chdir(f'nseg_{nseg_folder}')
 			dir_origin= os.getcwd()
@@ -137,18 +136,16 @@ while True:
 							os.chdir(f"{label_struc}")
 							R_np = extract_R_part(DEF)
 							aL = float(run_command(f"python3 {dir_script}/references/aL_min_{label_struc}.py {R_np}"))
-							delta_list = delta_part[label_struc]
+							delta_list_part = delta_part[label_struc]
 							k_aL_part = 1
 							if flag_reflexion_part == True:
 								k_aL_part = 2
-							process_principal_part(output_file, label_struc, R_np, delta_list, aL, k_aL_part, f_name, check_bcc)
+							process_principal_part(output_file, label_struc, R_np, delta_list_part, aL, k_aL_part, f_name)
 
 							os.chdir(os.path.join(dir_fuente_part[label], f"{label_struc}_ref"))
 							output_file = os.path.join(output_folder, f"{label}_references_{f_name}.csv")
 							base_folder = os.path.join(dir_fuente_part[label], f"{label_struc}_ref")
 							process_reference_part(output_file, base_folder, cell_part, label_struc, f_name)
-							if (label_struc == 'bcc' and label == 'part2'):
-								check_bcc = True
 
 				join_F_csv(output_folder, name_bin, True)
 				join_F_csv_ref(output_folder, name_bin)
@@ -177,87 +174,89 @@ n1 = params_init['n1']; n2 = params_init['n2']
 k_bin = params_init['num cell bin']
 n = {"part1": n1, "part2": n2}
 
-for gamma_folder in gamma_folder_list:
-	os.chdir(dir_origin)
-	os.chdir(os.path.join(dir_origin,f"gamma_{gamma_folder}"))
-	dir_fuente = os.getcwd()
-	DEF = os.path.join(dir_fuente,'binary','DEFINITIONS.txt')
-	lines = read_DEF(DEF)
-	R1_np, R2_np = extract_R_bin(DEF)
-	cdiva_bin = extract_cdiva(DEF)
-	size_index = None
-	for i, line in enumerate(lines):
-		if line.strip() == "!properties of ligand chains":
-			size_index = i+1
-			nseg = float(lines[size_index].split()[1])
-			size_index = None
-		if line.startswith("! coverage"):
-			size_index = i+1
-			sigma = float(lines[size_index].split()[0])
-		if line.startswith("!volume"):
-			size_index = i+1
-			vsol = float(lines[size_index].split()[1])
+for nseg_folder in nseg_folder_list:
+	os.chdir(f'nseg_{nseg_folder}')
+	dir_origin=os.getcwd()
+	for cov_folder in cov_folder_list:
+		os.chdir(dir_origin)
+		dir_fuente = os.getcwd()
+		DEF = os.path.join(dir_fuente,'binary','DEFINITIONS.txt')
+		lines = read_DEF(DEF)
+		R1_np, R2_np = extract_R_bin(DEF)
+		cdiva_bin = extract_cdiva(DEF)
+		size_index = None
+		for i, line in enumerate(lines):
+			if line.strip() == "!properties of ligand chains":
+				size_index = i+1
+				nseg = float(lines[size_index].split()[1])
+				size_index = None
+			if line.startswith("! coverage"):
+				size_index = i+1
+				sigma = float(lines[size_index].split()[0])
+			if line.startswith("!volume"):
+				size_index = i+1
+				vsol = float(lines[size_index].split()[1])
 
-	gamma =  gamma_calc(DEF)
-	R = {"part1": R1_np, "part2": R2_np}
-	os.chdir("data_analysis")
-	df_delta = pd.DataFrame()
-	df_contrib = pd.DataFrame()
+		gamma =  1.0
+		R = {"part1": R1_np, "part2": R2_np}
+		os.chdir("data_analysis")
+		df_delta = pd.DataFrame()
+		df_contrib = pd.DataFrame()
 
-	keys_list = ["#part", "cell"]+F_U+F_ST
-	dict_contrib = {key: [] for key in keys_list}
-	dict_delta = {"#part": [],"cell": [], "aL_min": [], "ΔU_min": [], "-ΔST_min": [], "ΔF_min": []}
+		keys_list = ["#part", "cell"]+F_U+F_ST
+		dict_contrib = {key: [] for key in keys_list}
+		dict_delta = {"#part": [],"cell": [], "aL_min": [], "ΔU_min": [], "-ΔST_min": [], "ΔF_min": []}
 
-	k_aL_part = 1
-	if flag_reflexion_part == True:
-		k_aL_part = 2
-	for part in ["part1", "part2"]:
-		result_cell = []
-		for i, cell in enumerate(cell_part):
-			result_cell = estimate_part_F(part, cell, factor_aL_part[cell], n[part], k_part[cell], gen_curves_flag, k_aL_part)
-			aL_min = result_cell[0]
-			F_part = result_cell[1]
-			aL_array = result_cell[2]
-			U = estimate_part_contrib(part, cell, factor_aL_part[cell], n[part], k_part[cell], F_U, aL_array, aL_min, gen_curves_flag, k_aL_part)
-			S = estimate_part_contrib(part, cell, factor_aL_part[cell], n[part], k_part[cell], F_ST, aL_array, aL_min, gen_curves_flag, k_aL_part)
+		k_aL_part = 1
+		if flag_reflexion_part == True:
+			k_aL_part = 2
+		for part in ["part1", "part2"]:
+			result_cell = []
+			for i, cell in enumerate(cell_part):
+				result_cell = estimate_part_F(part, cell, factor_aL_part[cell], n[part], k_part[cell], gen_curves_flag, k_aL_part)
+				aL_min = result_cell[0]
+				F_part = result_cell[1]
+				aL_array = result_cell[2]
+				U = estimate_part_contrib(part, cell, factor_aL_part[cell], n[part], k_part[cell], F_U, aL_array, aL_min, gen_curves_flag, k_aL_part)
+				S = estimate_part_contrib(part, cell, factor_aL_part[cell], n[part], k_part[cell], F_ST, aL_array, aL_min, gen_curves_flag, k_aL_part)
 
-			for i,key in enumerate(dict_delta):
-				list = [part,cell,aL_min,U,S,F_part]
-				dict_delta[key].append(list[i])
+				for i,key in enumerate(dict_delta):
+					list = [part,cell,aL_min,U,S,F_part]
+					dict_delta[key].append(list[i])
 
-	factor_aL_bin = cdiva_bin**(-1.0/3.0)
-	result_bin = estimate_bin_F(name_bin, factor_aL_bin, k_bin, n1, n2, ax1, np.round(gamma,2), gen_curves_flag, k_aL)
-	aL_min = result_bin[0]
-	F_bin = result_bin[1]
-	aL_array = result_bin[2]
+		factor_aL_bin = cdiva_bin**(-1.0/3.0)
+		result_bin = estimate_bin_F(name_bin, factor_aL_bin, k_bin, n1, n2, ax1, np.round(gamma,2), gen_curves_flag, k_aL)
+		aL_min = result_bin[0]
+		F_bin = result_bin[1]
+		aL_array = result_bin[2]
 
-	U_bin = estimate_bin_contrib(name_bin, factor_aL_bin, k_bin, n1, n2, F_U, aL_array, aL_min, ax2, np.round(gamma,2), gen_curves_flag, k_aL)
-	S_bin = estimate_bin_contrib(name_bin, factor_aL_bin, k_bin, n1, n2, F_ST, aL_array, aL_min, ax3, np.round(gamma,2), gen_curves_flag, k_aL)
+		U_bin = estimate_bin_contrib(name_bin, factor_aL_bin, k_bin, n1, n2, F_U, aL_array, aL_min, ax2, np.round(gamma,2), gen_curves_flag, k_aL)
+		S_bin = estimate_bin_contrib(name_bin, factor_aL_bin, k_bin, n1, n2, F_ST, aL_array, aL_min, ax3, np.round(gamma,2), gen_curves_flag, k_aL)
 
-	for i,key in enumerate(dict_delta):
-		list = ["R2 [nm]", R2_np, "", "", "", ""]
-		dict_delta[key].append(list[i])
+		for i,key in enumerate(dict_delta):
+			list = ["R2 [nm]", R2_np, "", "", "", ""]
+			dict_delta[key].append(list[i])
 
-	for i,key in enumerate(dict_delta):
-		list = ["binary",name_bin,aL_min,U_bin,S_bin,F_bin]
-		dict_delta[key].append(list[i])
+		for i,key in enumerate(dict_delta):
+			list = ["C14",name_bin,aL_min,U_bin,S_bin,F_bin]
+			dict_delta[key].append(list[i])
 
-	for key in dict_delta:
-		dict_delta[key].append("")
+		for key in dict_delta:
+			dict_delta[key].append("")
 
-	result = delta_energy_F(dict_delta, cell_part, n1, n2)
-	DF = result[0]
-	DU = delta_energy_US(dict_delta, "ΔU", cell_min=result[1], n1=n1, n2=n2)
-	DS = delta_energy_US(dict_delta, "-ΔST", cell_min=result[1], n1=n1, n2=n2)
-	
-	for i,key in enumerate(dict_delta):
-		list = ["gamma",gamma,"Global X",DU,DS,DF]
-		dict_delta[key].append(list[i])
+		result = delta_energy_F(dict_delta, cell_part, n1, n2)
+		DF = result[0]
+		DU = delta_energy_US(dict_delta, "ΔU", cell_min=result[1], n1=n1, n2=n2)
+		DS = delta_energy_US(dict_delta, "-ΔST", cell_min=result[1], n1=n1, n2=n2)
+		
+		for i,key in enumerate(dict_delta):
+			list = ["gamma",gamma,"Global X",DU,DS,DF]
+			dict_delta[key].append(list[i])
 
-	df_delta = pd.DataFrame.from_dict(dict_delta)
+		df_delta = pd.DataFrame.from_dict(dict_delta)
 
-	with pd.ExcelWriter(f"results_gamma_{gamma_folder}.xlsx") as writer:
-		df_delta.to_excel(writer, sheet_name="Deltas", index=False)
+		with pd.ExcelWriter(f"results_cov_{cov}.xlsx") as writer:
+			df_delta.to_excel(writer, sheet_name="Deltas", index=False)
 
 if gen_curves_flag == True:
 	for ax in [ax1,ax2,ax3]:
@@ -269,9 +268,9 @@ if gen_curves_flag == True:
 	ax2.set_ylabel(r'$\Delta$U (k$_{\text{b}}$T)',fontsize=16)
 	ax3.set_ylabel(r'-T$\Delta$S (k$_{\text{b}}$T)',fontsize=16)
 
-	fig1.savefig(f"{final_output}/F_binary.png", format="png", dpi=300,bbox_inches='tight')
-	fig2.savefig(f"{final_output}/U_binary.png", format="png", dpi=300,bbox_inches='tight')
-	fig3.savefig(f"{final_output}/S_binary.png", format="png", dpi=300,bbox_inches='tight')
+	fig1.savefig(f"{final_output}/F_C14.png", format="png", dpi=300,bbox_inches='tight')
+	fig2.savefig(f"{final_output}/U_C14.png", format="png", dpi=300,bbox_inches='tight')
+	fig3.savefig(f"{final_output}/S_C14.png", format="png", dpi=300,bbox_inches='tight')
 	for fig in [fig1,fig2,fig3]:
 		plt.close(fig)
 

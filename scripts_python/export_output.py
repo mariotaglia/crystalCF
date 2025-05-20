@@ -15,7 +15,7 @@ def process_principal(output_file, name_bin, R, delta_dim_bin, aL, k_aL, F):
     structure = os.getcwd()
     R1_np = R["part1"]; R2_np = R["part2"]
     k = 1
-    if name_bin == "MgZn2" or name_bin == "C14":
+    if name_bin == "MgZn2":
         k = 2
     if not os.path.isfile(output_file):
         with open(output_file, "w") as out_file:
@@ -52,13 +52,12 @@ def process_principal(output_file, name_bin, R, delta_dim_bin, aL, k_aL, F):
                 print(f"Advertencia: Archivo no encontrado en {file_path}")
             os.chdir("..")
 
-def process_reference_bin(output_file, dir_inicial, F, R, cov_folder):
-    gamma = 1
-    cov = float(cov_folder.replace('_','.'))
+def process_reference_bin(output_file, dir_inicial, F, R, gamma_folder):
+    gamma = gamma_folder.replace('_', '.')
     dir_fuente = {"part1": os.path.join(dir_inicial,"sim_part1"),"part2": os.path.join(os.getcwd())}
     data = defaultdict(lambda: defaultdict(lambda: defaultdict(float)))
 
-    for labels in ["part1"]:
+    for labels in ["part1", "part2"]:
         references_file = os.path.join(dir_fuente[labels], "binary_ref", "tot_references.csv")
         contadores = defaultdict(lambda: defaultdict(int))
         delta_map = defaultdict(lambda: defaultdict(set))
@@ -120,7 +119,7 @@ def process_reference_bin(output_file, dir_inicial, F, R, cov_folder):
                 else:
                     print(f"Advertencia: Archivo no encontrado en {file_path}")
 
-    for label in ["part1"]:
+    for label in ["part1", "part2"]:
         if label in data:  # Verificar si hay datos para esa etiqueta
             with open(output_file, "a", newline="") as csvfile:
                 writer = csv.writer(csvfile)
@@ -130,22 +129,27 @@ def process_reference_bin(output_file, dir_inicial, F, R, cov_folder):
                         delta_value = delta.replace('_', '.')  
                         writer.writerow([label,R[label], delta_value, dimx, dimy, dimz, f_ref])
 
-def process_principal_part(output_file, label_struc,R_np, delta_list, aL, k_aL, F, check_bcc):
+def process_principal_part(output_file, label_struc,R_np, delta_list_part, aL, k_aL, F):
     structure = os.getcwd()
     if not os.path.isfile(output_file):
         with open(output_file, "w") as out_file:
             out_file.write("cell, radius [nm],delta,dimx,dimy,dimz,F_value\n")
-    if ("bcc" in structure and "part2" in structure) and check_bcc == False:
-        delta_list.append(0.26)
+    delta_list = delta_list_part
+    if "bcc" in structure and "part2" in structure:
+        delta_list = delta_list_part+[0.26]
+    elif "fcc" in structure and "part1" in structure:
+        delta_list = delta_list_part+[0.26,0.265]
 
     for delta in delta_list:
         delta_folder = str(delta).replace('.', '_')
         round_value = int(np.round(float(aL/k_aL) / float(delta)))
-        if not delta == 0.26:
-            dims = [round_value - 1, round_value, round_value + 1]
-        else:
+        if (delta == 0.26 and ("bcc" in structure and "part2" in structure)):
             dims = [round_value]
-        
+        elif ((delta == 0.26 or delta == 0.265) and ("fcc" in structure and "part1" in structure)):
+            dims = [round_value]
+        else:
+            dims = [round_value - 1, round_value, round_value + 1]
+
         for j in dims:
             folder_name = f"delta_{delta_folder}_dim_{j}"
             os.chdir(folder_name)
@@ -207,7 +211,6 @@ def process_reference_part(output_file, base_folder, cell_part, label_struc, F):
     for (label_struc, delta), key_map in delta_map.items():
         delta_name = delta.replace('.', '_')
         delta_folder = os.path.join(base_folder, f"delta_{delta_name}")
-
         for key, dims in key_map.items():
             key_folder = os.path.join(delta_folder, key)
 
@@ -236,4 +239,3 @@ def process_reference_part(output_file, base_folder, cell_part, label_struc, F):
                         dimx, dimy, dimz = dim
                         delta_value = delta.replace('_', '.')  # Asegurarse de que el delta se escribe correctamente
                         writer.writerow([label_struc, R, delta_value, dimx, dimy, dimz, f_ref])  # Escribir en el archivo CSV
-

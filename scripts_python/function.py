@@ -290,10 +290,10 @@ def extract_R_bin(definitions_path):
         try:
             R1_np = float(lines[size_index].split()[0]) 
             j = 0
-            while R2_np == None:
-                if float(lines[size_index+ j].split()[0]) != R1_np:
-                    R2_np = float(lines[size_index + j].split()[0])
-                j += 1
+            #while R2_np == None:
+            #    if float(lines[size_index+ j].split()[0]) != R1_np:
+            #        R2_np = float(lines[size_index + j].split()[0])
+            #    j += 1
 
         except ValueError:
             R2_np = R1_np
