@@ -48,7 +48,7 @@ for i, line in enumerate(lines):
 		nseg = lines[size_index].split()[1]
 	elif line.strip() == "! coverage":
 		size_index = i + 1
-		cov = lines[size_index].split()
+		cov = lines[size_index].split()[0]
 		break
 
 k_aL = {"kx": 1,"ky": 1,"kz": 1}
