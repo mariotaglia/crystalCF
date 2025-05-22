@@ -45,7 +45,7 @@ for i, line in enumerate(lines):
 		seed_lig = lines[size_index + 1]
 	elif line.strip() == "!properties of ligand chains":
 		size_index = i + 1
-		nseg = lines[size_index]
+		nseg = lines[size_index].split()[1]
 		break
 
 k_aL = {"kx": 1,"ky": 1,"kz": 1}
@@ -145,6 +145,10 @@ for gamma_folder in gamma_folder_list:
 						size_index = i + 1
 						lines[size_index] = seed
 						lines[size_index + 1] = seed_lig
+					elif line.strip() == "!properties of ligand chains":
+						size_index = i + 1
+						lines[size_index] = f"long {str(int(nseg))}\n"
+						break
 					elif line.strip() == "!particle semiaxis x y z in nm":
 						size_index = i + 1
 						for n in np.arange(0,k_part[label_struc]):
