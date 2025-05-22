@@ -43,6 +43,9 @@ for i, line in enumerate(lines):
 		size_index = i + 1
 		seed = lines[size_index]
 		seed_lig = lines[size_index + 1]
+	elif line.strip() == "!properties of ligand chains":
+		size_index = i + 1
+		nseg = lines[size_index]
 		break
 
 k_aL = {"kx": 1,"ky": 1,"kz": 1}
@@ -113,7 +116,7 @@ for gamma_folder in gamma_folder_list:
 	R1_np, R2_np = extract_R_bin(DEF)
 
 	update_cdiva("DEFINITIONS.txt", name_bin, gamma_calc(DEF), flag_reflexion)
-	aL = float(run_command(f'python3 {dir_script}/references/aL_estimate_bin.py {name_bin} {R1_np} {R2_np} {gamma_calc(DEF)}'))
+	aL = float(run_command(f'python3 {dir_script}/references/aL_estimate_bin.py {name_bin} {R1_np} {R2_np} {gamma_calc(DEF)} {nseg}'))
 	delta_dim_bin = [entry for entry in gamm_delta_dim if entry["gamma"] == gamma]
 	process_principal_binario(DEF, name_bin, delta_dim_bin, aL, n_k_bin, tosubmit, dir_fuente, k_aL, gamma)
 	os.chdir(dir_fuente)
@@ -152,7 +155,7 @@ for gamma_folder in gamma_folder_list:
 
 				DEF = os.path.join(os.getcwd(), "DEFINITIONS.txt")
 				R_np = extract_R_part(DEF)
-				aL = float(run_command(f'python3 {dir_script}/references/aL_min_{label_struc}.py {R_np}'))
+				aL = float(run_command(f'python3 {dir_script}/references/aL_min_{label_struc}.py {R_np} {nseg}'))
 				k_aL_part = 1
 				if flag_reflexion_part == True:
 					k_aL_part = 2
