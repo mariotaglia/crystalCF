@@ -71,19 +71,25 @@ def path_carpeta(folder_init,n):
         x = os.path.dirname(x)
     return x
 
-def process_principal_part(reference_DEF, delta_list, aL, tosubmit, dir_fuente, k_aL, check_bcc):
+def process_principal_part(reference_DEF, delta_list_part, aL, tosubmit, dir_fuente, k_aL):
     structure = os.getcwd()
     DEF =  os.path.join(structure, "DEFINITIONS.txt")
     lines = read_DEF(DEF)
-    if ("bcc" in structure and "part2" in structure) and check_bcc == False:
-        delta_list.append(0.26)
+    delta_list = delta_list_part
+    if "bcc" in structure and "part2" in structure:
+        delta_list = delta_list_part+[0.26]
+    elif "fcc" in structure and "part1" in structure:
+        delta_list = delta_list_part+[0.26,0.265]
 
     for delta in delta_list:
         round_value = int(np.round(float(aL/k_aL) / float(delta)))
-        if not delta == 0.26:
-            dims = [round_value - 1, round_value, round_value + 1]
-        else:
+        if (delta == 0.26 and ("bcc" in structure and "part2" in structure)):
             dims = [round_value]
+        elif ((delta == 0.26 or delta == 0.265) and ("fcc" in structure and "part1" in structure)):
+            dims = [round_value]
+        else:
+            dims = [round_value - 1, round_value, round_value + 1]
+
         delta_folder = str(delta).replace('.','_')
         for j in dims:
             folder_name = f"delta_{delta_folder}_dim_{j}"

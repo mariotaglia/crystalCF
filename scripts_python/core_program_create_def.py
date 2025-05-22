@@ -48,6 +48,7 @@ for i, line in enumerate(lines):
 		seed_lig = lines[size_index + 1]
 		break
 
+
 k_aL = {"kx": 1,"ky": 1,"kz": 1}
 if flag_reflexion == True:
 	PBC = []
@@ -154,6 +155,10 @@ for nseg_folder in nseg_folder_list:
 					size_index = i + 1
 					for n in np.arange(0,k_part[label_struc]):
 						lines[size_index + n] = f"{R_part["part1"]} {R_part["part1"]} {R_part["part1"]}\n"
+				elif line.strip() == "! coverage":
+					size_index = i + 1
+					for n in np.arange(0,k_part[label_struc]):
+						lines[size_index + n] = f"{cov}\n"
 					break
 
 			write_DEF(DEF, lines) 
