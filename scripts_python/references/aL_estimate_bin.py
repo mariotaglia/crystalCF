@@ -17,8 +17,9 @@ A = 4*pi*R**2
 
 if name=="C14":
 	N = 12
-	V_pol = 0.010
-	aL_min = (N*Vol_NP+N*sigma*A*V_pol*l_extended)**(1./3.)
+	V_pol = 0.06
+	cdiva = np.sqrt(8/3)/2
+	aL_min = (N*Vol_NP+N*sigma*A*V_pol*l_extended)**(1./3.)/cdiva**(1./3.)
 
 def output():
 	print(str(aL_min))
