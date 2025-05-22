@@ -93,7 +93,7 @@ lines = read_DEF(DEF)
 for i, line in enumerate(lines):
 	if line.strip() == "!properties of ligand chains":
 		size_index = i + 1
-		nseg = lines[size_index]
+		nseg = lines[size_index].split()[1]
 		break
 if flag_reflexion == True:
 	for i, line in enumerate(lines):
