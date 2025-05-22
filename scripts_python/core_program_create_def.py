@@ -18,7 +18,6 @@ from create_defs import process_principal_binario, process_secundario_binario, p
 ################### INICIO ##################
 dir_inicial = os.getcwd()
 dir_script = os.path.expanduser("~/develop/crystalCF/scripts_python")
-check_bcc = False
 params_init = extract_params_init('init_params.txt', False)
 name_bin = params_init['name']
 n1 = params_init['n1']; n2 = params_init['n2']
@@ -114,7 +113,7 @@ for gamma_folder in gamma_folder_list:
 	R1_np, R2_np = extract_R_bin(DEF)
 
 	update_cdiva("DEFINITIONS.txt", name_bin, gamma_calc(DEF), flag_reflexion)
-	aL = float(run_command(f'python3 {dir_script}/references/aL_estimate_bin.py {name_bin} {R1_np} {R2_np}'))
+	aL = float(run_command(f'python3 {dir_script}/references/aL_estimate_bin.py {name_bin} {R1_np} {R2_np} {gamma_calc(DEF)}'))
 	delta_dim_bin = [entry for entry in gamm_delta_dim if entry["gamma"] == gamma]
 	process_principal_binario(DEF, name_bin, delta_dim_bin, aL, n_k_bin, tosubmit, dir_fuente, k_aL, gamma)
 	os.chdir(dir_fuente)
@@ -157,9 +156,7 @@ for gamma_folder in gamma_folder_list:
 				k_aL_part = 1
 				if flag_reflexion_part == True:
 					k_aL_part = 2
-				process_principal_part(DEF, delta_part[label_struc], aL, tosubmit, dir_fuente[label], k_aL_part, check_bcc)
-				if (label_struc == 'bcc' and label == 'part2'):
-					check_bcc = True
+				process_principal_part(DEF, delta_part[label_struc], aL, tosubmit, dir_fuente[label], k_aL_part)
 					
 folder_ref = [os.path.join(dir_inicial,"sim_part1/binary_ref")]
 for cell in cell_part:

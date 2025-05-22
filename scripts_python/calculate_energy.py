@@ -1,10 +1,32 @@
 import os
+import re
 import numpy as np
 import pandas as pd
 from scipy.interpolate import CubicSpline
 from scipy.optimize import minimize_scalar
 import matplotlib.pyplot as plt
 import math
+plt.rc('text', usetex=True)
+plt.rc('font', family='serif', serif='cm10', weight='bold', size=16)
+import matplotlib as mpl
+mpl.rcParams.update({
+    "text.usetex": True,
+    "text.latex.preamble": r"\usepackage{amsmath}"
+})
+
+def to_latex_formula(name):
+    """
+    Convierte una fórmula química tipo texto como 'NaCl', 'AlB2' a LaTeX: NaCl, AlB$_2$
+    """
+    # Busca los elementos con su posible subíndice (e.g., AlB2 -> [('Al', ''), ('B', '2')])
+    matches = re.findall(r'([A-Z][a-z]?)(\d*)', name)
+    latex_str = ''
+    for element, subscript in matches:
+        if subscript:
+            latex_str += f"{element}$_{{{subscript}}}$"
+        else:
+            latex_str += element
+    return latex_str
 
 def mean_al(df):
     return df.groupby('aL', as_index=False).agg({
@@ -44,21 +66,21 @@ def estimate_part_F(part, part_cell, factor_aL_part, ni, k_part, gen_curves_flag
     aL_min_cell = x_cell[y_cell.argmin()]
 
     if gen_curves_flag == True:
-        fig_sub, ax_sub = plt.subplots()
+        fig_sub, ax_sub = plt.subplots(figsize=(8, 6))
         ax_sub.scatter(aL_cell, F_norm_cell)
         ax_sub.plot(x_cell,y_cell)
-        ax_sub.set_xlabel(r'a$_{\text{L}}$',fontsize=14)
-        ax_sub.set_ylabel(r'$\Delta$F (k$_{\text{B}}$T)',fontsize=14)
+        ax_sub.set_xlabel(r'a$_{\text{L}}$',fontsize=22)
+        ax_sub.set_ylabel(r'$\Delta$F (k$_{\text{B}}$T)',fontsize=22)
         ax_sub.axvline(aL_min_cell,ls='--',c='darkgray',zorder=-1)
-        fig_sub.savefig(f"F_{part}_{part_cell}.png", format="png",bbox_inches='tight')
+        fig_sub.savefig(f"F_{part}_{part_cell}.png",dpi=300, format="png",bbox_inches='tight')
         plt.close(fig_sub)
 
-        fig_sub, ax_sub = plt.subplots()
+        fig_sub, ax_sub = plt.subplots(figsize=(8, 6))
         ax_sub.scatter(aL_cell, F_tot)
-        ax_sub.set_xlabel(r'a$_{\text{L}}$',fontsize=14)
-        ax_sub.set_ylabel(r'$\Delta$F (k$_{\text{B}}$T)',fontsize=14)
+        ax_sub.set_xlabel(r'a$_{\text{L}}$',fontsize=22)
+        ax_sub.set_ylabel(r'$\Delta$F (k$_{\text{B}}$T)',fontsize=22)
         ax_sub.axvline(aL_min_cell,ls='--',c='darkgray',zorder=-1)
-        fig_sub.savefig(f"F_without_ref_{part}_{part_cell}.png", format="png",bbox_inches='tight')
+        fig_sub.savefig(f"F_without_ref_{part}_{part_cell}.png",dpi=300, format="png",bbox_inches='tight')
         plt.close(fig_sub)
 
     return aL_min_cell, F_min_cell, x_cell
@@ -93,17 +115,17 @@ def estimate_part_contrib(part, part_cell, factor_aL_part, ni, k_part, F, aL_arr
     F_calc = F_min_cell[0]
 
     if gen_curves_flag == True:
-        fig_sub, ax_sub = plt.subplots()
+        fig_sub, ax_sub = plt.subplots(figsize=(8, 6))
         ax_sub.scatter(aL_cell, F_norm_cell)
         ax_sub.plot(aL_array,y_cell)
         ax_sub.axvline(aL_min,ls='--',c='darkgray',zorder=-1)
-        ax_sub.set_xlabel(r'a$_{\text{L}}$',fontsize=14)
+        ax_sub.set_xlabel(r'a$_{\text{L}}$',fontsize=22)
         if "F_trans" in F:
-            ax_sub.set_ylabel(r'$\Delta$U (k$_{\text{B}}$T)',fontsize=14)
-            fig_sub.savefig(f"U_{part}_{part_cell}.png", format="png",bbox_inches='tight')
+            ax_sub.set_ylabel(r'$\Delta$U (k$_{\text{B}}$T)',fontsize=22)
+            fig_sub.savefig(f"U_{part}_{part_cell}.png",dpi=300, format="png",bbox_inches='tight')
         if "F_HS" in F:
-            ax_sub.set_ylabel(r'-T$\Delta$S (k$_{\text{B}}$T)',fontsize=14)
-            fig_sub.savefig(f"S_{part}_{part_cell}.png", format="png",bbox_inches='tight')
+            ax_sub.set_ylabel(r'-T$\Delta$S (k$_{\text{B}}$T)',fontsize=22)
+            fig_sub.savefig(f"S_{part}_{part_cell}.png",dpi=300, format="png",bbox_inches='tight')
         plt.close(fig_sub)
 
     return F_calc
@@ -141,24 +163,24 @@ def estimate_bin_F(name, factor_bcell, k_bin, n1, n2, ax, gamma, gen_curves_flag
     aL_min_bin = x_bin[y_bin.argmin()]
 
     if gen_curves_flag == True:
-        fig_sub, ax_sub = plt.subplots()
+        fig_sub, ax_sub = plt.subplots(figsize=(8, 6))
         ax_sub.scatter(aL_bin, F_norm_bin/(n1+n2))
         ax_sub.plot(x_bin,y_bin/(n1+n2))
-        ax_sub.set_xlabel(r'a$_{\text{L}}$',fontsize=14)
-        ax_sub.set_ylabel(r'$\Delta$F (k$_{\text{B}}$T)',fontsize=14)
+        ax_sub.set_xlabel(r'$a_{\text{L}}$',fontsize=22)
+        ax_sub.set_ylabel(r'$\Delta$F (k$_{\text{B}}$T)',fontsize=22)
         ax_sub.axvline(aL_min_bin,ls='--',c='darkgray',zorder=-1)
-        fig_sub.savefig(f"F_{name}.png", format="png",bbox_inches='tight')
+        fig_sub.savefig(f"F_{name}.png",dpi=300, format="png",bbox_inches='tight')
         plt.close(fig_sub)
 
-        fig_sub, ax_sub = plt.subplots()
+        fig_sub, ax_sub = plt.subplots(figsize=(8, 6))
         ax_sub.scatter(aL_bin, F_tot_bin/(n1+n2))
-        ax_sub.set_xlabel(r'a$_{\text{L}}$',fontsize=14)
-        ax_sub.set_ylabel(r'$\Delta$F (k$_{\text{B}}$T)',fontsize=14)
+        ax_sub.set_xlabel(r'a$_{\text{L}}$',fontsize=22)
+        ax_sub.set_ylabel(r'$\Delta$F (k$_{\text{B}}$T)',fontsize=22)
         ax_sub.axvline(aL_min_bin,ls='--',c='darkgray',zorder=-1)
-        fig_sub.savefig(f"F_without_ref_{name}.png", format="png",bbox_inches='tight')
+        fig_sub.savefig(f"F_without_ref_{name}.png",dpi=300, format="png",bbox_inches='tight')
         plt.close(fig_sub)
 
-        ax.scatter(aL_bin, F_norm_bin/(n1+n2), label=fr'$\gamma:$ {gamma}')
+        ax.scatter(aL_bin, F_norm_bin/(n1+n2), label=fr'$\gamma: {gamma:.2f}$')
         ax.plot(x_bin,y_bin/(n1+n2))
         ax.scatter(aL_min_bin,F_min_bin/(n1+n2),marker='|', color='black',s=50,zorder=10)
 
@@ -205,7 +227,7 @@ def estimate_bin_contrib(name, factor_bin_cell, k_bin, n1, n2, F, aL_array, aL_m
         ax.plot(aL_array,y_bin/(n1+n2))
         ax.scatter(aL_min,F_min_bin/(n1+n2),marker='|', color='black',s=50,zorder=10)
 
-        fig_sub, ax_sub = plt.subplots()
+        fig_sub, ax_sub = plt.subplots(figsize=(8, 6))
         ax_sub.scatter(aL_bin, F_norm_bin/(n1+n2))
         ax_sub.plot(aL_array,y_bin/(n1+n2))
         ax_sub.set_xlabel(r'a$_{\text{L}}$',fontsize=14)
@@ -215,7 +237,7 @@ def estimate_bin_contrib(name, factor_bin_cell, k_bin, n1, n2, F, aL_array, aL_m
             fig_sub.savefig(f"U_{name}.png", format="png",bbox_inches='tight')
         if "F_HS" in F:
             ax_sub.set_ylabel(r'-T$\Delta$S (k$_{\text{B}}$T)',fontsize=14)
-            fig_sub.savefig(f"S_{name}.png", format="png",bbox_inches='tight')
+            fig_sub.savefig(f"S_{name}.png",dpi=300, format="png",bbox_inches='tight')
         plt.close(fig_sub)
 
     return F_calc

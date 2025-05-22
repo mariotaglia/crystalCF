@@ -1,4 +1,5 @@
 import os
+import re
 import sys
 import subprocess
 import shutil
@@ -13,6 +14,28 @@ from function import path_carpeta, extract_params_init, read_DEF, join_F_csv, jo
 from function_part import extract_R_part
 from export_output import process_principal, process_reference_bin, process_principal_part, process_reference_part
 from calculate_energy import estimate_part_F, estimate_part_contrib, estimate_bin_F, estimate_bin_contrib, delta_energy_F, delta_energy_US, delta_energy_contrib
+
+plt.rc('text', usetex=True)
+plt.rc('font', family='serif', serif='cm10', weight='bold', size=16)
+import matplotlib as mpl
+mpl.rcParams.update({
+    "text.usetex": True,
+    "text.latex.preamble": r"\usepackage{amsmath}"
+})
+
+def to_latex_formula(name):
+    """
+    Convierte una fórmula química tipo texto como 'NaCl', 'AlB2' a LaTeX: NaCl, AlB$_2$
+    """
+    # Busca los elementos con su posible subíndice (e.g., AlB2 -> [('Al', ''), ('B', '2')])
+    matches = re.findall(r'([A-Z][a-z]?)(\d*)', name)
+    latex_str = ''
+    for element, subscript in matches:
+        if subscript:
+            latex_str += f"{element}$_{{{subscript}}}$"
+        else:
+            latex_str += element
+    return latex_str
 
 ################### INICIO ##################
 
@@ -96,7 +119,6 @@ while True:
 	check_extract = input("¿Quiere extraer los F.data? (s/n): ").strip().lower()
 	if check_extract in ["s", "si"]:
 		print("Extrayendo F.data...")
-		check_bcc = False
 		for gamma_folder in gamma_folder_list:
 			os.chdir(os.path.join(dir_origin,f"gamma_{gamma_folder}"))
 
@@ -115,7 +137,7 @@ while True:
 				R1_np, R2_np = extract_R_bin(DEF)
 				R = {"part1": R1_np, "part2": R2_np}
 				gamma = float(gamma_folder.replace('_','.'))
-				aL = float(run_command(f"python3 {dir_script}/references/aL_estimate_bin.py {name_bin} {R1_np} {R2_np}"))
+				aL = float(run_command(f"python3 {dir_script}/references/aL_estimate_bin.py {name_bin} {R1_np} {R2_np} {gamma_calc(DEF)}"))
 				delta_dim_bin = [entry for entry in gamm_delta_dim if entry["gamma"] == gamma]
 				process_principal(output_file, name_bin, R, delta_dim_bin, aL, k_aL, f_name)
 				os.chdir(os.path.join(dir_origin,f"gamma_{gamma_folder}"))
@@ -132,18 +154,16 @@ while True:
 						os.chdir(f"{label_struc}")
 						R_np = extract_R_part(DEF)
 						aL = float(run_command(f"python3 {dir_script}/references/aL_min_{label_struc}.py {R_np}"))
-						delta_list = delta_part[label_struc]
+						delta_list_part = delta_part[label_struc]
 						k_aL_part = 1
 						if flag_reflexion_part == True:
 							k_aL_part = 2
-						process_principal_part(output_file, label_struc, R_np, delta_list, aL, k_aL_part, f_name, check_bcc)
+						process_principal_part(output_file, label_struc, R_np, delta_list_part, aL, k_aL_part, f_name)
 
 						os.chdir(os.path.join(dir_fuente[label], f"{label_struc}_ref"))
 						output_file = os.path.join(output_folder, f"{label}_references_{f_name}.csv")
 						base_folder = os.path.join(dir_fuente[label], f"{label_struc}_ref")
 						process_reference_part(output_file, base_folder, cell_part, label_struc, f_name)
-						if (label_struc == 'bcc' and label == 'part2'):
-							check_bcc = True
 
 			join_F_csv(output_folder, name_bin, True)
 			join_F_csv_ref(output_folder, name_bin)
@@ -165,7 +185,7 @@ while True:
 os.chdir(dir_origin)
 
 import matplotlib.pyplot as plt
-fig1, ax1 = plt.subplots(); fig2, ax2 = plt.subplots(); fig3, ax3 = plt.subplots()
+fig1, ax1 = plt.subplots(figsize=(8, 6)); fig2, ax2 = plt.subplots(figsize=(8, 6)); fig3, ax3 = plt.subplots(figsize=(8, 6))
 
 params_init = extract_params_init('init_params.txt', True)
 n1 = params_init['n1']; n2 = params_init['n2']
@@ -256,13 +276,13 @@ for gamma_folder in gamma_folder_list:
 
 if gen_curves_flag == True:
 	for ax in [ax1,ax2,ax3]:
-		ax.set_xlabel(r'a$_{\text{L}}$',fontsize=16)
-		ax.legend()
+		ax.set_xlabel(r'a$_{\text{L}}$',fontsize=22)
+		ax.legend(fontsize=16)
 	for fig in [fig1,fig2,fig3]:
-		fig.suptitle(f'{name_bin} binary',fontsize=18)
-	ax1.set_ylabel(r'$\Delta$F (k$_{\text{b}}$T)',fontsize=16)
-	ax2.set_ylabel(r'$\Delta$U (k$_{\text{b}}$T)',fontsize=16)
-	ax3.set_ylabel(r'-T$\Delta$S (k$_{\text{b}}$T)',fontsize=16)
+		fig.suptitle(f'{to_latex_formula(name_bin)}',fontsize=22, y=0.95)
+	ax1.set_ylabel(r'$\Delta$F (k$_{\text{b}}$T)',fontsize=22)
+	ax2.set_ylabel(r'$\Delta$U (k$_{\text{b}}$T)',fontsize=22)
+	ax3.set_ylabel(r'-T$\Delta$S (k$_{\text{b}}$T)',fontsize=22)
 
 	fig1.savefig(f"{final_output}/F_binary.png", format="png", dpi=300,bbox_inches='tight')
 	fig2.savefig(f"{final_output}/U_binary.png", format="png", dpi=300,bbox_inches='tight')
@@ -330,13 +350,13 @@ for i, (lista, F) in enumerate(zip(F_plot,["ΔU", "-TΔS", "ΔF"])):
 	plt.scatter(gamma_MD,F_MD[F],marker='o',color='purple',s=50,label='MD (MD)',zorder=10)
 
 	plt.axhline(0,ls='--',c='darkgray',zorder=-3)
-	plt.xticks(fontsize=14)
-	plt.yticks(fontsize=14)
+	plt.xticks(fontsize=18)
+	plt.yticks(fontsize=18)
 	plt.xlim(min(gamma_list)-0.05,max(gamma_list)+0.05)
-	plt.ylabel(y_label[i],fontsize=18)
-	plt.xlabel(r'$\gamma$',fontsize=18)
-	plt.title(f"{name_bin}",fontsize=22,weight='bold')
-	plt.legend(fontsize=13)
+	plt.ylabel(y_label[i],fontsize=22)
+	plt.xlabel(r'$\gamma$',fontsize=22)
+	plt.title(f"{to_latex_formula(name_bin)}",fontsize=22,weight='bold')
+	plt.legend(fontsize=16)
 	plt.savefig(f'{final_output}/{name_bin}_results_{F}.png',format='png',dpi=300,bbox_inches='tight')
 
 F_plot = [DU_values[3],DS_values[3],DF_values[3]]
@@ -345,13 +365,13 @@ for i, (lista, F) in enumerate(zip(F_plot,["ΔU", "-TΔS", "ΔF"])):
 	plt.plot(alpha_value,F_plot[i],ls='none',marker='s',color='red',ms=7,label='MoltCF')
 
 	plt.axhline(0,ls='--',c='darkgray',zorder=-3)
-	plt.xticks(fontsize=14)
-	plt.yticks(fontsize=14)
+	plt.xticks(fontsize=18)
+	plt.yticks(fontsize=18)
 	plt.xlim(np.min(alpha_value)-0.05,np.max(alpha_value)+0.05)
-	plt.ylabel(y_label[i],fontsize=18)
-	plt.xlabel(r'$\alpha$',fontsize=18)
-	plt.title(f"{name_bin}",fontsize=22,weight='bold')
-	plt.legend(fontsize=13)
+	plt.ylabel(y_label[i],fontsize=22)
+	plt.xlabel(r'$\alpha$',fontsize=22)
+	plt.title(f"{to_latex_formula(name_bin)}",fontsize=22,weight='bold')
+	plt.legend(fontsize=16)
 	plt.savefig(f'{final_output}/{name_bin}_results_{F}_alpha.png',format='png',dpi=300,bbox_inches='tight')
 
 
@@ -391,13 +411,13 @@ if gen_curves_flag == True:
 		plt.plot(gamma_value,DU[i],marker=marker[i],ms=7, label=label[i])
 
 		plt.axhline(0,ls='--',c='darkgray',zorder=-3)
-		plt.xticks(fontsize=14)
-		plt.yticks(fontsize=14)
+		plt.xticks(fontsize=18)
+		plt.yticks(fontsize=18)
 		plt.xlim(min(gamma_value)-0.05,max(gamma_value)+0.05)
-		plt.ylabel(r'$\Delta$U (k$_{\text{B}}$T)',fontsize=18)
-		plt.xlabel(r'$\gamma$',fontsize=18)
-		plt.title(f"{name_bin}",fontsize=22,weight='bold')
-		plt.legend(fontsize=13)
+		plt.ylabel(r'$\Delta$U (k$_{\text{B}}$T)',fontsize=22)
+		plt.xlabel(r'$\gamma$',fontsize=22)
+		plt.title(f"{to_latex_formula(name_bin)}",fontsize=22,weight='bold')
+		plt.legend(fontsize=16)
 		plt.savefig(f'{final_output}/{name_bin}_contrib_results_ΔU.png',format='png',dpi=300,bbox_inches='tight')
 
 	DS = pd.DataFrame(DS_values).to_numpy()
@@ -406,13 +426,13 @@ if gen_curves_flag == True:
 		plt.plot(gamma_value,DS[i],marker=marker[i],ms=7, label=label[i])
 
 		plt.axhline(0,ls='--',c='darkgray',zorder=-3)
-		plt.xticks(fontsize=14)
-		plt.yticks(fontsize=14)
+		plt.xticks(fontsize=18)
+		plt.yticks(fontsize=18)
 		plt.xlim(min(gamma_value)-0.05,max(gamma_value)+0.05)
-		plt.ylabel(r'$-T\Delta$S (k$_{\text{B}}$T)',fontsize=18)
-		plt.xlabel(r'$\gamma$',fontsize=18)
-		plt.title(f"{name_bin}",fontsize=22,weight='bold')
-		plt.legend(fontsize=13)
+		plt.ylabel(r'$-T\Delta$S (k$_{\text{B}}$T)',fontsize=22)
+		plt.xlabel(r'$\gamma$',fontsize=22)
+		plt.title(f"{to_latex_formula(name_bin)}",fontsize=22,weight='bold')
+		plt.legend(fontsize=16)
 		plt.savefig(f'{final_output}/{name_bin}_contrib_results_-TΔS.png',format='png',dpi=300,bbox_inches='tight')
 
 DF = pd.DataFrame(DF_values).to_numpy()
@@ -421,11 +441,11 @@ for i in range(len(label)):
 	plt.plot(gamma_value,DF[i],marker=marker[i],ms=7, label=label[i])
 
 	plt.axhline(0,ls='--',c='darkgray',zorder=-3)
-	plt.xticks(fontsize=14)
-	plt.yticks(fontsize=14)
+	plt.xticks(fontsize=18)
+	plt.yticks(fontsize=18)
 	plt.xlim(min(gamma_value)-0.05,max(gamma_value)+0.05)
-	plt.ylabel(r'$\Delta$F (k$_{\text{B}}$T)',fontsize=18)
-	plt.xlabel(r'$\gamma$',fontsize=18)
-	plt.title(f"{name_bin}",fontsize=22,weight='bold')
-	plt.legend(fontsize=13)
+	plt.ylabel(r'$\Delta$F (k$_{\text{B}}$T)',fontsize=22)
+	plt.xlabel(r'$\gamma$',fontsize=22)
+	plt.title(f"{to_latex_formula(name_bin)}",fontsize=22,weight='bold')
+	plt.legend(fontsize=16)
 	plt.savefig(f'{final_output}/{name_bin}_contrib_results_ΔF.png',format='png',dpi=300,bbox_inches='tight')
