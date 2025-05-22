@@ -121,6 +121,31 @@ if(rank.eq.0) then ! solo el jefe escribe a disco....
 !  close(45)
 
 !!!!!!!!!!!!!!!!!!! Guarda archivos !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+! minpol
+
+  temp = 1.d50
+  do ix = 1, dimx
+  do iy = 1, dimy
+  do iz = 1, dimz
+  if(volprot(ix,iy,iz).eq.0.0) then
+          
+  temp(ix,iy,iz) = 0.0
+
+  do im = 1, N_monomer
+     temp(:,:,:) =  temp(:,:,:) + avpol(:,:,:, im)
+  enddo
+
+  endif
+
+  enddo
+  enddo
+  enddo
+
+  minpolpos = minloc(temp)
+  minpol = minval(temp)
+
 ! Polimero, todo
 
   temp = 0.0
@@ -128,10 +153,8 @@ if(rank.eq.0) then ! solo el jefe escribe a disco....
      temp(:,:,:) =  temp(:,:,:) + avpol(:,:,:, im)*(1.0 - volprot(:,:,:))
   enddo
 
-  title = 'avpol'
+ title = 'avpol'
   call savetodisk(temp, title, cccc)
-
-  minpolpos = minloc(temp)
 
 ! Polimero, por tipo
   
