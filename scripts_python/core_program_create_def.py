@@ -46,6 +46,9 @@ for i, line in enumerate(lines):
 	elif line.strip() == "!properties of ligand chains":
 		size_index = i + 1
 		nseg = lines[size_index].split()[1]
+	elif line.strip() == "! coverage":
+		size_index = i + 1
+		cov = lines[size_index].split()[1]
 		break
 
 k_aL = {"kx": 1,"ky": 1,"kz": 1}
@@ -153,6 +156,10 @@ for gamma_folder in gamma_folder_list:
 						size_index = i + 1
 						for n in np.arange(0,k_part[label_struc]):
 							lines[size_index + n] = f"{R_part[label]} {R_part[label]} {R_part[label]}\n"
+					elif line.strip() == "! coverage":
+						size_index = i + 1
+						for n in np.arange(0,k_part[label_struc]):
+							lines[size_index + n] = f"{cov}\n"
 						break
 
 				write_DEF(DEF, lines) 
