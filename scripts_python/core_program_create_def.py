@@ -147,6 +147,9 @@ for nseg_folder in nseg_folder_list:
 					size_index = i + 1
 					lines[size_index] = seed
 					lines[size_index + 1] = seed_lig
+				elif line.strip() == "!properties of ligand chains":
+					size_index = i + 1
+					lines[size_index] = f"long {str(int(nseg))}\n"
 				elif line.strip() == "!particle semiaxis x y z in nm":
 					size_index = i + 1
 					for n in np.arange(0,k_part[label_struc]):
@@ -157,11 +160,11 @@ for nseg_folder in nseg_folder_list:
 
 			DEF = os.path.join(os.getcwd(), "DEFINITIONS.txt")
 			R_np = extract_R_part(DEF)
-			aL = float(run_command(f'python3 {dir_script}/references/aL_min_{label_struc}.py {R_np}'))
+			aL = float(run_command(f'python3 {dir_script}/references/aL_min_{label_struc}.py {R_np} {nseg}'))
 			k_aL_part = 1
 			if flag_reflexion_part == True:
 				k_aL_part = 2
-			process_principal_part(DEF, delta_part[label_struc], aL, tosubmit, dir_fuente_part["part1"], k_aL_part, check_bcc)
+			process_principal_part(DEF, delta_part[label_struc], aL, tosubmit, dir_fuente_part["part1"], k_aL_part)
 
 		folder_ref = [os.path.join(dir_fuente,"sim_part1/binary_ref")]
 		for cell in cell_part:
