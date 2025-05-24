@@ -16,7 +16,7 @@ from calculate_energy import estimate_part_F, estimate_part_contrib, estimate_bi
 
 ################### INICIO ##################
 
-dir_origin= os.getcwd()
+dir_origin_inicial = os.getcwd()
 dir_script = os.path.expanduser("~/develop/crystalCF/scripts_python")
 
 params_init = extract_params_init('init_params.txt', False)
@@ -60,13 +60,13 @@ gen_curves_flag = params_init["flag generate energy vs aL curves"]
 if os.path.isdir(f"results_{name_bin}"):
 	shutil.rmtree(f"results_{name_bin}")
 os.makedirs(f"results_{name_bin}", exist_ok=True)
-final_output = os.path.join(dir_origin,f"results_{name_bin}")
+final_output = os.path.join(dir_origin_inicial,f"results_{name_bin}")
 
 factor_aL_part = {"fcc": 2**(-1.0/6.0), "bcc": 1}
 
 k_aL = {"kx": 1,"ky": 1,"kz": 1}
 if flag_reflexion == True:
-	DEF = os.path.join(dir_origin, "DEFINITIONS.txt")
+	DEF = os.path.join(dir_origin_inicial, "DEFINITIONS.txt")
 	lines = read_DEF(DEF)
 	for i, line in enumerate(lines):
 		PBC = []
@@ -99,7 +99,7 @@ while True:
 		print("Extrayendo F.data...")
 		for nseg_folder in nseg_folder_list:
 			os.chdir(f'nseg_{nseg_folder}')
-			dir_origin= os.getcwd()
+			dir_origin = os.getcwd()
 			for cov_folder in cov_folder_list:
 				os.chdir(os.path.join(dir_origin,f"cov_{cov_folder}"))
 
@@ -135,7 +135,7 @@ while True:
 							DEF = os.path.join(dir_fuente_part[label], label_struc, "DEFINITIONS.txt")
 							os.chdir(f"{label_struc}")
 							R_np = extract_R_part(DEF)
-							aL = float(run_command(f"python3 {dir_script}/references/aL_min_{label_struc}.py {R_np}"))
+							aL = float(run_command(f"python3 {dir_script}/references/aL_min_{label_struc}.py {R_np} {nseg} {cov}"))
 							delta_list_part = delta_part[label_struc]
 							k_aL_part = 1
 							if flag_reflexion_part == True:
@@ -164,7 +164,7 @@ while True:
 		print("Respuesta no válida. Por favor, ingrese 's' o 'n'.")
 
 ##################### ESTIMACIONES ###############################
-os.chdir(dir_origin)
+os.chdir(dir_origin_inicial)
 
 import matplotlib.pyplot as plt
 fig1, ax1 = plt.subplots(); fig2, ax2 = plt.subplots(); fig3, ax3 = plt.subplots()
@@ -178,7 +178,7 @@ for nseg_folder in nseg_folder_list:
 	os.chdir(f'nseg_{nseg_folder}')
 	dir_origin=os.getcwd()
 	for cov_folder in cov_folder_list:
-		os.chdir(dir_origin)
+		os.chdir(f"cov_{cov_folder}")
 		dir_fuente = os.getcwd()
 		DEF = os.path.join(dir_fuente,'binary','DEFINITIONS.txt')
 		lines = read_DEF(DEF)
@@ -210,7 +210,7 @@ for nseg_folder in nseg_folder_list:
 		k_aL_part = 1
 		if flag_reflexion_part == True:
 			k_aL_part = 2
-		for part in ["part1", "part2"]:
+		for part in ["part1"]:
 			result_cell = []
 			for i, cell in enumerate(cell_part):
 				result_cell = estimate_part_F(part, cell, factor_aL_part[cell], n[part], k_part[cell], gen_curves_flag, k_aL_part)
@@ -250,12 +250,12 @@ for nseg_folder in nseg_folder_list:
 		DS = delta_energy_US(dict_delta, "-ΔST", cell_min=result[1], n1=n1, n2=n2)
 		
 		for i,key in enumerate(dict_delta):
-			list = ["gamma",gamma,"Global X",DU,DS,DF]
+			list = ["cov",cov,"Global X",DU,DS,DF]
 			dict_delta[key].append(list[i])
 
 		df_delta = pd.DataFrame.from_dict(dict_delta)
 
-		with pd.ExcelWriter(f"results_cov_{cov}.xlsx") as writer:
+		with pd.ExcelWriter(f"results_nseg_{nseg_folder}_cov_{cov_folder}.xlsx") as writer:
 			df_delta.to_excel(writer, sheet_name="Deltas", index=False)
 
 if gen_curves_flag == True:
@@ -275,10 +275,10 @@ if gen_curves_flag == True:
 		plt.close(fig)
 
 ####################### PLOT ###########################
-os.chdir(dir_origin)
+os.chdir(dir_origin_inicial)
 
-gamma_value = []
-alpha_value = []
+nseg_value = []
+cov_value = []
 DU_global = []
 DS_global = []
 DF_global = []
@@ -288,76 +288,56 @@ DS_values = [[],[],[],[]]
 DF_values = [[],[],[],[]]
 
 dfs = []; columnas = 2
-for gamma_folder in gamma_folder_list:
-	df = pd.read_excel(os.path.join(os.path.join(dir_origin,f"gamma_{gamma_folder}","data_analysis", f"results_gamma_{gamma_folder}.xlsx")))
-	
-	for j, name in enumerate(["part1", "part2", "binary", "Global"]):
-		if j<3:
-			values = df.loc[df["#part"] == name, ["ΔU_min", "-ΔST_min", "ΔF_min"]]
-			gamma = df.loc[df["aL_min"] == "Global X", ["cell"]].iloc[0]
-			R2 = df.loc[df["#part"] == "R2 [nm]", ["cell"]].iloc[0]
-			alpha = R2/R1_np
-			if name != "binary":
-				DU, DS, DF = values.sort_values(by="ΔF_min").iloc[0]
-			else:
-				DU, DS, DF = values.iloc[0]
-
-		elif j == 3:
-			values = df.loc[df["aL_min"] == "Global X", ["cell", "ΔU_min", "-ΔST_min", "ΔF_min"]]
-			gamma, DU, DS, DF = values.iloc[0]
+for nseg_folder in nseg_folder_list:
+	for cov_folder in cov_folder_list:
+		df = pd.read_excel(os.path.join(os.path.join(dir_origin,f"cov_{cov_folder}","data_analysis", f"results_nseg_{nseg_folder}_cov_{cov_folder}.xlsx")))
 		
-		DU_values[j].append(DU)
-		DS_values[j].append(DS)
-		DF_values[j].append(DF)
+		for j, name in enumerate(["part1", "C14", "Global"]):
+			if j<2:
+				values = df.loc[df["#part"] == name, ["ΔU_min", "-ΔST_min", "ΔF_min"]]
+				cov = df.loc[df["aL_min"] == "Global X", ["cell"]].iloc[0]
+				R2 = df.loc[df["#part"] == "R2 [nm]", ["cell"]].iloc[0]
+				if name != "binary":
+					DU, DS, DF = values.sort_values(by="ΔF_min").iloc[0]
+				else:
+					DU, DS, DF = values.iloc[0]
 
-	gamma_value.append(gamma)
-	alpha_value.append(alpha)
+			elif j == 2:
+				values = df.loc[df["aL_min"] == "Global X", ["cell", "ΔU_min", "-ΔST_min", "ΔF_min"]]
+				cov, DU, DS, DF = values.iloc[0]
+			
+			DU_values[j].append(DU)
+			DS_values[j].append(DS)
+			DF_values[j].append(DF)
 
-	os.chdir(dir_origin)
+		cov_value.append(cov)
+		nseg_value.append(nseg)
 
-	df.insert(0, "Gamma", gamma_folder)
-	# Agregar fila vacía al final
-	df = pd.concat([df, pd.DataFrame([[""] * len(df.columns)], columns=df.columns)], ignore_index=True)
-	dfs.append(df)
+		os.chdir(dir_origin)
 
-#datos MD:
-ref_MD = pd.read_excel(os.path.join(dir_script,"references","ref_MD_backup.xlsx"), engine="openpyxl")
-ref_MD = ref_MD.loc[ref_MD.iloc[:, 0] == name_bin]
-gamma_MD = ref_MD[ref_MD.columns[1]]
-F_MD = ref_MD[ref_MD.columns[2:]]
+		df.insert(0, "Coverage", cov_folder)
+		df.insert(0, "# Segments", nseg_folder)
+		# Agregar fila vacía al final
+		df = pd.concat([df, pd.DataFrame([[""] * len(df.columns)], columns=df.columns)], ignore_index=True)
+		dfs.append(df)
+
+
 y_label = [r'$\Delta$U (k$_{\text{B}}$T)',r'$-T\Delta$S (k$_{\text{B}}$T)',r'$\Delta$F (k$_{\text{B}}$T)']
 
 F_plot = [DU_values[3],DS_values[3],DF_values[3]]
 for i, (lista, F) in enumerate(zip(F_plot,["ΔU", "-TΔS", "ΔF"])):
 	plt.figure(figsize=(8, 6))
-	plt.plot(gamma_value,F_plot[i],ls='none',marker='s',color='red',ms=7,label='MoltCF')
-	plt.scatter(gamma_MD,F_MD[F],marker='o',color='purple',s=50,label='MD (MD)',zorder=10)
+	plt.plot(cov_value,F_plot[i],ls='none',marker='s',color='red',ms=7,label='MoltCF')
 
 	plt.axhline(0,ls='--',c='darkgray',zorder=-3)
-	plt.xticks(fontsize=14)
-	plt.yticks(fontsize=14)
+	plt.xticks(fontsize=18)
+	plt.yticks(fontsize=18)
 	plt.xlim(min(gamma_list)-0.05,max(gamma_list)+0.05)
-	plt.ylabel(y_label[i],fontsize=18)
-	plt.xlabel(r'$\gamma$',fontsize=18)
-	plt.title(f"{name_bin}",fontsize=22,weight='bold')
-	plt.legend(fontsize=13)
+	plt.ylabel(y_label[i],fontsize=22)
+	plt.xlabel(r'$\gamma$',fontsize=22)
+	plt.title(f"{to_latex_formula(name_bin)}",fontsize=22,weight='bold')
+	plt.legend(fontsize=16)
 	plt.savefig(f'{final_output}/{name_bin}_results_{F}.png',format='png',dpi=300,bbox_inches='tight')
-
-F_plot = [DU_values[3],DS_values[3],DF_values[3]]
-for i, (lista, F) in enumerate(zip(F_plot,["ΔU", "-TΔS", "ΔF"])):
-	plt.figure(figsize=(8, 6))
-	plt.plot(alpha_value,F_plot[i],ls='none',marker='s',color='red',ms=7,label='MoltCF')
-
-	plt.axhline(0,ls='--',c='darkgray',zorder=-3)
-	plt.xticks(fontsize=14)
-	plt.yticks(fontsize=14)
-	plt.xlim(np.min(alpha_value)-0.05,np.max(alpha_value)+0.05)
-	plt.ylabel(y_label[i],fontsize=18)
-	plt.xlabel(r'$\alpha$',fontsize=18)
-	plt.title(f"{name_bin}",fontsize=22,weight='bold')
-	plt.legend(fontsize=13)
-	plt.savefig(f'{final_output}/{name_bin}_results_{F}_alpha.png',format='png',dpi=300,bbox_inches='tight')
-
 
 #####################################################
 
@@ -386,7 +366,7 @@ output_path = os.path.join(dir_origin, f"{final_output}/{name_bin}_table_results
 tabla_final_df.to_excel(output_path, index=False)
 
 ########## graficos U, S ##########
-label = ["part1", "part2", "binary", "global"]
+label = ["part1", "part2", "C14", "global"]
 marker = ["o", "v", "d", "s"]
 if gen_curves_flag == True:
 	DU = pd.DataFrame(DU_values).to_numpy()

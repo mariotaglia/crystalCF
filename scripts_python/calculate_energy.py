@@ -115,7 +115,7 @@ def estimate_bin_F(name, factor_bcell, k_bin, n1, n2, ax, gamma, gen_curves_flag
     data_bin_ref = pd.read_csv(csv_file[1], skiprows=0)
 
     k = k_reflex["kx"]*k_reflex["ky"]*k_reflex["kz"]
-    for part in ["part1", "part2"]:
+    for part in ["part1"]:
         data_bin_part = data_bin_ref[data_bin_ref["#part"] == part].copy()
         data_bin_part = data_bin_part.rename(columns={"F_tot_gcanon_reference": f"F_tot_gcanon_reference_{part}"})
         data_bin = data_bin.merge(data_bin_part[['delta', 'dimx', f'F_tot_gcanon_reference_{part}']], 
@@ -123,13 +123,13 @@ def estimate_bin_F(name, factor_bcell, k_bin, n1, n2, ax, gamma, gen_curves_flag
                                   how='left')
         
     data_bin['aL'] = (data_bin['delta'] * data_bin['dimx'] * float(factor_bcell)*k_reflex["kx"]).round(4)
-    data_bin["F_norm"] = data_bin["F_tot_gcanon"] - data_bin["F_tot_gcanon_reference_part1"] - data_bin["F_tot_gcanon_reference_part2"]
-    data_bin.sort_values(by='aL', inplace=True)
+    data_bin["F_norm"] = data_bin["F_tot_gcanon"] - data_bin["F_tot_gcanon_reference_part1"] 
 
-    df_bin = mean_al(data_bin)
+    df_bin = mean_al(data_bin["F_tot_gcanon_reference_part1"])
     aL_bin = df_bin['aL'].to_numpy()
     F_norm_bin = df_bin['F_norm'].to_numpy()*k/k_bin
     F_tot_bin = df_bin["F_tot_gcanon"].to_numpy()*k/k_bin
+    print(df_bin)
     x_bin =  np.arange(aL_bin[0], aL_bin[-1], 0.001)
     y_bin = CubicSpline(aL_bin, F_norm_bin)(x_bin)
 

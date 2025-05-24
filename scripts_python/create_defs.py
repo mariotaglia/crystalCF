@@ -8,7 +8,7 @@ from collections import defaultdict
 from transform_refs import calculate_center_ref, process_positions
 from function import run_command, read_DEF, write_DEF, extract_references, extract_definitions, generate_references_csv
 
-def process_principal_binario(reference_DEF, name_bin, delta_dim_bin, aL, n_k_bin, tosubmit, dir_fuente, k_aL, gamma):
+def process_principal_binario(reference_DEF, name_bin, delta_dim_bin, aL, n_k_bin, tosubmit, dir_fuente, k_aL, nseg, cov):
     structure = os.getcwd()
     DEF =  os.path.join(structure, "DEFINITIONS.txt")
     lines = read_DEF(DEF)
@@ -52,11 +52,11 @@ def process_principal_binario(reference_DEF, name_bin, delta_dim_bin, aL, n_k_bi
                 output_DEF_ref = {"part1": os.path.join(dir_origen,"sim_part1","binary_ref","part1"),"part2": os.path.join(dir_fuente,"binary_ref","part2")}
             else:
                 output_DEF_ref = {"part1": os.path.join(dir_origen,"sim_part1","binary_ref","part1"),"part2": None}
-            process_secundario_binario(lines, name_bin, output_DEF_ref, int(dim*k_aL["kx"]), n_k_bin, dir_fuente, delta_list, k_aL, gamma)
+            process_secundario_binario(lines, name_bin, output_DEF_ref, int(dim*k_aL["kx"]), n_k_bin, dir_fuente, delta_list, k_aL, nseg, cov)
             os.chdir(dir_fuente)
             os.chdir(structure)
 
-def process_secundario_binario(lines, name_bin, output_folder, dim, n_k_bin, dir_fuente, delta_bin, k_aL, gamma):
+def process_secundario_binario(lines, name_bin, output_folder, dim, n_k_bin, dir_fuente, delta_bin, k_aL, nseg, cov):
     n1_k_bin = n_k_bin["part1"]; n2_k_bin = n_k_bin["part2"]
     sections_info = [
         ("! number of particles", 1, 1),
@@ -119,7 +119,6 @@ def process_secundario_binario(lines, name_bin, output_folder, dim, n_k_bin, dir
         dist_min = (2*R+2*lseg*nseg)
         N_ref = np.round(dist_min*1.50/delta_min)
         N_ref = int(N_ref)
-        
         def N_round(N_ref):
             if N_ref%2 == 0:
                 N_ref += 1
@@ -162,7 +161,7 @@ def process_secundario_binario(lines, name_bin, output_folder, dim, n_k_bin, dir
 
             elif line.startswith("dimz"):
                 k = 1
-                if name_bin == 'MgZn2':
+                if name_bin == 'MgZn2' or name_bin == 'C14':
                     k = 2
 
                 new_lines.append(f"dimz {int(Nz*k)}\n")
@@ -173,7 +172,7 @@ def process_secundario_binario(lines, name_bin, output_folder, dim, n_k_bin, dir
         
         with open(def_ref_path, "w") as file:
             file.writelines(new_lines)
-        generate_references_csv(references, os.getcwd(), delta, R, dimx, dimy, dimz, label, name_bin, gamma)
+        generate_references_csv(references, os.getcwd(), delta, R, dimx, dimy, dimz, label, name_bin, nseg, cov)
 
 def process_terciario_binario(output_folder, name_bin, references, tosubmit, dir_fuente, n_k_bin):
     '''

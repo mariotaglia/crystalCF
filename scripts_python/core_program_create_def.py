@@ -18,7 +18,6 @@ from create_defs import process_principal_binario, process_secundario_binario, p
 ################### INICIO ##################
 dir_inicial = os.getcwd()
 dir_script = os.path.expanduser("~/develop/crystalCF/scripts_python")
-check_bcc = False
 params_init = extract_params_init('init_params.txt', False)
 name_bin = params_init['name']
 n1 = params_init['n1']; n2 = params_init['n2']
@@ -27,6 +26,7 @@ R1_np = params_init['R1']
 Nseg_list = params_init['nseg list']
 Cov_list = params_init['coverage list']
 Nseg_cov_delta_dim = params_init['list nseg coverage delta sum dim']
+print(Nseg_cov_delta_dim)
 k_bin = params_init['num cell bin']
 n_k_bin = {"part1": n1*k_bin, "part2": n2*k_bin}
 flag_reflexion = params_init["flag reflexion binary"]
@@ -123,7 +123,7 @@ for nseg_folder in nseg_folder_list:
 		update_cdiva("DEFINITIONS.txt", name_bin, 1, flag_reflexion)
 		aL = float(run_command(f'python3 {dir_script}/references/aL_estimate_bin.py {name_bin} {R1_np} {cov} {nseg}'))
 		delta_dim_bin = [entry for entry in Nseg_cov_delta_dim if entry["nseg"] == nseg and entry["coverage"] == cov]
-		process_principal_binario(DEF, name_bin, delta_dim_bin, aL, n_k_bin, tosubmit, dir_fuente, k_aL, nseg)
+		process_principal_binario(DEF, name_bin, delta_dim_bin, aL, n_k_bin, tosubmit, dir_fuente, k_aL, nseg, cov)
 		os.chdir(dir_fuente)
 
 		DEF_part = {}
@@ -165,7 +165,7 @@ for nseg_folder in nseg_folder_list:
 
 			DEF = os.path.join(os.getcwd(), "DEFINITIONS.txt")
 			R_np = extract_R_part(DEF)
-			aL = float(run_command(f'python3 {dir_script}/references/aL_min_{label_struc}.py {R_np} {nseg}'))
+			aL = float(run_command(f'python3 {dir_script}/references/aL_min_{label_struc}.py {R_np} {nseg} {cov}'))
 			k_aL_part = 1
 			if flag_reflexion_part == True:
 				k_aL_part = 2

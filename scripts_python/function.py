@@ -387,7 +387,7 @@ def update_R1(DEF, n1_k_bin, R1):
     write_DEF(DEF, lines)
     shutil.copy(DEF, os.path.join(os.getcwd(), "DEFINITIONS_backup.txt"))
 
-def generate_references_csv(references, output_folder, delta_value, R, dimx, dimy, dimz, label, name_bin, gamma_value):
+def generate_references_csv(references, output_folder, delta_value, R, dimx, dimy, dimz, label, name_bin, nseg_value, cov_value):
     references_path = os.path.join(output_folder, "tot_references.csv")
     existing_dict = defaultdict(set)  # Usar defaultdict para automáticamente manejar los conjuntos de gamma
 
@@ -397,10 +397,13 @@ def generate_references_csv(references, output_folder, delta_value, R, dimx, dim
             reader = csv.reader(file)
             header = next(reader, None)  # Guardamos la cabecera
             for row in reader:
-                row_base = tuple(row[:-1])  # Todo menos gamma
-                gamma_field = row[-1].strip()  # Campo gamma
-                gamma_list = [float(g) for g in gamma_field.split(',')]
-                existing_dict[row_base].update(gamma_list)
+                row_base = tuple(row[:-2])
+                nseg_field = row[-2].strip()
+                cov_field = row[-1].strip()
+                nseg_list = [float(n) for n in nseg_field.split(',')]
+                cov_list = [float(c) for c in cov_field.split(',')]
+                existing_dict[row_base].update(cov_list)
+                existing_dict[row_base].update(nseg_list)
 
     # Procesar nuevas referencias
     for row in references[1:]:
@@ -411,21 +414,22 @@ def generate_references_csv(references, output_folder, delta_value, R, dimx, dim
         # Construir la tupla base sin el valor de gamma
         row_base = tuple([label, R] + row + [delta_value, dimx, dimy, dimz, key_value])
 
-        # Agregar el valor de gamma al conjunto en existing_dict, evitando duplicados
-        existing_dict[row_base].add(gamma_value)
+        existing_dict[row_base].add(cov_value)
+        existing_dict[row_base].add(nseg_value)
 
     # Reescribir el archivo con todos los datos unificados
     with open(references_path, mode='w', newline='') as file:
         writer = csv.writer(file)
         
         # Escribir la cabecera
-        writer.writerow(['#part', 'radius [nm]'] + references[0] + ['delta', 'dimx', 'dimy', 'dimz', 'key', 'gamma'])
+        writer.writerow(['#part', 'radius [nm]'] + references[0] + ['delta', 'dimx', 'dimy', 'dimz', 'key', '# segments', 'coverage'])
         
         # Escribir las filas con las claves y valores de gamma
-        for row_base, gamma_set in existing_dict.items():
+        for row_base, cov_set in existing_dict.items():
             # Asegurarse de que gamma_set contiene floats antes de formatear
-            gamma_str = ','.join(f"{g:.3f}" for g in sorted(gamma_set))
-            writer.writerow(row_base + (gamma_str,))
+            nseg_str = ','.join(f"{n:.0f}" for n in sorted(cov_set))
+            cov_str = ','.join(f"{n:.2f}" for n in sorted(cov_set))
+            writer.writerow(row_base + (nseg_str,) + (cov_str,))
 
 def update_nseg_cov(lines, nseg, cov, n1_k_bin, n2_k_bin):
     size_index = None

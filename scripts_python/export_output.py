@@ -15,7 +15,7 @@ def process_principal(output_file, name_bin, R, delta_dim_bin, aL, k_aL, F):
     structure = os.getcwd()
     R1_np = R["part1"]; R2_np = R["part2"]
     k = 1
-    if name_bin == "MgZn2":
+    if name_bin == "MgZn2" or name_bin=="C14":
         k = 2
     if not os.path.isfile(output_file):
         with open(output_file, "w") as out_file:
@@ -52,12 +52,11 @@ def process_principal(output_file, name_bin, R, delta_dim_bin, aL, k_aL, F):
                 print(f"Advertencia: Archivo no encontrado en {file_path}")
             os.chdir("..")
 
-def process_reference_bin(output_file, dir_inicial, F, R, gamma_folder):
-    gamma = gamma_folder.replace('_', '.')
+def process_reference_bin(output_file, dir_inicial, F, R, cov_folder):
+    cov = cov_folder.replace('_', '.')
     dir_fuente = {"part1": os.path.join(dir_inicial,"sim_part1"),"part2": os.path.join(os.getcwd())}
     data = defaultdict(lambda: defaultdict(lambda: defaultdict(float)))
-
-    for labels in ["part1", "part2"]:
+    for labels in ["part1"]:
         references_file = os.path.join(dir_fuente[labels], "binary_ref", "tot_references.csv")
         contadores = defaultdict(lambda: defaultdict(int))
         delta_map = defaultdict(lambda: defaultdict(set))
@@ -78,18 +77,18 @@ def process_reference_bin(output_file, dir_inicial, F, R, gamma_folder):
                 dim = (dimx, dimy, dimz)
 
                 # Formatear los valores de gamma a 3 decimales
-                gamma_field = parts[11].strip()
+                nseg_field = parts[11].strip()
+                cov_field = parts[12].strip()
                 
                 # Aceptar si viene una lista (con comas) o un único valor
-                gamma_values = gamma_field.split(',') if ',' in gamma_field else [gamma_field]
-                gamma_list = [f"{float(g.strip()):.3f}" for g in gamma_values]
+                cov_values = cov_field.split(',') if ',' in cov_field else [cov_field]
+                cov_list = [f"{float(c.strip()):.2f}" for c in cov_values]
 
-                if gamma not in gamma_list:
+                if cov not in cov_list:
                     continue
 
                 contadores[delta][(key, dim)] = contador
                 delta_map[(label, delta)][key].add(dim)
-
 
         # Crear archivo de salida si no existe
         if not os.path.isfile(output_file):
@@ -119,7 +118,7 @@ def process_reference_bin(output_file, dir_inicial, F, R, gamma_folder):
                 else:
                     print(f"Advertencia: Archivo no encontrado en {file_path}")
 
-    for label in ["part1", "part2"]:
+    for label in ["part1"]:
         if label in data:  # Verificar si hay datos para esa etiqueta
             with open(output_file, "a", newline="") as csvfile:
                 writer = csv.writer(csvfile)
