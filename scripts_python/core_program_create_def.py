@@ -26,7 +26,6 @@ R1_np = params_init['R1']
 Nseg_list = params_init['nseg list']
 Cov_list = params_init['coverage list']
 Nseg_cov_delta_dim = params_init['list nseg coverage delta sum dim']
-print(Nseg_cov_delta_dim)
 k_bin = params_init['num cell bin']
 n_k_bin = {"part1": n1*k_bin, "part2": n2*k_bin}
 flag_reflexion = params_init["flag reflexion binary"]

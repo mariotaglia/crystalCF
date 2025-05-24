@@ -1,4 +1,4 @@
-import os
+import os; import re
 import sys
 import subprocess
 import shutil
@@ -13,6 +13,28 @@ from function import path_carpeta, extract_params_init, read_DEF, join_F_csv, jo
 from function_part import extract_R_part
 from export_output import process_principal, process_reference_bin, process_principal_part, process_reference_part
 from calculate_energy import estimate_part_F, estimate_part_contrib, estimate_bin_F, estimate_bin_contrib, delta_energy_F, delta_energy_US, delta_energy_contrib
+
+plt.rc('text', usetex=True)
+plt.rc('font', family='serif', serif='cm10', weight='bold', size=16)
+import matplotlib as mpl
+mpl.rcParams.update({
+    "text.usetex": True,
+    "text.latex.preamble": r"\usepackage{amsmath}"
+})
+
+def to_latex_formula(name):
+    """
+    Convierte una fórmula química tipo texto como 'NaCl', 'AlB2' a LaTeX: NaCl, AlB$_2$
+    """
+    # Busca los elementos con su posible subíndice (e.g., AlB2 -> [('Al', ''), ('B', '2')])
+    matches = re.findall(r'([A-Z][a-z]?)(\d*)', name)
+    latex_str = ''
+    for element, subscript in matches:
+        if subscript:
+            latex_str += f"{element}$_{{{subscript}}}$"
+        else:
+            latex_str += element
+    return latex_str
 
 ################### INICIO ##################
 
@@ -223,15 +245,15 @@ for nseg_folder in nseg_folder_list:
 				for i,key in enumerate(dict_delta):
 					list = [part,cell,aL_min,U,S,F_part]
 					dict_delta[key].append(list[i])
-
+		cov = float(cov_folder.replace('_','.'))
 		factor_aL_bin = cdiva_bin**(-1.0/3.0)
-		result_bin = estimate_bin_F(name_bin, factor_aL_bin, k_bin, n1, n2, ax1, np.round(gamma,2), gen_curves_flag, k_aL)
+		result_bin = estimate_bin_F(name_bin, factor_aL_bin, k_bin, n1, n2, ax1, np.round(cov,2), gen_curves_flag, k_aL)
 		aL_min = result_bin[0]
 		F_bin = result_bin[1]
 		aL_array = result_bin[2]
 
-		U_bin = estimate_bin_contrib(name_bin, factor_aL_bin, k_bin, n1, n2, F_U, aL_array, aL_min, ax2, np.round(gamma,2), gen_curves_flag, k_aL)
-		S_bin = estimate_bin_contrib(name_bin, factor_aL_bin, k_bin, n1, n2, F_ST, aL_array, aL_min, ax3, np.round(gamma,2), gen_curves_flag, k_aL)
+		U_bin = estimate_bin_contrib(name_bin, factor_aL_bin, k_bin, n1, n2, F_U, aL_array, aL_min, ax2, np.round(cov,2), gen_curves_flag, k_aL)
+		S_bin = estimate_bin_contrib(name_bin, factor_aL_bin, k_bin, n1, n2, F_ST, aL_array, aL_min, ax3, np.round(cov,2), gen_curves_flag, k_aL)
 
 		for i,key in enumerate(dict_delta):
 			list = ["R2 [nm]", R2_np, "", "", "", ""]
@@ -250,7 +272,7 @@ for nseg_folder in nseg_folder_list:
 		DS = delta_energy_US(dict_delta, "-ΔST", cell_min=result[1], n1=n1, n2=n2)
 		
 		for i,key in enumerate(dict_delta):
-			list = ["cov",cov,"Global X",DU,DS,DF]
+			list = ["coverage",cov,"Global X",DU,DS,DF]
 			dict_delta[key].append(list[i])
 
 		df_delta = pd.DataFrame.from_dict(dict_delta)
@@ -263,7 +285,7 @@ if gen_curves_flag == True:
 		ax.set_xlabel(r'a$_{\text{L}}$',fontsize=16)
 		ax.legend()
 	for fig in [fig1,fig2,fig3]:
-		fig.suptitle(f'{name_bin} binary',fontsize=18)
+		fig.suptitle(f'{name_bin}',fontsize=18)
 	ax1.set_ylabel(r'$\Delta$F (k$_{\text{b}}$T)',fontsize=16)
 	ax2.set_ylabel(r'$\Delta$U (k$_{\text{b}}$T)',fontsize=16)
 	ax3.set_ylabel(r'-T$\Delta$S (k$_{\text{b}}$T)',fontsize=16)
@@ -310,8 +332,8 @@ for nseg_folder in nseg_folder_list:
 			DS_values[j].append(DS)
 			DF_values[j].append(DF)
 
-		cov_value.append(cov)
-		nseg_value.append(nseg)
+		cov_value.append(float(cov))
+		nseg_value.append(int(nseg))
 
 		os.chdir(dir_origin)
 
@@ -321,10 +343,9 @@ for nseg_folder in nseg_folder_list:
 		df = pd.concat([df, pd.DataFrame([[""] * len(df.columns)], columns=df.columns)], ignore_index=True)
 		dfs.append(df)
 
-
 y_label = [r'$\Delta$U (k$_{\text{B}}$T)',r'$-T\Delta$S (k$_{\text{B}}$T)',r'$\Delta$F (k$_{\text{B}}$T)']
 
-F_plot = [DU_values[3],DS_values[3],DF_values[3]]
+F_plot = [DU_values[2],DS_values[2],DF_values[2]]
 for i, (lista, F) in enumerate(zip(F_plot,["ΔU", "-TΔS", "ΔF"])):
 	plt.figure(figsize=(8, 6))
 	plt.plot(cov_value,F_plot[i],ls='none',marker='s',color='red',ms=7,label='MoltCF')
@@ -332,9 +353,9 @@ for i, (lista, F) in enumerate(zip(F_plot,["ΔU", "-TΔS", "ΔF"])):
 	plt.axhline(0,ls='--',c='darkgray',zorder=-3)
 	plt.xticks(fontsize=18)
 	plt.yticks(fontsize=18)
-	plt.xlim(min(gamma_list)-0.05,max(gamma_list)+0.05)
+	plt.xlim(min(cov_value)-0.25,max(cov_value)+0.25)
 	plt.ylabel(y_label[i],fontsize=22)
-	plt.xlabel(r'$\gamma$',fontsize=22)
+	plt.xlabel(r'$\sigma [nm^{-2}]$',fontsize=22)
 	plt.title(f"{to_latex_formula(name_bin)}",fontsize=22,weight='bold')
 	plt.legend(fontsize=16)
 	plt.savefig(f'{final_output}/{name_bin}_results_{F}.png',format='png',dpi=300,bbox_inches='tight')
@@ -366,20 +387,20 @@ output_path = os.path.join(dir_origin, f"{final_output}/{name_bin}_table_results
 tabla_final_df.to_excel(output_path, index=False)
 
 ########## graficos U, S ##########
-label = ["part1", "part2", "C14", "global"]
-marker = ["o", "v", "d", "s"]
+label = ["part1", "C14", "global"]
+marker = ["o", "v", "s", "s"]
 if gen_curves_flag == True:
 	DU = pd.DataFrame(DU_values).to_numpy()
 	plt.figure(figsize=(8, 6))
 	for i in range(len(label)):
-		plt.plot(gamma_value,DU[i],marker=marker[i],ms=7, label=label[i])
+		plt.plot(cov_value,DU[i],marker=marker[i],ms=7, label=label[i])
 
 		plt.axhline(0,ls='--',c='darkgray',zorder=-3)
 		plt.xticks(fontsize=14)
 		plt.yticks(fontsize=14)
-		plt.xlim(min(gamma_value)-0.05,max(gamma_value)+0.05)
+		plt.xlim(min(cov_value)-0.25,max(cov_value)+0.25)
+		plt.xlabel(r'$\sigma [nm^{-2}]$',fontsize=18)
 		plt.ylabel(r'$\Delta$U (k$_{\text{B}}$T)',fontsize=18)
-		plt.xlabel(r'$\gamma$',fontsize=18)
 		plt.title(f"{name_bin}",fontsize=22,weight='bold')
 		plt.legend(fontsize=13)
 		plt.savefig(f'{final_output}/{name_bin}_contrib_results_ΔU.png',format='png',dpi=300,bbox_inches='tight')
@@ -387,14 +408,14 @@ if gen_curves_flag == True:
 	DS = pd.DataFrame(DS_values).to_numpy()
 	plt.figure(figsize=(8, 6))
 	for i in range(len(label)):
-		plt.plot(gamma_value,DS[i],marker=marker[i],ms=7, label=label[i])
+		plt.plot(cov_value,DS[i],marker=marker[i],ms=7, label=label[i])
 
 		plt.axhline(0,ls='--',c='darkgray',zorder=-3)
 		plt.xticks(fontsize=14)
 		plt.yticks(fontsize=14)
-		plt.xlim(min(gamma_value)-0.05,max(gamma_value)+0.05)
+		plt.xlim(min(cov_value)-0.25,max(cov_value)+0.25)
+		plt.xlabel(r'$\sigma [nm^{-2}]$',fontsize=18)
 		plt.ylabel(r'$-T\Delta$S (k$_{\text{B}}$T)',fontsize=18)
-		plt.xlabel(r'$\gamma$',fontsize=18)
 		plt.title(f"{name_bin}",fontsize=22,weight='bold')
 		plt.legend(fontsize=13)
 		plt.savefig(f'{final_output}/{name_bin}_contrib_results_-TΔS.png',format='png',dpi=300,bbox_inches='tight')
@@ -402,14 +423,14 @@ if gen_curves_flag == True:
 DF = pd.DataFrame(DF_values).to_numpy()
 plt.figure(figsize=(8, 6))
 for i in range(len(label)):
-	plt.plot(gamma_value,DF[i],marker=marker[i],ms=7, label=label[i])
+	plt.plot(cov_value,DF[i],marker=marker[i],ms=7, label=label[i])
 
 	plt.axhline(0,ls='--',c='darkgray',zorder=-3)
 	plt.xticks(fontsize=14)
 	plt.yticks(fontsize=14)
-	plt.xlim(min(gamma_value)-0.05,max(gamma_value)+0.05)
+	plt.xlim(min(cov_value)-0.25,max(cov_value)+0.25)
+	plt.xlabel(r'$\sigma [nm^{-2}]$',fontsize=18)
 	plt.ylabel(r'$\Delta$F (k$_{\text{B}}$T)',fontsize=18)
-	plt.xlabel(r'$\gamma$',fontsize=18)
 	plt.title(f"{name_bin}",fontsize=22,weight='bold')
 	plt.legend(fontsize=13)
 	plt.savefig(f'{final_output}/{name_bin}_contrib_results_ΔF.png',format='png',dpi=300,bbox_inches='tight')

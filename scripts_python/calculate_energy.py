@@ -108,7 +108,7 @@ def estimate_part_contrib(part, part_cell, factor_aL_part, ni, k_part, F, aL_arr
 
     return F_calc
 
-def estimate_bin_F(name, factor_bcell, k_bin, n1, n2, ax, gamma, gen_curves_flag, k_reflex):
+def estimate_bin_F(name, factor_bcell, k_bin, n1, n2, ax, cov, gen_curves_flag, k_reflex):
     F_norm = []
     csv_file = [f"{name}_results_output.csv", f"{name}_references_output.csv"]
     data_bin = pd.read_csv(csv_file[0], skiprows=0)
@@ -121,15 +121,14 @@ def estimate_bin_F(name, factor_bcell, k_bin, n1, n2, ax, gamma, gen_curves_flag
         data_bin = data_bin.merge(data_bin_part[['delta', 'dimx', f'F_tot_gcanon_reference_{part}']], 
                                   on=['delta', 'dimx'], 
                                   how='left')
-        
+    
     data_bin['aL'] = (data_bin['delta'] * data_bin['dimx'] * float(factor_bcell)*k_reflex["kx"]).round(4)
     data_bin["F_norm"] = data_bin["F_tot_gcanon"] - data_bin["F_tot_gcanon_reference_part1"] 
 
-    df_bin = mean_al(data_bin["F_tot_gcanon_reference_part1"])
+    df_bin = mean_al(data_bin)
     aL_bin = df_bin['aL'].to_numpy()
     F_norm_bin = df_bin['F_norm'].to_numpy()*k/k_bin
     F_tot_bin = df_bin["F_tot_gcanon"].to_numpy()*k/k_bin
-    print(df_bin)
     x_bin =  np.arange(aL_bin[0], aL_bin[-1], 0.001)
     y_bin = CubicSpline(aL_bin, F_norm_bin)(x_bin)
 
@@ -158,13 +157,13 @@ def estimate_bin_F(name, factor_bcell, k_bin, n1, n2, ax, gamma, gen_curves_flag
         fig_sub.savefig(f"F_without_ref_{name}.png", format="png")
         plt.close(fig_sub)
 
-        ax.scatter(aL_bin, F_norm_bin/(n1+n2), label=fr'$\gamma:$ {gamma}')
+        ax.scatter(aL_bin, F_norm_bin/(n1+n2), label=fr'$\sigma:$ {cov}')
         ax.plot(x_bin,y_bin/(n1+n2))
         ax.scatter(aL_min_bin,F_min_bin/(n1+n2),marker='|', color='black',s=50,zorder=10)
 
     return aL_min_bin, F_min_bin, x_bin
 
-def estimate_bin_contrib(name, factor_bin_cell, k_bin, n1, n2, F, aL_array, aL_min, ax, gamma, gen_curves_flag, k_reflex):
+def estimate_bin_contrib(name, factor_bin_cell, k_bin, n1, n2, F, aL_array, aL_min, ax, cov, gen_curves_flag, k_reflex):
     F_bin = []
     k = k_reflex["kx"]*k_reflex["ky"]*k_reflex["kz"]
     for f_name in F:
@@ -172,7 +171,7 @@ def estimate_bin_contrib(name, factor_bin_cell, k_bin, n1, n2, F, aL_array, aL_m
         data_bin = pd.read_csv(csv_file[0], skiprows=0)
         data_bin_ref = pd.read_csv(csv_file[1], skiprows=0)
 
-        for part in ["part1", "part2"]:
+        for part in ["part1"]:
             data_bin_part = data_bin_ref[data_bin_ref["#part"] == part].copy()
             data_bin_part = data_bin_part.rename(columns={f"{f_name}_reference": f"{f_name}_reference_{part}"})
             data_bin = data_bin.merge(data_bin_part[['delta', 'dimx', f"{f_name}_reference_{part}"]], 
@@ -180,7 +179,7 @@ def estimate_bin_contrib(name, factor_bin_cell, k_bin, n1, n2, F, aL_array, aL_m
                                       how='left')
 
         data_bin['aL'] = (data_bin['delta'] * data_bin['dimx'] * float(factor_bin_cell)*k_reflex["kx"]).round(4)
-        data_bin["F_norm"] = data_bin[f_name] - data_bin[f"{f_name}_reference_part1"] - data_bin[f"{f_name}_reference_part2"]
+        data_bin["F_norm"] = data_bin[f_name] - data_bin[f"{f_name}_reference_part1"]
 
         # Ordenar por 'aL'
         data_bin.sort_values(by='aL', inplace=True)
@@ -201,7 +200,7 @@ def estimate_bin_contrib(name, factor_bin_cell, k_bin, n1, n2, F, aL_array, aL_m
     F_calc = F_min_bin[0]
 
     if gen_curves_flag == True:
-        ax.scatter(aL_bin, F_norm_bin/(n1+n2), label=fr'$\gamma:$ {gamma}')
+        ax.scatter(aL_bin, F_norm_bin/(n1+n2), label=fr'$\sigma:$ {cov}')
         ax.plot(aL_array,y_bin/(n1+n2))
         ax.scatter(aL_min,F_min_bin/(n1+n2),marker='|', color='black',s=50,zorder=10)
 
@@ -222,12 +221,11 @@ def estimate_bin_contrib(name, factor_bin_cell, k_bin, n1, n2, F, aL_array, aL_m
 
 def delta_energy_F(dict_delta, cell, n1, n2):
     df_delta = pd.DataFrame.from_dict(dict_delta)
-    F_part1 = (df_delta.loc[df_delta["#part"] == "part1", "ΔF_min"]*n1/(n1+n2)).tolist()
-    F_part2 = (df_delta.loc[df_delta["#part"] == "part2", "ΔF_min"]*n2/(n1+n2)).tolist()
-    F_min_bin = df_delta.loc[df_delta["#part"] == "binary", "ΔF_min"].values[0]/(n1+n2)  # Tomar único valor binario
+    F_part1 = (df_delta.loc[df_delta["#part"] == "part1", "ΔF_min"]).tolist()
+    F_min_bin = df_delta.loc[df_delta["#part"] == "C14", "ΔF_min"].values[0]  # Tomar único valor binario
     struc_part_min = []
-    for i, part in enumerate(["part1", "part2"]):
-        F_part = F_part1 if part == "part1" else F_part2  # Seleccionar la lista correcta
+    for i, part in enumerate(["part1"]):
+        F_part = F_part1  # Seleccionar la lista correcta
         valores = {cell[j]: F_part[j] for j in range(len(F_part))}  # Construir el diccionario correctamente
         
         min_pos = min(valores, key=valores.get)  # Encontrar la estructura con menor ΔF_min
@@ -244,10 +242,9 @@ def delta_energy_F(dict_delta, cell, n1, n2):
 
 def delta_energy_US(dict_delta, US, cell_min, n1, n2):
     df_delta = pd.DataFrame.from_dict(dict_delta)
-    F_part1 = df_delta.loc[(df_delta["#part"] == "part1") & (df_delta["cell"] == cell_min[0]), f"{US}_min"].values[0]/(n1+n2)
-    F_part2 = df_delta.loc[(df_delta["#part"] == "part2") & (df_delta["cell"] == cell_min[1]), f"{US}_min"].values[0]/(n1+n2)
-    F_min_bin = df_delta.loc[df_delta["#part"] == "binary", f"{US}_min"].values[0]/(n1+n2)  # Tomar único valor binario
-    DF = F_min_bin - F_part1*n1 - F_part2*n2
+    F_part1 = df_delta.loc[(df_delta["#part"] == "part1") & (df_delta["cell"] == cell_min[0]), f"{US}_min"].values[0]
+    F_min_bin = df_delta.loc[df_delta["#part"] == "C14", f"{US}_min"].values[0]/(n1+n2)  # Tomar único valor binario
+    DF = F_min_bin - F_part1*n1
 
     return DF
 
@@ -255,11 +252,10 @@ def delta_energy_contrib(dict_contrib, File_name, cell_min, n1, n2):
     DF_calc = []
     df_contrib = pd.DataFrame.from_dict(dict_contrib)
     for i, F in enumerate(File_name):
-        F_part1 = df_contrib.loc[(df_contrib["#part"] == "part1") & (df_contrib["cell"] == cell_min[0]), f"{F}"].values[0]/(n1+n2)
-        F_part2 = df_contrib.loc[(df_contrib["#part"] == "part2") & (df_contrib["cell"] == cell_min[1]), f"{F}"].values[0]/(n1+n2)
-        F_min_bin = df_contrib.loc[df_contrib["#part"] == "binary", f"{F}"].values[0]/(n1+n2)  # Tomar único valor binario
+        F_part1 = df_contrib.loc[(df_contrib["#part"] == "part1") & (df_contrib["cell"] == cell_min[0]), f"{F}"].values[0]
+        F_min_bin = df_contrib.loc[df_contrib["#part"] == "binary", f"{F}"].values[0]  # Tomar único valor binario
 
-        DF_calc.append(F_min_bin - F_part1*n1 - F_part2*n2)
+        DF_calc.append(F_min_bin - F_part1*n1)
 
     return DF_calc
 
