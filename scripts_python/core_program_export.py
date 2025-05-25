@@ -279,6 +279,7 @@ for nseg_folder in nseg_folder_list:
 
 		with pd.ExcelWriter(f"results_nseg_{nseg_folder}_cov_{cov_folder}.xlsx") as writer:
 			df_delta.to_excel(writer, sheet_name="Deltas", index=False)
+		os.chdir(dir_origin)
 
 if gen_curves_flag == True:
 	for ax in [ax1,ax2,ax3]:

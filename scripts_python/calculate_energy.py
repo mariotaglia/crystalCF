@@ -18,14 +18,15 @@ def estimate_part_F(part, part_cell, factor_aL_part, ni, k_part, gen_curves_flag
     csv_file = [f"{part}_results_output.csv", f"{part}_references_output.csv"]
     data_part = pd.read_csv(csv_file[0], skiprows=0)
     data_part_ref = pd.read_csv(csv_file[1], skiprows=0)
-    data_part_cell = data_part[data_part["cell"] == part_cell].copy()
+    data_part_cell = data_part[data_part["cell"] == part_cell].copy().reset_index(drop=True)
+    data_part_ref = data_part_ref[data_part_ref["cell"] == part_cell].copy().reset_index(drop=True)
+
     data_part_cell['aL'] = data_part_cell['delta'] * data_part_cell['dimx'] *factor_aL_part*k_reflex_part
     data_part_cell['aL'] = data_part_cell['aL'].round(4) #needed to calculate mean.
     data_part_cell["F_norm"] = data_part_cell["F_tot_gcanon"] - data_part_ref["F_tot_gcanon_reference"]
     data_part_cell.sort_values(by='aL', inplace=True)
     df_cell = mean_al(data_part_cell)
     df_tot_cell = mean_al(data_part_cell)
-
     k_reflex = k_reflex_part**3
     aL_cell = df_cell['aL'].to_numpy()
     F_tot = df_cell["F_tot_gcanon"].to_numpy()*k_reflex/k_part
