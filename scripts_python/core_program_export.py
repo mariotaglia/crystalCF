@@ -196,7 +196,7 @@ params_init = extract_params_init('init_params.txt', True)
 n1 = params_init['n1']; n2 = params_init['n2']
 k_bin = params_init['num cell bin']
 n = {"part1": n1, "part2": n2}
-
+cell_bin_factor = params_init["cell bin factor"]
 for gamma_folder in gamma_folder_list:
 	os.chdir(dir_origin)
 	os.chdir(os.path.join(dir_origin,f"gamma_{gamma_folder}"))
@@ -245,7 +245,7 @@ for gamma_folder in gamma_folder_list:
 				list = [part,cell,aL_min,U,S,F_part]
 				dict_delta[key].append(list[i])
 
-	factor_aL_bin = cdiva_bin**(-1.0/3.0)
+	factor_aL_bin = cell_bin_factor*cdiva_bin**(-1.0/3.0)
 	result_bin = estimate_bin_F(name_bin, factor_aL_bin, k_bin, n1, n2, ax1, np.round(gamma,2), gen_curves_flag, k_aL)
 	aL_min = result_bin[0]
 	F_bin = result_bin[1]

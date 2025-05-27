@@ -30,7 +30,7 @@ def extract_params_init(params_init, cond):
     data = {
         "name": None, "n1": None, "n2": None, "R1": None,
         "gamma list": [], "list delta bin": [], "list gamma delta sum dim": [],
-        "cell part": [], "list delta part": {}, "num cell part": {},
+        "cell part": [], "list delta part": {}, "num cell part": {}, "cell bin factor": None,
         "num cell bin": None, "flag generate energy vs aL curves": None,
         "flag reflexion binary": None, "flag reflexion part": None, "PBC": []
     }
@@ -49,6 +49,9 @@ def extract_params_init(params_init, cond):
             data[key] = int(value)
         elif line == "!radius part1":
             data["R1"] = float(lines[i+1].split()[1])
+            i += 1
+        elif line == "!aL cell bin factor":
+            data["cell bin factor"] = eval(lines[i+1].split()[0])
             i += 1
         elif line == "!list gamma":
             data["gamma list"] = [float(x) for x in lines[i+1].strip("[]\n").split(",")]
