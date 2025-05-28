@@ -43,6 +43,12 @@ for i, line in enumerate(lines):
 		size_index = i + 1
 		seed = lines[size_index]
 		seed_lig = lines[size_index + 1]
+	elif line.strip() == "!properties of ligand chains":
+		size_index = i + 1
+		nseg = lines[size_index].split()[1]
+	elif line.strip() == "! coverage":
+		size_index = i + 1
+		cov = lines[size_index].split()[0]
 		break
 
 k_aL = {"kx": 1,"ky": 1,"kz": 1}
@@ -111,9 +117,8 @@ for gamma_folder in gamma_folder_list:
 	os.chdir("binary")
 	DEF = os.path.join(os.getcwd(), "DEFINITIONS.txt")
 	R1_np, R2_np = extract_R_bin(DEF)
-
 	update_cdiva("DEFINITIONS.txt", name_bin, gamma_calc(DEF), flag_reflexion)
-	aL = float(run_command(f'python3 {dir_script}/references/aL_estimate_bin.py {name_bin} {R1_np} {R2_np} {gamma_calc(DEF)}'))
+	aL = float(run_command(f'python3 {dir_script}/references/aL_estimate_bin.py {name_bin} {R1_np} {R2_np} {gamma_calc(DEF)} {nseg}'))
 	delta_dim_bin = [entry for entry in gamm_delta_dim if entry["gamma"] == gamma]
 	process_principal_binario(DEF, name_bin, delta_dim_bin, aL, n_k_bin, tosubmit, dir_fuente, k_aL, gamma)
 	os.chdir(dir_fuente)
@@ -125,7 +130,6 @@ for gamma_folder in gamma_folder_list:
 		else:
 			DEF_part[cell] = os.path.join(dir_script,"references", f"DEFINITIONS_{cell}.txt")
 	R_part = {"part1": R1_np, "part2": R2_np}
-	
 	if os.path.exists(os.path.join(dir_fuente,"part2")):
 		dir_fuente = {"part1": os.path.join(dir_inicial,"sim_part1"),"part2": os.path.join(os.getcwd(),"part2")}
 		for label in ["part1", "part2"]:
@@ -142,17 +146,24 @@ for gamma_folder in gamma_folder_list:
 						size_index = i + 1
 						lines[size_index] = seed
 						lines[size_index + 1] = seed_lig
+					elif line.strip() == "!properties of ligand chains":
+						size_index = i + 1
+						lines[size_index] = f"long {str(int(nseg))}\n"
 					elif line.strip() == "!particle semiaxis x y z in nm":
 						size_index = i + 1
 						for n in np.arange(0,k_part[label_struc]):
 							lines[size_index + n] = f"{R_part[label]} {R_part[label]} {R_part[label]}\n"
+					elif line.strip() == "! coverage":
+						size_index = i + 1
+						for n in np.arange(0,k_part[label_struc]):
+							lines[size_index + n] = f"{cov}\n"
 						break
 
 				write_DEF(DEF, lines) 
 
 				DEF = os.path.join(os.getcwd(), "DEFINITIONS.txt")
 				R_np = extract_R_part(DEF)
-				aL = float(run_command(f'python3 {dir_script}/references/aL_min_{label_struc}.py {R_np}'))
+				aL = float(run_command(f'python3 {dir_script}/references/aL_min_{label_struc}.py {R_np} {nseg}'))
 				k_aL_part = 1
 				if flag_reflexion_part == True:
 					k_aL_part = 2
