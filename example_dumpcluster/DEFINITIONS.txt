@@ -104,7 +104,7 @@ systemtype 1
 0.5 0.5 0.5
 ! radius
 1.5 1.5 1.5
-1.5 1.5 1.5
+1.0 1.0 1.0
 ! Rotation
 1.0 0.0 0.0
 0.0 1.0 0.0
@@ -121,10 +121,10 @@ systemtype 1
 
 
 ! dumpcluster
-dumpcluster 2
+dumpcluster 3
 
 ! cutoff
 cutoffcluster 5.8
 
 ! cluster_same
-cluster_same 1
+cluster_same 0

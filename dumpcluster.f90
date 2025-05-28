@@ -27,6 +27,11 @@ integer indexcluster_in
 character*15 filename
 
 
+
+print*,"Enter dump-cluster"
+print*, "Search level:", dumpcluster
+if(cluster_same.eq.0)print*, 'Treat all particles as different'
+if(cluster_same.eq.1)print*, 'Treat all particles as equal'
 co = cutoffcluster ! cutoff distance
 
 
@@ -38,11 +43,10 @@ allocate(listcluster(4,dumpcluster, maxcluster)) ! matrix saving the clusters
 allocate(listcluster_in(4,dumpcluster, maxcluster))
 allocate(tmpcluster(4,dumpcluster))                                                
 
-combs = (dumpcluster-1)*dumpcluster/2
-print*, dumpcluster, combs
-
-allocate(distlisttmp(3,combs))
-allocate(distlist(3,combs, maxcluster))
+combs = (dumpcluster-1)*dumpcluster/2 ! possible ways to arrange a cluster of dumpcluster particles
+                                      ! used to make an ordered list of distances and then find unique clusters
+allocate(distlisttmp(3,combs))  
+allocate(distlist(3,combs, maxcluster))  ! distlist: index1: dist, i, j
 allocate(distlist_in(3,combs, maxcluster))
 
 ! check PBC
@@ -149,7 +153,7 @@ do ii = 1, indexcluster ! loop over all clusters
     flag = 1 ! assume it is there
 
 
-    if(cluster_same.eq.0) then
+    if(cluster_same.eq.0) then ! treat all particles as equal for cluster
          if((abs(distlist(1,dd,ii)-distlist_in(1,dd,jj)).gt.tol).or.  &
             (abs(distlist(2,dd,ii)-distlist_in(2,dd,jj)).gt.tol).or.  &
             (abs(distlist(3,dd,ii)-distlist_in(3,dd,jj)).gt.tol)) then
@@ -188,29 +192,55 @@ enddo ! ii
 if(rank.eq.0) then
 print*,'Found ', indexcluster, ' clusters'
 print*,'List:'
+print*, 'Distance'
+   print*, 'Distances between all particles'
+   if(cluster_same.eq.0)print*, 'Followed by particle types involucrated:'
 do j = 1, indexcluster
 !   print*, listcluster(:,:,j)
+
    print*, distlist(1,:,j)
-   if(cluster_same.eq.0)print*, distlist(2,:,j)
-   if(cluster_same.eq.0)print*, distlist(3,:,j)
+   if(cluster_same.eq.0)print*, int(distlist(2,:,j))
+   if(cluster_same.eq.0)print*, int(distlist(3,:,j))
    if(cluster_same.eq.0)print*,'!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
 enddo
 endif
 
+   if(cluster_same.eq.0)print*,""
+   if(cluster_same.eq.0)print*,""
+   if(cluster_same.eq.0)print*,""
+   if(cluster_same.eq.0)print*,""
 
 if(rank.eq.0) then
 print*,'Found ', indexcluster_in, ' unique clusters'
-print*,'List of distances and weight):'
+   if(cluster_same.eq.0)print*,'!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'   
+print*,'List of distances'
+print*,'Number of occurences'
+if(cluster_same.eq.0)print*, 'Particle types involucrated'
+   if(cluster_same.eq.0)print*,'!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'   
+
+    open(unit=45, file='distances.dat')
+    write(45,*)indexcluster_in
+
 do j = 1, indexcluster_in
 !   print*, listcluster_in(:,:,j)
-   print*, distlist_in(1,:,j), weight(j)
-   if(cluster_same.eq.0)print*, distlist_in(2,:,j), weight(j)
-   if(cluster_same.eq.0)print*, distlist_in(3,:,j), weight(j)
-   if(cluster_same.eq.0)print*,'!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
+   print*, distlist_in(1,:,j)
+   print*, int(weight(j))
+   write(45,*)distlist_in(1,:,j)
+   write(45,*)int(weight(j))
+
+
+   if(cluster_same.eq.0)print*, int(distlist_in(2,:,j))
+   if(cluster_same.eq.0)write(45,*)int(distlist_in(2,:,j))
+
+   if(cluster_same.eq.0)print*, int(distlist_in(3,:,j))
+   if(cluster_same.eq.0)write(45,*)int(distlist_in(3,:,j))
+
+   if(cluster_same.eq.0)print*,'!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'   
 enddo
 endif
 
-print*, 'Saving coordinates of unique clusters to disk'
+print*,'Saved to distances.dat'
+if(rank.eq.0)print*, 'Saving coordinates of unique clusters to disk, files cluster.000.xyz'
 
 do j = 1, indexcluster_in
 
