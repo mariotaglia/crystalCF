@@ -27,11 +27,13 @@ integer indexcluster_in
 character*15 filename
 
 
-
+if(rank.eq.0) then
 print*,"Enter dump-cluster"
 print*, "Search level:", dumpcluster
 if(cluster_same.eq.0)print*, 'Treat all particles as different'
 if(cluster_same.eq.1)print*, 'Treat all particles as equal'
+endif
+
 co = cutoffcluster ! cutoff distance
 
 
@@ -81,6 +83,7 @@ do j = 1, NNN ! loop over all particles in central cell
    depth = 2
    call findneighbors(j,0,0,0, Nlatx,Nlaty,Nlatz,co, depth)
 enddo
+
 
 
 ! Now, find only non-equivalent clusters
@@ -135,8 +138,9 @@ call bubble_sort(distlisttmp, combs)
 
 distlist(:,:,ii) = distlisttmp(:,:)
 
-enddo ! ii
 
+
+enddo ! ii
 ! Now find unique clusters
 
 indexcluster_in = 0 ! index of unique clusters
@@ -152,8 +156,7 @@ do ii = 1, indexcluster ! loop over all clusters
     do dd = 1, combs ! loop over all distance pairs
     flag = 1 ! assume it is there
 
-
-    if(cluster_same.eq.0) then ! treat all particles as equal for cluster
+    if(cluster_same.eq.0) then ! cluser_same = 1 -> treat all particles as equal for cluster
          if((abs(distlist(1,dd,ii)-distlist_in(1,dd,jj)).gt.tol).or.  &
             (abs(distlist(2,dd,ii)-distlist_in(2,dd,jj)).gt.tol).or.  &
             (abs(distlist(3,dd,ii)-distlist_in(3,dd,jj)).gt.tol)) then
@@ -182,7 +185,7 @@ do ii = 1, indexcluster ! loop over all clusters
        indexcluster_in = indexcluster_in + 1
        distlist_in(:,:,indexcluster_in) = distlist(:,:,ii)
        listcluster_in(:,:,indexcluster_in) = listcluster(:,:,ii)
-       weight = 1.0
+       weight(indexcluster_in) = 1.0
    endif
 
 enddo ! ii
@@ -240,7 +243,7 @@ enddo
 endif
 
 print*,'Saved to distances.dat'
-if(rank.eq.0)print*, 'Saving coordinates of unique clusters to disk, files cluster.000.xyz'
+if(rank.eq.0)print*, 'Saving coordinates of unique clusters to disk, files cluster.***.xyz'
 
 do j = 1, indexcluster_in
 
