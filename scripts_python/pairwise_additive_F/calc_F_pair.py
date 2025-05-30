@@ -52,6 +52,7 @@ with open("DEFINITIONS.txt") as fp:
         line = l[pos+i+1]
         radii[i]=line.split()[0]
 
+
 ######################################################
 # MODIFY DEFINITIONS.txt
 ######################################################
@@ -64,7 +65,7 @@ with open("DEFINITIONS.txt_clt", "w") as f:
         if ("dumpcluster" not in line) and  ("cutoffcluster" not in line) and ("cluster_same" not in line):
             f.write(line)
     f.write("dumpcluster 2 \n")
-    f.write("cutoffcluster 12.0 \n")
+    f.write("cutoffcluster 15.0 \n")
     f.write("cluster_same 0 \n")
 
 os.system("mv DEFINITIONS.txt DEFINITIONS.txt_tmp")
@@ -132,8 +133,11 @@ for i in range(numdists):
 
     DAB_norm = dists[i] - rA_opm - rB_opm 
 
-    FAB = np.interp(DAB_norm,Dnorm,Fnorm) # use a linear interpolation to prevent overshooting when the function is close to zero
-    Fpair += -FAB*FAB0/2.    
+    FAB = np.interp(DAB_norm,Dnorm,Fnorm, left=1e100, right=0.0) # use a linear interpolation to prevent overshooting when the function is close to zero
+    if(FAB == 1e100):
+        print("Particles too close")
+        exit()
+    Fpair += -FAB*FAB0/2.*weights[i]   
 
 print("Pairwise additive free-energy:", Fpair)
 
