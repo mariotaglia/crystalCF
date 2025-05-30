@@ -120,7 +120,7 @@ for gamma_folder in gamma_folder_list:
 	update_cdiva("DEFINITIONS.txt", name_bin, gamma_calc(DEF), flag_reflexion)
 	aL = float(run_command(f'python3 {dir_script}/references/aL_estimate_bin.py {name_bin} {R1_np} {R2_np} {gamma_calc(DEF)} {nseg}'))
 	delta_dim_bin = [entry for entry in gamm_delta_dim if entry["gamma"] == gamma]
-	process_principal_binario(DEF, name_bin, delta_dim_bin, aL, n_k_bin, tosubmit, dir_fuente, k_aL, gamma)
+	process_principal_binario(DEF, name_bin, delta_dim_bin, aL, n_k_bin, tosubmit, dir_fuente, k_aL, gamma, dir_script)
 	os.chdir(dir_fuente)
 
 	DEF_part = {}
@@ -167,7 +167,7 @@ for gamma_folder in gamma_folder_list:
 				k_aL_part = 1
 				if flag_reflexion_part == True:
 					k_aL_part = 2
-				process_principal_part(DEF, delta_part[label_struc], aL, tosubmit, dir_fuente[label], k_aL_part)
+				process_principal_part(DEF, delta_part[label_struc], aL, tosubmit, dir_fuente[label], k_aL_part, dir_script)
 					
 folder_ref = [os.path.join(dir_inicial,"sim_part1/binary_ref")]
 for cell in cell_part:

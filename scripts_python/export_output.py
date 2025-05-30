@@ -138,7 +138,7 @@ def process_principal_part(output_file, label_struc,R_np, delta_list_part, aL, k
     if "bcc" in structure and "part2" in structure:
         delta_list = delta_list_part+[0.26]
     elif "fcc" in structure and "part1" in structure:
-        delta_list = delta_list_part+[0.26,0.265]
+        delta_list = delta_list_part+[0.26]
 
     for delta in delta_list:
         delta_folder = str(delta).replace('.', '_')

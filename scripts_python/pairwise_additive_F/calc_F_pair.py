@@ -36,22 +36,28 @@ if os.path.isfile('DEFINITIONS.txt') == False:
 flag = 0
 NNN = 0
 count = 0
-
+radii = []
 
 with open("DEFINITIONS.txt") as fp:
-    l = fp.readlines()
-    for line in l:
-        count += 1
-        if 'number of particles' in line:
-            pos = count
+    lines = fp.readlines()
+    for i, line in enumerate(lines):
+        line = lines[i].strip()
+        if line == "! number of particles":
+            try:
+                NNN = int(lines[i+1].split()[0])
+            except ValueError:
+                print("Error al leer el numero de particulas.")
 
-    NNN = int(l[pos])
-    radii = np.zeros(NNN)
-    pos = pos + 2 + NNN
-    for i in range(NNN):
-        line = l[pos+i+1]
-        radii[i]=line.split()[0]
-
+        elif line == "!particle semiaxis x y z in nm":
+            j = i + 1
+            while j < len(lines) and lines[j].strip() and not lines[j].startswith("!"):
+                try:
+                    semiaxis_values = [float(x) for x in lines[j].strip().split()]
+                    radii.append(semiaxis_values[0]) 
+                except ValueError:
+                    print(f"Error al leer semiejes en línea: {lines[j]}")
+                j += 1
+            break
 
 ######################################################
 # MODIFY DEFINITIONS.txt
