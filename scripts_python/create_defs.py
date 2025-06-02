@@ -8,8 +8,10 @@ from collections import defaultdict
 from transform_refs import calculate_center_ref, process_positions
 from function import run_command, read_DEF, write_DEF, extract_references, extract_definitions, generate_references_csv
 
-def process_principal_binario(reference_DEF, name_bin, delta_dim_bin, aL, n_k_bin, tosubmit, dir_fuente, k_aL, gamma):
+def process_principal_binario(reference_DEF, name_bin, delta_dim_bin, aL, n_k_bin, tosubmit, dir_fuente, k_aL, gamma, script_folder):
     structure = os.getcwd()
+    pairwise_folder = os.path.join(script_folder,"pairwise_additive_F")
+    pairwise_file = "fitpairL12.dat" 
     DEF =  os.path.join(structure, "DEFINITIONS.txt")
     lines = read_DEF(DEF)
     delta_list = sorted({entry["delta"] for entry in delta_dim_bin if entry["delta"] is not None})
@@ -27,6 +29,7 @@ def process_principal_binario(reference_DEF, name_bin, delta_dim_bin, aL, n_k_bi
             os.chdir(folder_name)
             
             shutil.copy(tosubmit, "tosubmit.sh")
+            shutil.copy(f"{pairwise_folder}/{pairwise_file}", pairwise_file)
             shutil.copy(DEF, "DEFINITIONS.txt")
             
             with open("tosubmit.sh", "r") as file:

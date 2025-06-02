@@ -71,15 +71,17 @@ def path_carpeta(folder_init,n):
         x = os.path.dirname(x)
     return x
 
-def process_principal_part(reference_DEF, delta_list_part, aL, tosubmit, dir_fuente, k_aL):
+def process_principal_part(reference_DEF, delta_list_part, aL, tosubmit, dir_fuente, k_aL, script_folder):
     structure = os.getcwd()
+    pairwise_folder = os.path.join(script_folder,"pairwise_additive_F")
+    pairwise_file = "fitpairL12.dat" 
     DEF =  os.path.join(structure, "DEFINITIONS.txt")
     lines = read_DEF(DEF)
     delta_list = delta_list_part
     if "bcc" in structure and "part2" in structure:
         delta_list = delta_list_part+[0.26]
     elif "fcc" in structure and "part1" in structure:
-        delta_list = delta_list_part+[0.26,0.265]
+        delta_list = delta_list_part+[0.26]
 
     for delta in delta_list:
         round_value = int(np.round(float(aL/k_aL) / float(delta)))
@@ -97,6 +99,7 @@ def process_principal_part(reference_DEF, delta_list_part, aL, tosubmit, dir_fue
             os.chdir(folder_name)
             
             shutil.copy(tosubmit, "tosubmit.sh")
+            shutil.copy(f"{pairwise_folder}/{pairwise_file}", pairwise_file)
             shutil.copy(DEF, "DEFINITIONS.txt")
             
             with open("tosubmit.sh", "r") as file:

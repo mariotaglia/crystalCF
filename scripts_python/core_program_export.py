@@ -13,7 +13,7 @@ from function import run_command, extract_R_bin, extract_cdiva, gamma_calc
 from function import path_carpeta, extract_params_init, read_DEF, join_F_csv, join_F_csv_ref
 from function_part import extract_R_part
 from export_output import process_principal, process_reference_bin, process_principal_part, process_reference_part
-from calculate_energy import estimate_part_F, estimate_part_contrib, estimate_bin_F, estimate_bin_contrib, delta_energy_F, delta_energy_US, delta_energy_contrib
+from calculate_energy import estimate_part_F,estimate_part_F_pair, estimate_part_contrib, estimate_bin_F, estimate_bin_F_pair, estimate_bin_contrib, delta_energy_F, delta_energy_US, delta_energy_contrib
 
 plt.rc('text', usetex=True)
 plt.rc('font', family='serif', serif='cm10', weight='bold', size=16)
@@ -118,7 +118,7 @@ gamma_folder_list = ["{:.3f}".format(g).replace('.','_') for g in gamma_list]
 
 F_U = ["F_trans","F_trans_sv","F_vdW"]
 F_ST = ["F_conf","F_conf_sv","F_mixs", "F_HS"]
-F_name = F_U+F_ST+['F_tot_gcanon']
+F_name = F_U+F_ST+['F_tot_gcanon']+["F_pairwise"]
 
 while True:
 	check_extract = input("¿Quiere extraer los F.data? (s/n): ").strip().lower()
@@ -146,11 +146,12 @@ while True:
 				delta_dim_bin = [entry for entry in gamm_delta_dim if entry["gamma"] == gamma]
 				process_principal(output_file, name_bin, R, delta_dim_bin, aL, k_aL, f_name)
 				os.chdir(os.path.join(dir_origin,f"gamma_{gamma_folder}"))
-
-				output_file = os.path.join(output_folder, f"{name_bin}_references_{f_name}.csv")
-				process_reference_bin(output_file, dir_origin, f_name, R, gamma_folder)
+				if not f_name == "F_pairwise":
+					output_file = os.path.join(output_folder, f"{name_bin}_references_{f_name}.csv")
+					process_reference_bin(output_file, dir_origin, f_name, R, gamma_folder)
 
 				dir_fuente = {"part1": os.path.join(dir_origin,"sim_part1"),"part2": os.path.join(os.getcwd(),"part2")}
+
 				for label in ["part1", "part2"]:
 					for label_struc in cell_part:
 						os.chdir(dir_fuente[label])
@@ -168,7 +169,8 @@ while True:
 						os.chdir(os.path.join(dir_fuente[label], f"{label_struc}_ref"))
 						output_file = os.path.join(output_folder, f"{label}_references_{f_name}.csv")
 						base_folder = os.path.join(dir_fuente[label], f"{label_struc}_ref")
-						process_reference_part(output_file, base_folder, cell_part, label_struc, f_name)
+						if not f_name == "F_pairwise":
+							process_reference_part(output_file, base_folder, cell_part, label_struc, f_name)
 
 			join_F_csv(output_folder, name_bin, True)
 			join_F_csv_ref(output_folder, name_bin)
@@ -191,7 +193,7 @@ os.chdir(dir_origin)
 
 import matplotlib.pyplot as plt
 fig1, ax1 = plt.subplots(figsize=(8, 6)); fig2, ax2 = plt.subplots(figsize=(8, 6)); fig3, ax3 = plt.subplots(figsize=(8, 6))
-
+fig4, ax4 = plt.subplots(figsize=(8, 6))
 params_init = extract_params_init('init_params.txt', True)
 n1 = params_init['n1']; n2 = params_init['n2']
 k_bin = params_init['num cell bin']
@@ -235,6 +237,7 @@ for gamma_folder in gamma_folder_list:
 		result_cell = []
 		for i, cell in enumerate(cell_part):
 			result_cell = estimate_part_F(part, cell, factor_aL_part[cell], n[part], k_part[cell], gen_curves_flag, k_aL_part)
+			result_cell_pairwise = estimate_part_F_pair(part, cell, factor_aL_part[cell], n[part], k_part[cell], gen_curves_flag, k_aL_part)
 			aL_min = result_cell[0]
 			F_part = result_cell[1]
 			aL_array = result_cell[2]
@@ -247,6 +250,7 @@ for gamma_folder in gamma_folder_list:
 
 	factor_aL_bin = cell_bin_factor*cdiva_bin**(-1.0/3.0)
 	result_bin = estimate_bin_F(name_bin, factor_aL_bin, k_bin, n1, n2, ax1, np.round(gamma,2), gen_curves_flag, k_aL)
+	result_bin_pair = estimate_bin_F_pair(name_bin, factor_aL_bin, k_bin, n1, n2, ax4, np.round(gamma,2), gen_curves_flag, k_aL)
 	aL_min = result_bin[0]
 	F_bin = result_bin[1]
 	aL_array = result_bin[2]
@@ -280,19 +284,20 @@ for gamma_folder in gamma_folder_list:
 		df_delta.to_excel(writer, sheet_name="Deltas", index=False)
 
 if gen_curves_flag == True:
-	for ax in [ax1,ax2,ax3]:
+	for ax in [ax1,ax2,ax3,ax4]:
 		ax.set_xlabel(r'a$_{\text{L}}$',fontsize=22)
 		ax.legend(fontsize=16)
-	for fig in [fig1,fig2,fig3]:
+	for fig in [fig1,fig2,fig3,fig4]:
 		fig.suptitle(f'{to_latex_formula(name_bin)}',fontsize=22, y=0.95)
 	ax1.set_ylabel(r'$\Delta$F (k$_{\text{b}}$T)',fontsize=22)
 	ax2.set_ylabel(r'$\Delta$U (k$_{\text{b}}$T)',fontsize=22)
 	ax3.set_ylabel(r'-T$\Delta$S (k$_{\text{b}}$T)',fontsize=22)
-
+	ax4.set_ylabel(r'$\Delta$F (k$_{\text{b}}$T)',fontsize=22)
 	fig1.savefig(f"{final_output}/F_binary.png", format="png", dpi=300,bbox_inches='tight')
+	fig4.savefig(f"{final_output}/F_binary_pairwise.png", format="png", dpi=300,bbox_inches='tight')
 	fig2.savefig(f"{final_output}/U_binary.png", format="png", dpi=300,bbox_inches='tight')
 	fig3.savefig(f"{final_output}/S_binary.png", format="png", dpi=300,bbox_inches='tight')
-	for fig in [fig1,fig2,fig3]:
+	for fig in [fig1,fig2,fig3,fig4]:
 		plt.close(fig)
 
 ####################### PLOT ###########################
