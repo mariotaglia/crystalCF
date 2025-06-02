@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os 
 from scipy import interpolate
+from scipy.interpolate import make_smoothing_spline
 
 fig,ax = plt.subplots(2,figsize=(11,10))
 
@@ -58,13 +59,16 @@ ax[0].legend(Radios,loc='lower right',fontsize='x-small')
 
 xydata = xydata[xydata[:, 0].argsort()]
 
-tck = interpolate.splrep(xydata[:,0], xydata[:,1], k=2, s=5)
+#tck = interpolate.splrep(xydata[:,0], xydata[:,1], k=1, s=0)
+
+xold = xydata[:,0]
+yold = xydata[:,1]
 
 
-
-xnew = np.linspace(np.min(xdata), 13, 50)
-ynew = interpolate.splev(xnew, tck, der=0)
-
+xnew = np.linspace(np.min(xdata), 6.5, 50)
+#ynew = interpolate.splev(xnew, tck, der=0)
+spl = make_smoothing_spline(xold, yold, lam=None)
+ynew = spl(xnew)
 
 xynew = np.transpose(np.stack((xnew,ynew)))
 

@@ -65,7 +65,7 @@ xold = xydata[:,0]
 yold = xydata[:,1]
 
 
-xnew = np.linspace(np.min(xdata), 2.55, 50)
+xnew = np.linspace(np.min(xdata), 6.5, 50)
 #ynew = interpolate.splev(xnew, tck, der=0)
 spl = make_smoothing_spline(xold, yold, lam=None)
 ynew = spl(xnew)
