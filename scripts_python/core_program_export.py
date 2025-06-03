@@ -85,7 +85,7 @@ if os.path.isdir(f"results_{name_bin}"):
 os.makedirs(f"results_{name_bin}", exist_ok=True)
 final_output = os.path.join(dir_origin,f"results_{name_bin}")
 
-factor_aL_part = {"fcc": 2**(-1.0/6.0), "bcc": 1}
+factor_aL_part = {"fcc": 2**(1.0/6.0), "bcc": 1}
 
 k_aL = {"kx": 1,"ky": 1,"kz": 1}
 DEF = os.path.join(dir_origin, "DEFINITIONS.txt")
