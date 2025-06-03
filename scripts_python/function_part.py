@@ -90,7 +90,7 @@ def process_principal_part(reference_DEF, delta_list_part, aL, tosubmit, dir_fue
         elif ((delta == 0.26 or delta == 0.265) and ("fcc" in structure and "part1" in structure)):
             dims = [round_value]
         else:
-            dims = [round_value - 1, round_value, round_value + 1]
+            dims = [round_value - 1, round_value,round_value + 1]
 
         delta_folder = str(delta).replace('.','_')
         for j in dims:
@@ -99,7 +99,7 @@ def process_principal_part(reference_DEF, delta_list_part, aL, tosubmit, dir_fue
             os.chdir(folder_name)
             
             shutil.copy(tosubmit, "tosubmit.sh")
-            shutil.copy(f"{pairwise_folder}/{pairwise_file}", pairwise_file)
+            #shutil.copy(f"{pairwise_folder}/{pairwise_file}", pairwise_file)
             shutil.copy(DEF, "DEFINITIONS.txt")
             
             with open("tosubmit.sh", "r") as file:

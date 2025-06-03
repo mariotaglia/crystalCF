@@ -148,7 +148,11 @@ def process_principal_part(output_file, label_struc,R_np, delta_list_part, aL, k
         elif ((delta == 0.26 or delta == 0.265) and ("fcc" in structure and "part1" in structure)):
             dims = [round_value]
         else:
-            dims = [round_value - 1, round_value, round_value + 1]
+            if F == 'F_pairwise':
+                dims = [round_value - 3, round_value - 2, round_value - 1, round_value,
+                round_value + 1, round_value + 2, round_value + 3]
+            else:
+                dims = [round_value - 1, round_value, round_value + 1]
 
         for j in dims:
             folder_name = f"delta_{delta_folder}_dim_{j}"

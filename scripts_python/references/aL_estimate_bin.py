@@ -74,7 +74,12 @@ elif name == "Fe4C":
 	N1 = 1
 	N2 = 4
 
-if name=="MgZn2":
+elif name == "bccAB6":
+	V_pol = 0.032
+	N1 = 2
+	N2 = 12
+
+elif name=="MgZn2":
 	N1 = 4
 	N2 = 8
 	if R2<=R1*1.12/2:
@@ -89,9 +94,7 @@ if name=="MgZn2":
 	else:
 		V_pol = 0.010
 
-	aL_min = (N1*Vol_NP_1+N1*sigma*A_1*V_pol*l_pol+ N2*Vol_NP_2+N2*sigma*A_2*V_pol*l_pol)**(1./3.)
-
-elif name == "NaZn13":
+if name == "NaZn13":
 	aL_min = (N1*Vol_NP_1+N1*sigma*A_1*V_pol*l_pol+ N2*Vol_NP_2+N2*sigma*A_2*V_pol*l_pol)**(1./3.) *2
 
 else:
@@ -99,5 +102,6 @@ else:
 
 def output():
 	print(str(aL_min))
+
 if __name__ == '__main__':
 	output()

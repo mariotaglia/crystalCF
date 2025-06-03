@@ -85,7 +85,7 @@ if os.path.isdir(f"results_{name_bin}"):
 os.makedirs(f"results_{name_bin}", exist_ok=True)
 final_output = os.path.join(dir_origin,f"results_{name_bin}")
 
-factor_aL_part = {"fcc": 2**(-1.0/6.0), "bcc": 1}
+factor_aL_part = {"fcc": 2**(1.0/6.0), "bcc": 1}
 
 k_aL = {"kx": 1,"ky": 1,"kz": 1}
 DEF = os.path.join(dir_origin, "DEFINITIONS.txt")
@@ -118,7 +118,7 @@ gamma_folder_list = ["{:.3f}".format(g).replace('.','_') for g in gamma_list]
 
 F_U = ["F_trans","F_trans_sv","F_vdW"]
 F_ST = ["F_conf","F_conf_sv","F_mixs", "F_HS"]
-F_name = F_U+F_ST+['F_tot_gcanon']+["F_pairwise"]
+F_name = F_U+F_ST+['F_tot_gcanon']#+["F_pairwise"]
 
 while True:
 	check_extract = input("¿Quiere extraer los F.data? (s/n): ").strip().lower()
@@ -237,7 +237,7 @@ for gamma_folder in gamma_folder_list:
 		result_cell = []
 		for i, cell in enumerate(cell_part):
 			result_cell = estimate_part_F(part, cell, factor_aL_part[cell], n[part], k_part[cell], gen_curves_flag, k_aL_part)
-			result_cell_pairwise = estimate_part_F_pair(part, cell, factor_aL_part[cell], n[part], k_part[cell], gen_curves_flag, k_aL_part)
+			#result_cell_pairwise = estimate_part_F_pair(part, cell, factor_aL_part[cell], n[part], k_part[cell], gen_curves_flag, k_aL_part)
 			aL_min = result_cell[0]
 			F_part = result_cell[1]
 			aL_array = result_cell[2]
@@ -250,7 +250,7 @@ for gamma_folder in gamma_folder_list:
 
 	factor_aL_bin = cell_bin_factor*cdiva_bin**(-1.0/3.0)
 	result_bin = estimate_bin_F(name_bin, factor_aL_bin, k_bin, n1, n2, ax1, np.round(gamma,2), gen_curves_flag, k_aL)
-	result_bin_pair = estimate_bin_F_pair(name_bin, factor_aL_bin, k_bin, n1, n2, ax4, np.round(gamma,2), gen_curves_flag, k_aL)
+	#result_bin_pair = estimate_bin_F_pair(name_bin, factor_aL_bin, k_bin, n1, n2, ax4, np.round(gamma,2), gen_curves_flag, k_aL)
 	aL_min = result_bin[0]
 	F_bin = result_bin[1]
 	aL_array = result_bin[2]
@@ -294,7 +294,7 @@ if gen_curves_flag == True:
 	ax3.set_ylabel(r'-T$\Delta$S (k$_{\text{b}}$T)',fontsize=22)
 	ax4.set_ylabel(r'$\Delta$F (k$_{\text{b}}$T)',fontsize=22)
 	fig1.savefig(f"{final_output}/F_binary.png", format="png", dpi=300,bbox_inches='tight')
-	fig4.savefig(f"{final_output}/F_binary_pairwise.png", format="png", dpi=300,bbox_inches='tight')
+	#fig4.savefig(f"{final_output}/F_binary_pairwise.png", format="png", dpi=300,bbox_inches='tight')
 	fig2.savefig(f"{final_output}/U_binary.png", format="png", dpi=300,bbox_inches='tight')
 	fig3.savefig(f"{final_output}/S_binary.png", format="png", dpi=300,bbox_inches='tight')
 	for fig in [fig1,fig2,fig3,fig4]:
