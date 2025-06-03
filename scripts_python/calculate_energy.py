@@ -46,8 +46,8 @@ def mean_al_pair(df):
 def estimate_part_F(part, part_cell, factor_aL_part, ni, k_part, gen_curves_flag, k_reflex_part):
     F_norm = []
     csv_file = [f"{part}_results_output.csv", f"{part}_references_output.csv"]
-    data_part = pd.read_csv(csv_file[0], skiprows=0)
-    data_part_ref = pd.read_csv(csv_file[1], skiprows=0)
+    data_part = pd.read_csv(csv_file[0], skiprows=0).dropna()
+    data_part_ref = pd.read_csv(csv_file[1], skiprows=0).dropna()
     data_part_cell = data_part[data_part["cell"] == part_cell].copy().reset_index(drop=True)
     data_part_ref = data_part_ref[data_part_ref["cell"] == part_cell].copy().reset_index(drop=True)
     data_part_cell['aL'] = data_part_cell['delta'] * data_part_cell['dimx'] *factor_aL_part*k_reflex_part
@@ -99,8 +99,8 @@ def estimate_part_contrib(part, part_cell, factor_aL_part, ni, k_part, F, aL_arr
     for f_name in F:
         csv_file = [f"{part}_results_output.csv", f"{part}_references_output.csv"]
 
-        data_part = pd.read_csv(csv_file [0], skiprows=0)
-        data_part_ref = pd.read_csv(csv_file [1], skiprows=0)
+        data_part = pd.read_csv(csv_file [0], skiprows=0).dropna()
+        data_part_ref = pd.read_csv(csv_file [1], skiprows=0).dropna()
 
         data_part_cell = data_part[data_part["cell"] == part_cell].copy().reset_index(drop=True)
         data_part_ref = data_part_ref[data_part_ref["cell"] == part_cell].copy().reset_index(drop=True)
@@ -143,8 +143,8 @@ def estimate_part_contrib(part, part_cell, factor_aL_part, ni, k_part, F, aL_arr
 def estimate_bin_F(name, factor_bcell, k_bin, n1, n2, ax, gamma, gen_curves_flag, k_reflex):
     F_norm = []
     csv_file = [f"{name}_results_output.csv", f"{name}_references_output.csv"]
-    data_bin = pd.read_csv(csv_file[0], skiprows=0)
-    data_bin_ref = pd.read_csv(csv_file[1], skiprows=0)
+    data_bin = pd.read_csv(csv_file[0], skiprows=0).dropna()
+    data_bin_ref = pd.read_csv(csv_file[1], skiprows=0).dropna()
 
     k = k_reflex["kx"]*k_reflex["ky"]*k_reflex["kz"]
     for part in ["part1", "part2"]:
@@ -201,8 +201,8 @@ def estimate_bin_contrib(name, factor_bin_cell, k_bin, n1, n2, F, aL_array, aL_m
     k = k_reflex["kx"]*k_reflex["ky"]*k_reflex["kz"]
     for f_name in F:
         csv_file = [f"{name}_results_output.csv", f"{name}_references_output.csv"]
-        data_bin = pd.read_csv(csv_file[0], skiprows=0)
-        data_bin_ref = pd.read_csv(csv_file[1], skiprows=0)
+        data_bin = pd.read_csv(csv_file[0], skiprows=0).dropna()
+        data_bin_ref = pd.read_csv(csv_file[1], skiprows=0).dropna()
 
         for part in ["part1", "part2"]:
             data_bin_part = data_bin_ref[data_bin_ref["#part"] == part].copy().reset_index(drop=True)
@@ -337,6 +337,44 @@ def estimate_bin_F_pair(name, factor_bcell, k_bin, n1, n2, ax, gamma, gen_curves
 def estimate_part_F_pair(part, part_cell, factor_aL_part, ni, k_part, gen_curves_flag, k_reflex_part):
     F_norm = []
     csv_file = [f"{part}_results_output.csv", f"{part}_references_output.csv"]
+    data_part = pd.read_csv(csv_file[0], skiprows=0).dropna()
+    data_part_ref = pd.read_csv(csv_file[1], skiprows=0).dropna()
+    data_part_cell = data_part[data_part["cell"] == part_cell].copy().reset_index(drop=True)
+    data_part_ref = data_part_ref[data_part_ref["cell"] == part_cell].copy().reset_index(drop=True)
+    data_part_cell['aL'] = data_part_cell['delta'] * data_part_cell['dimx'] *factor_aL_part*k_reflex_part
+    data_part_cell['aL'] = data_part_cell['aL'].round(4) #needed to calculate mean.
+    data_part_cell["F_norm"] = data_part_cell["F_tot_gcanon"] - data_part_ref["F_tot_gcanon_reference"]
+    data_part_cell.sort_values(by='aL', inplace=True)
+    df_cell = mean_al(data_part_cell)
+    df_tot_cell = mean_al(data_part_cell)
+
+    k_reflex = k_reflex_part**3
+    aL_cell = df_cell['aL'].to_numpy()
+    F_tot = df_cell["F_tot_gcanon"].to_numpy()*k_reflex/k_part
+    F_norm_cell = df_cell['F_norm'].to_numpy()*k_reflex/k_part
+
+    x_cell =  np.arange(aL_cell[0], aL_cell[-1], 0.001)
+    y_cell = CubicSpline(aL_cell, F_norm_cell)(x_cell)
+
+    # Ajuste cúbico (polinomio de grado 3)
+    coeficientes = np.polyfit(aL_cell, F_norm_cell, 4)
+    polinomio = np.poly1d(coeficientes)
+
+    # Evaluación del polinomio ajustado
+    y_cell = polinomio(x_cell)
+    F_min_cell = y_cell.min()
+    aL_min_cell = x_cell[y_cell.argmin()]
+
+    if gen_curves_flag == True:
+        fig_sub, ax_sub = plt.subplots(figsize=(8, 6))
+        ax_sub.scatter(aL_cell, F_norm_cell, label='Full MOLT-CF')
+        ax_sub.plot(x_cell,y_cell)
+        ax_sub.set_xlabel(r'a$_{\text{L}}$',fontsize=22)
+        ax_sub.set_ylabel(r'$\Delta$F (k$_{\text{B}}$T)',fontsize=22)
+        ax_sub.axvline(aL_min_cell,ls='--',c='darkgray',zorder=-1)
+
+    F_norm = []
+    csv_file = [f"{part}_results_output.csv", f"{part}_references_output.csv"]
     data_part = pd.read_csv(csv_file[0], skiprows=0)
     data_part_cell = data_part[data_part["cell"] == part_cell].copy().reset_index(drop=True)
     data_part_cell['aL'] = data_part_cell['delta'] * data_part_cell['dimx'] *factor_aL_part*k_reflex_part
@@ -364,12 +402,12 @@ def estimate_part_F_pair(part, part_cell, factor_aL_part, ni, k_part, gen_curves
     aL_min_cell = x_cell[y_cell.argmin()]
 
     if gen_curves_flag == True:
-        fig_sub, ax_sub = plt.subplots(figsize=(8, 6))
-        ax_sub.scatter(aL_cell, F_norm_cell)
+        ax_sub.scatter(aL_cell, F_norm_cell, label='Pairwise')
         ax_sub.plot(x_cell,y_cell)
         ax_sub.set_xlabel(r'a$_{\text{L}}$',fontsize=22)
         ax_sub.set_ylabel(r'$\Delta$F (k$_{\text{B}}$T)',fontsize=22)
         ax_sub.axvline(aL_min_cell,ls='--',c='darkgray',zorder=-1)
+        ax_sub.legend()
         fig_sub.savefig(f"F_{part}_{part_cell}_pair.png",dpi=300, format="png",bbox_inches='tight')
         plt.close(fig_sub)
 

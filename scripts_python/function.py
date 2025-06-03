@@ -166,6 +166,10 @@ def extract_params_init(params_init, cond):
             data["n1"] = 1
             data["n2"] = 32
             data["num cell bin"] = 1
+        elif data["name"] == "bccAB6":
+            data["n1"] = 2
+            data["n2"] = 6
+            data["num cell bin"] = 1
     return data
 
 def extract_definitions(definitions_path):
@@ -430,85 +434,83 @@ def gamma_calc(definitions_path):
     return gamma
 
 def join_F_csv(folder, name, bin_true):
+    import os, re, glob
+    import pandas as pd
+
     ruta_archivos = folder
     pattern = re.compile(rf"{name}_results_(.+)\.csv$")
-
-    # Filtrar archivos que cumplen con el patrón
     csv_DEFs = [f for f in glob.glob(os.path.join(ruta_archivos, "*.csv")) if pattern.search(os.path.basename(f))]
 
-    # Diccionario para almacenar los DataFrames y sus respectivos f_name
-    data_dict = {}
+    data_merged = None
 
     for i, file in enumerate(csv_DEFs):
-        # Extraer f_name} desde el nombre del archivo
         match = pattern.search(os.path.basename(file))
         if not match:
             continue
-        f_name = match.groups()
-        # Cargar el CSV
-        if i==0:
-            df = pd.read_csv(file)
-        else:
-            df = pd.read_csv(file,usecols=["F_value"])
+        f_name = match.group(1)
 
+        df = pd.read_csv(file)
+
+        # Separar primeras 6 columnas + F_value
+        first_cols = df.columns[:6].tolist()
+        df = df[first_cols + ["F_value"]]
         df.rename(columns={"F_value": f"{f_name}"}, inplace=True)
-        data_dict[f_name] = df
+
+        if data_merged is None:
+            data_merged = df
+        else:
+            data_merged = pd.merge(data_merged, df, on=first_cols, how='outer')
 
         os.remove(file)
 
-    # Asegurar que todas las columnas de los DataFrames sean las mismas, llenando NaN si falta alguna
-    df_combined = pd.concat(data_dict.values(), axis=1, join='outer')
-    # Crear la fila extra con los nombres de f_name en la posición correcta
-    if bin_true == True:
-        header_row = ["", "","", "", "", ""] + [f"{f_name}" for f_name in data_dict.keys()]  # El encabezado con los nombres f_name
-    else:
-        header_row = ["", "", "","", "", ""] + [f"{f_name}" for f_name in data_dict.keys()]  # El encabezado con los nombres f_name
-    
-    df_header = pd.DataFrame([header_row], columns=df_combined.columns)
+    # Encabezado artificial
+    header_row = [""] * 6 + [f"{key}" for key in data_merged.columns[6:]]
+    df_header = pd.DataFrame([header_row], columns=data_merged.columns)
 
-    # Concatenar la fila extra antes del DataFrame combinado
-    df_final = pd.concat([df_header, df_combined], ignore_index=True).drop(0, axis=0, errors='ignore')
-    df_final.columns = [col.strip().replace("'", "").replace("(", "").replace(")", "").replace(",", "") for col in df_final]
-    # Guardar el CSV final
+    # Concatenar encabezado y datos
+    df_final = pd.concat([df_header, data_merged], ignore_index=True)
+    df_final.columns = [col.strip().replace("'", "").replace("(", "").replace(")", "").replace(",", "") for col in df_final.columns]
+
+    data_final = df_final.drop(index=0, errors='ignore')
     output_DEF = os.path.join(ruta_archivos, f"{name}_results_output.csv")
-    df_final.to_csv(output_DEF, index=False)
+    data_final.to_csv(output_DEF, index=False)
 
 def join_F_csv_ref(folder, name):
+    import os, re, glob
+    import pandas as pd
+
     ruta_archivos = folder
     pattern = re.compile(rf"{name}_references_(.+)\.csv$")
-
-    # Filtrar archivos que cumplen con el patrón
     csv_DEFs = [f for f in glob.glob(os.path.join(ruta_archivos, "*.csv")) if pattern.search(os.path.basename(f))]
 
-    # Diccionario para almacenar los DataFrames y sus respectivos f_name
-    data_dict = {}
+    data_merged = None
 
     for i, file in enumerate(csv_DEFs):
-        # Extraer f_name} desde el nombre del archivo
         match = pattern.search(os.path.basename(file))
         if not match:
             continue
-        f_name = match.groups()
-        # Cargar el CSV
-        if i==0:
-            df = pd.read_csv(file)
-        else:
-            df = pd.read_csv(file,usecols=["F_reference"])
+        f_name = match.group(1)
 
+        df = pd.read_csv(file)
+
+        # Separar primeras 6 columnas + F_reference
+        first_cols = df.columns[:6].tolist()
+        df = df[first_cols + ["F_reference"]]
         df.rename(columns={"F_reference": f"{f_name}_reference"}, inplace=True)
-        data_dict[f_name] = df
+
+        if data_merged is None:
+            data_merged = df
+        else:
+            data_merged = pd.merge(data_merged, df, on=first_cols, how='outer')
 
         os.remove(file)
 
-    # Asegurar que todas las columnas de los DataFrames sean las mismas, llenando NaN si falta alguna
-    df_combined = pd.concat(data_dict.values(), axis=1, join='outer')
-    header_row = ["", "","", "", "", ""] + [f"{f_name}" for f_name in data_dict.keys()]  # El encabezado con los nombres f_name
-    df_header = pd.DataFrame([header_row], columns=df_combined.columns)
+    header_row = [""] * 6 + [col for col in data_merged.columns[6:]]
+    df_header = pd.DataFrame([header_row], columns=data_merged.columns)
 
-    # Concatenar la fila extra antes del DataFrame combinado
-    df_final = pd.concat([df_header, df_combined], ignore_index=True).drop(0, axis=0, errors='ignore')
-    df_final.columns = [col.strip().replace("'", "").replace("(", "").replace(")", "").replace(",", "") for col in df_final]
-    # Guardar el CSV final
+    df_final = pd.concat([df_header, data_merged], ignore_index=True)
+    df_final.columns = [col.strip().replace("'", "").replace("(", "").replace(")", "").replace(",", "") for col in df_final.columns]
+
+    data_final = df_final.drop(index=0, errors='ignore')
     output_DEF = os.path.join(ruta_archivos, f"{name}_references_output.csv")
-    df_final.to_csv(output_DEF, index=False)
-
+    data_final.to_csv(output_DEF, index=False)
