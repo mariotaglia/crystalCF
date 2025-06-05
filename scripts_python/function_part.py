@@ -91,6 +91,7 @@ def process_principal_part(reference_DEF, delta_list_part, aL, tosubmit, dir_fue
             dims = [round_value]
         else:
             dims = [round_value - 1, round_value,round_value + 1]
+            #dims = [round_value - 8,round_value - 7,round_value - 6,round_value - 5,round_value - 4,round_value - 3,round_value - 2,round_value - 1, round_value,round_value + 1,round_value + 2,round_value + 3]
 
         delta_folder = str(delta).replace('.','_')
         for j in dims:

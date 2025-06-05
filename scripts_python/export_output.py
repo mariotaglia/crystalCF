@@ -26,6 +26,7 @@ def process_principal(output_file, name_bin, R, delta_dim_bin, aL, k_aL, F):
         round_value = int(np.round(float(aL/k_aL["kx"]) / float(delta)))
         dims = []
         dims_sum_bin = [entry["dim"] for entry in delta_dim_bin if entry["delta"] == delta][0]
+        #dims_sum_bin = [-8,-7,-6,-5,-4,-3,-2,1,0,1,2]
         for sum_dim in dims_sum_bin:
             dims.append(round_value + int(sum_dim))
         delta_folder = str(delta).replace('.', '_')
@@ -149,8 +150,7 @@ def process_principal_part(output_file, label_struc,R_np, delta_list_part, aL, k
             dims = [round_value]
         else:
             if F == 'F_pairwise':
-                dims = [round_value - 3, round_value - 2, round_value - 1, round_value,
-                round_value + 1, round_value + 2, round_value + 3]
+                dims = [round_value - 8,round_value - 7,round_value - 6,round_value - 5,round_value - 4,round_value - 3,round_value - 2,round_value - 1, round_value,round_value + 1,round_value + 2,round_value + 3]
             else:
                 dims = [round_value - 1, round_value, round_value + 1]
 

@@ -20,6 +20,7 @@ def process_principal_binario(reference_DEF, name_bin, delta_dim_bin, aL, n_k_bi
         round_value = int(np.round(float(aL/k_aL["kx"]) / float(delta)))
         dims = []
         dims_sum_bin = [entry["dim"] for entry in delta_dim_bin if entry["delta"] == delta][0]
+        #dims_sum_bin = [-8,-7,-6,-5,-4,-3,-2,1,0,1,2]
         for sum_dim in dims_sum_bin:
             dims.append(round_value + int(sum_dim))
         delta_folder = str(delta).replace('.','_')
@@ -29,7 +30,7 @@ def process_principal_binario(reference_DEF, name_bin, delta_dim_bin, aL, n_k_bi
             os.chdir(folder_name)
             
             shutil.copy(tosubmit, "tosubmit.sh")
-            #shutil.copy(f"{pairwise_folder}/{pairwise_file}", pairwise_file)
+            shutil.copy(f"{pairwise_folder}/{pairwise_file}", pairwise_file)
             shutil.copy(DEF, "DEFINITIONS.txt")
             
             with open("tosubmit.sh", "r") as file:

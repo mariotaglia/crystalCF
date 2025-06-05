@@ -28,14 +28,19 @@ def to_latex_formula(name):
     Convierte una fórmula química tipo texto como 'NaCl', 'AlB2' a LaTeX: NaCl, AlB$_2$
     """
     # Busca los elementos con su posible subíndice (e.g., AlB2 -> [('Al', ''), ('B', '2')])
-    matches = re.findall(r'([A-Z][a-z]?)(\d*)', name)
-    latex_str = ''
-    for element, subscript in matches:
-        if subscript:
-            latex_str += f"{element}$_{{{subscript}}}$"
-        else:
-            latex_str += element
-    return latex_str
+    match = re.match(r'^([a-z]+)?([A-Z][A-Za-z0-9_]+)$', name)
+    if not match:
+        return name  # Devuelve tal cual si no coincide el formato esperado
+
+    prefix, formula = match.groups()
+    prefix = prefix or ""
+
+    # Reemplazar subíndices tipo _6 o 6 después de letras
+    # Ej: AB_6 o AB6 → AB$_6$
+    formula = re.sub(r'_(\d+)', r'$_{\1}$', formula)
+    formula = re.sub(r'([A-Za-z])(\d+)', r'\1$_{\2}$', formula)
+
+    return f"{prefix} {formula}".strip()
 
 ################### INICIO ##################
 
@@ -85,7 +90,8 @@ if os.path.isdir(f"results_{name_bin}"):
 os.makedirs(f"results_{name_bin}", exist_ok=True)
 final_output = os.path.join(dir_origin,f"results_{name_bin}")
 
-factor_aL_part = {"fcc": 2**(1.0/6.0), "bcc": 1}
+cdiva_fcc = np.sqrt(2)
+factor_aL_part = {"fcc": cdiva_fcc/cdiva_fcc**(1./3.), "bcc": 1}
 
 k_aL = {"kx": 1,"ky": 1,"kz": 1}
 DEF = os.path.join(dir_origin, "DEFINITIONS.txt")
@@ -241,6 +247,9 @@ for gamma_folder in gamma_folder_list:
 			aL_min = result_cell[0]
 			F_part = result_cell[1]
 			aL_array = result_cell[2]
+			#aL_min = result_cell_pairwise[0]
+			#F_part = result_cell_pairwise[1]
+			#aL_array = result_cell_pairwise[2]
 			U = estimate_part_contrib(part, cell, factor_aL_part[cell], n[part], k_part[cell], F_U, aL_array, aL_min, gen_curves_flag, k_aL_part)
 			S = estimate_part_contrib(part, cell, factor_aL_part[cell], n[part], k_part[cell], F_ST, aL_array, aL_min, gen_curves_flag, k_aL_part)
 
@@ -254,10 +263,12 @@ for gamma_folder in gamma_folder_list:
 	aL_min = result_bin[0]
 	F_bin = result_bin[1]
 	aL_array = result_bin[2]
-
+	#aL_min = result_bin_pair[0]
+	#F_bin = result_bin_pair[1]
+	#aL_array = result_bin_pair[2]
 	U_bin = estimate_bin_contrib(name_bin, factor_aL_bin, k_bin, n1, n2, F_U, aL_array, aL_min, ax2, np.round(gamma,2), gen_curves_flag, k_aL)
 	S_bin = estimate_bin_contrib(name_bin, factor_aL_bin, k_bin, n1, n2, F_ST, aL_array, aL_min, ax3, np.round(gamma,2), gen_curves_flag, k_aL)
-
+	#U_bin = 0; S_bin = 0
 	for i,key in enumerate(dict_delta):
 		list = ["R2 [nm]", R2_np, "", "", "", ""]
 		dict_delta[key].append(list[i])
@@ -293,8 +304,8 @@ if gen_curves_flag == True:
 	ax2.set_ylabel(r'$\Delta$U (k$_{\text{b}}$T)',fontsize=22)
 	ax3.set_ylabel(r'-T$\Delta$S (k$_{\text{b}}$T)',fontsize=22)
 	ax4.set_ylabel(r'$\Delta$F (k$_{\text{b}}$T)',fontsize=22)
-	fig1.savefig(f"{final_output}/F_binary.png", format="png", dpi=300,bbox_inches='tight')
-	#fig4.savefig(f"{final_output}/F_binary_pairwise.png", format="png", dpi=300,bbox_inches='tight')
+	#fig1.savefig(f"{final_output}/F_binary.png", format="png", dpi=300,bbox_inches='tight')
+	fig4.savefig(f"{final_output}/F_binary_pairwise.png", format="png", dpi=300,bbox_inches='tight')
 	fig2.savefig(f"{final_output}/U_binary.png", format="png", dpi=300,bbox_inches='tight')
 	fig3.savefig(f"{final_output}/S_binary.png", format="png", dpi=300,bbox_inches='tight')
 	for fig in [fig1,fig2,fig3,fig4]:
