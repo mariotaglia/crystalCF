@@ -30,7 +30,7 @@ def process_principal_binario(reference_DEF, name_bin, delta_dim_bin, aL, n_k_bi
             os.chdir(folder_name)
             
             shutil.copy(tosubmit, "tosubmit.sh")
-            shutil.copy(f"{pairwise_folder}/{pairwise_file}", pairwise_file)
+            #shutil.copy(f"{pairwise_folder}/{pairwise_file}", pairwise_file)
             shutil.copy(DEF, "DEFINITIONS.txt")
             
             with open("tosubmit.sh", "r") as file:

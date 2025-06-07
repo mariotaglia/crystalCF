@@ -19,7 +19,7 @@ def process_principal(output_file, name_bin, R, delta_dim_bin, aL, k_aL, F):
         k = 2
     if not os.path.isfile(output_file):
         with open(output_file, "w") as out_file:
-            out_file.write("radius [nm],radius [nm],delta,dimx,dimy,dimz,F_value\n")
+            out_file.write("radius A [nm],radius B [nm],delta,dimx,dimy,dimz,F_value\n")
 
     delta_list = sorted({entry["delta"] for entry in delta_dim_bin if entry["delta"] is not None})
     for delta in delta_list:
@@ -146,7 +146,7 @@ def process_principal_part(output_file, label_struc,R_np, delta_list_part, aL, k
         round_value = int(np.round(float(aL/k_aL) / float(delta)))
         if (delta == 0.26 and ("bcc" in structure and "part2" in structure)):
             dims = [round_value]
-        elif ((delta == 0.26 or delta == 0.265) and ("fcc" in structure and "part1" in structure)):
+        elif (delta == 0.26 and ("fcc" in structure and "part1" in structure)):
             dims = [round_value]
         else:
             if F == 'F_pairwise':

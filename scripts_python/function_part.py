@@ -87,7 +87,7 @@ def process_principal_part(reference_DEF, delta_list_part, aL, tosubmit, dir_fue
         round_value = int(np.round(float(aL/k_aL) / float(delta)))
         if (delta == 0.26 and ("bcc" in structure and "part2" in structure)):
             dims = [round_value]
-        elif ((delta == 0.26 or delta == 0.265) and ("fcc" in structure and "part1" in structure)):
+        elif (delta == 0.26 and ("fcc" in structure and "part1" in structure)):
             dims = [round_value]
         else:
             dims = [round_value - 1, round_value,round_value + 1]

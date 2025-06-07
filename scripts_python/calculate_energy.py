@@ -46,10 +46,27 @@ def mean_al_pair(df):
 def estimate_part_F(part, part_cell, factor_aL_part, ni, k_part, gen_curves_flag, k_reflex_part):
     F_norm = []
     csv_file = [f"{part}_results_output.csv", f"{part}_references_output.csv"]
-    data_part = pd.read_csv(csv_file[0], skiprows=0).dropna()
-    data_part_ref = pd.read_csv(csv_file[1], skiprows=0).dropna()
-    data_part_cell = data_part[data_part["cell"] == part_cell].copy().reset_index(drop=True)
-    data_part_ref = data_part_ref[data_part_ref["cell"] == part_cell].copy().reset_index(drop=True)
+    data_part = pd.read_csv(csv_file[0], skiprows=0)
+    data_part_ref = pd.read_csv(csv_file[1], skiprows=0)
+    # Hacer intersección exacta por todas las columnas
+    key_cols = data_part.columns[:6].tolist()
+
+    # Establecer el índice como esas claves en ambos DataFrames
+    data_part = data_part.set_index(key_cols)
+    data_part_ref = data_part_ref.set_index(key_cols)
+
+    # Combinar ambos DataFrames en columnas paralelas
+    combined = pd.concat([data_part, data_part_ref], axis=1, keys=['part', 'ref'])
+
+    # Eliminar filas que tengan NaNs en cualquiera de los dos conjuntos
+    combined_clean = combined.dropna()
+
+    # Separar los datos de nuevo, manteniendo el índice compuesto
+    data_part = combined_clean['part'].reset_index()
+    data_part_ref = combined_clean['ref'].reset_index()
+
+    data_part_cell = data_part[data_part["cell"] == part_cell].copy()
+    data_part_ref = data_part_ref[data_part_ref["cell"] == part_cell].copy()
     data_part_cell['aL'] = data_part_cell['delta'] * data_part_cell['dimx'] *factor_aL_part*k_reflex_part
     data_part_cell['aL'] = data_part_cell['aL'].round(4) #needed to calculate mean.
     data_part_cell["F_norm"] = data_part_cell["F_tot_gcanon"] - data_part_ref["F_tot_gcanon_reference"]
@@ -63,7 +80,7 @@ def estimate_part_F(part, part_cell, factor_aL_part, ni, k_part, gen_curves_flag
     F_norm_cell = df_cell['F_norm'].to_numpy()*k_reflex/k_part
 
     x_cell =  np.arange(aL_cell[0], aL_cell[-1], 0.001)
-    y_cell = CubicSpline(aL_cell, F_norm_cell)(x_cell)
+    #y_cell = CubicSpline(aL_cell, F_norm_cell)(x_cell)
 
     # Ajuste cúbico (polinomio de grado 3)
     coeficientes = np.polyfit(aL_cell, F_norm_cell, 4)
@@ -99,11 +116,27 @@ def estimate_part_contrib(part, part_cell, factor_aL_part, ni, k_part, F, aL_arr
     for f_name in F:
         csv_file = [f"{part}_results_output.csv", f"{part}_references_output.csv"]
 
-        data_part = pd.read_csv(csv_file [0], skiprows=0).dropna()
-        data_part_ref = pd.read_csv(csv_file [1], skiprows=0).dropna()
+        data_part = pd.read_csv(csv_file[0], skiprows=0)
+        data_part_ref = pd.read_csv(csv_file[1], skiprows=0)
+        # Hacer intersección exacta por todas las columnas
+        key_cols = data_part.columns[:6].tolist()
 
-        data_part_cell = data_part[data_part["cell"] == part_cell].copy().reset_index(drop=True)
-        data_part_ref = data_part_ref[data_part_ref["cell"] == part_cell].copy().reset_index(drop=True)
+        # Establecer el índice como esas claves en ambos DataFrames
+        data_part = data_part.set_index(key_cols)
+        data_part_ref = data_part_ref.set_index(key_cols)
+
+        # Combinar ambos DataFrames en columnas paralelas
+        combined = pd.concat([data_part, data_part_ref], axis=1, keys=['part', 'ref'])
+
+        # Eliminar filas que tengan NaNs en cualquiera de los dos conjuntos
+        combined_clean = combined.dropna()
+
+        # Separar los datos de nuevo, manteniendo el índice compuesto
+        data_part = combined_clean['part'].reset_index()
+        data_part_ref = combined_clean['ref'].reset_index()
+
+        data_part_cell = data_part[data_part["cell"] == part_cell].copy()
+        data_part_ref = data_part_ref[data_part_ref["cell"] == part_cell].copy()
         data_part_cell['aL'] = data_part_cell['delta'] * data_part_cell['dimx'] * factor_aL_part*k_reflex_part
         data_part_cell['aL'] = data_part_cell['aL'].round(4) #si no lo redondeo no puede promediar.
         data_part_cell["F_norm"] = data_part_cell[f_name] - data_part_ref[f"{f_name}_reference"]
@@ -115,7 +148,7 @@ def estimate_part_contrib(part, part_cell, factor_aL_part, ni, k_part, F, aL_arr
         F_cell.append(df_cell['F_norm'].to_numpy()*k_reflex/k_part)
 
     F_norm_cell = np.sum(F_cell, axis=0)
-    y_cell = CubicSpline(aL_cell, F_norm_cell)(aL_array)
+    #y_cell = CubicSpline(aL_cell, F_norm_cell)(aL_array)
     
     coeficientes = np.polyfit(aL_cell, F_norm_cell, 4)
     polinomio = np.poly1d(coeficientes)
@@ -144,11 +177,11 @@ def estimate_bin_F(name, factor_bcell, k_bin, n1, n2, ax, gamma, gen_curves_flag
     F_norm = []
     csv_file = [f"{name}_results_output.csv", f"{name}_references_output.csv"]
     data_bin = pd.read_csv(csv_file[0], skiprows=0).dropna()
-    data_bin_ref = pd.read_csv(csv_file[1], skiprows=0).dropna()
+    data_bin_ref = pd.read_csv(csv_file[1], skiprows=0)
 
     k = k_reflex["kx"]*k_reflex["ky"]*k_reflex["kz"]
     for part in ["part1", "part2"]:
-        data_bin_part = data_bin_ref[data_bin_ref["#part"] == part].copy().reset_index(drop=True)
+        data_bin_part = data_bin_ref[data_bin_ref["#part"] == part].copy()
         data_bin_part = data_bin_part.rename(columns={"F_tot_gcanon_reference": f"F_tot_gcanon_reference_{part}"})
         data_bin = data_bin.merge(data_bin_part[['delta', 'dimx', f'F_tot_gcanon_reference_{part}']], 
                                   on=['delta', 'dimx'], 
@@ -163,7 +196,7 @@ def estimate_bin_F(name, factor_bcell, k_bin, n1, n2, ax, gamma, gen_curves_flag
     F_norm_bin = df_bin['F_norm'].to_numpy()*k/k_bin
     F_tot_bin = df_bin["F_tot_gcanon"].to_numpy()*k/k_bin
     x_bin =  np.arange(aL_bin[0], aL_bin[-1], 0.001)
-    y_bin = CubicSpline(aL_bin, F_norm_bin)(x_bin)
+    #y_bin = CubicSpline(aL_bin, F_norm_bin)(x_bin)
 
     coeficientes = np.polyfit(aL_bin, F_norm_bin, 4)
     polinomio = np.poly1d(coeficientes)
@@ -202,8 +235,7 @@ def estimate_bin_contrib(name, factor_bin_cell, k_bin, n1, n2, F, aL_array, aL_m
     for f_name in F:
         csv_file = [f"{name}_results_output.csv", f"{name}_references_output.csv"]
         data_bin = pd.read_csv(csv_file[0], skiprows=0).dropna()
-        data_bin_ref = pd.read_csv(csv_file[1], skiprows=0).dropna()
-
+        data_bin_ref = pd.read_csv(csv_file[1], skiprows=0)
         for part in ["part1", "part2"]:
             data_bin_part = data_bin_ref[data_bin_ref["#part"] == part].copy().reset_index(drop=True)
             data_bin_part = data_bin_part.rename(columns={f"{f_name}_reference": f"{f_name}_reference_{part}"})
@@ -223,7 +255,7 @@ def estimate_bin_contrib(name, factor_bin_cell, k_bin, n1, n2, F, aL_array, aL_m
         F_bin.append(df_bin['F_norm'].to_numpy()*k/k_bin)
 
     F_norm_bin = np.sum(F_bin, axis=0)
-    y_bin = CubicSpline(aL_bin, F_norm_bin)(aL_array)
+    #y_bin = CubicSpline(aL_bin, F_norm_bin)(aL_array)
 
     coeficientes = np.polyfit(aL_bin, F_norm_bin, 4)
     polinomio = np.poly1d(coeficientes)
