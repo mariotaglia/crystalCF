@@ -18,7 +18,7 @@ def write_DEF(file_path, lines):
     with open(file_path, 'w') as f:
         f.writelines(lines)
         
-def update_cdiva(DEF, name_bin, gamma, flag_reflexion):
+def update_cdiva(DEF, name_bin, gamma):
     lines = read_DEF(DEF)
     if name_bin == 'MgZn2':
         for i, line in enumerate(lines):
@@ -109,14 +109,6 @@ def cdiva_calc(name,gamma):
         else:
             raise ValueError('Parameter gamma is outside allowed range')
 
-    if name == "Cu3Au":
-        a_fac = 1
-        if gamma < np.sqrt(2.0)-1:
-            c_fac = 1
-        else:
-            c_fac = (1+gamma)/np.sqrt(2.0)
-
-    cdiva = c_fac/a_fac
     if cdiva >= 2 or cdiva <= 0.5:
         print(f"warning, cdiva<=0.5 or cdiva>=2.0 for gamma {gamma:.2f}")
     return cdiva

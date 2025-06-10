@@ -117,7 +117,7 @@ for gamma_folder in gamma_folder_list:
 	os.chdir("binary")
 	DEF = os.path.join(os.getcwd(), "DEFINITIONS.txt")
 	R1_np, R2_np = extract_R_bin(DEF)
-	update_cdiva("DEFINITIONS.txt", name_bin, gamma_calc(DEF), flag_reflexion)
+	update_cdiva("DEFINITIONS.txt", name_bin, gamma_calc(DEF))
 	aL = float(run_command(f'python3 {dir_script}/references/aL_estimate_bin.py {name_bin} {R1_np} {R2_np} {gamma_calc(DEF)} {nseg}'))
 	delta_dim_bin = [entry for entry in gamm_delta_dim if entry["gamma"] == gamma]
 	process_principal_binario(DEF, name_bin, delta_dim_bin, aL, n_k_bin, tosubmit, dir_fuente, k_aL, gamma, dir_script)
