@@ -305,30 +305,39 @@ case ('long') ! ligand chain length
    read(buffer, *, iostat=ios) interaction_11
    if(rank.eq.0)write(stdout,*) 'parser:','Set ',trim(label),' = ',trim(buffer)
 
- case ('nkp') ! solvent volume fraction or chemical potential, depending on flagmu
-   read(buffer, *, iostat=ios) kpini, kpstep, kpfin
-   if(rank.eq.0)write(stdout,*) 'parser:','Set ',trim(label),' = ',trim(buffer)
+case ('nkp') ! solvent volume fraction or chemical potential, depending on flagmu
+  read(buffer, *, iostat=ios) kpini, kpstep, kpfin
+  if(rank.eq.0)write(stdout,*) 'parser:','Set ',trim(label),' = ',trim(buffer)
 
-   nkp = 0
-   ikp = kpini
-   if (kpini.le.kpfin) then
-     do while (ikp.le.kpfin)
-       nkp = nkp + 1
-       kps(nkp) = ikp
-       ikp = ikp + kpstep
-     enddo
-   else 
-     do while (ikp.ge.kpfin)
-       nkp = nkp + 1
-       kps(nkp) = ikp
-       ikp = ikp - kpstep
-     enddo
-   endif
+  ! Primero contar cuántos puntos hay
+  if (kpini <= kpfin) then
+     nkp = int((kpfin - kpini)/kpstep) + 1
+  else
+     nkp = int((kpini - kpfin)/kpstep) + 1
+  endif
+
+  if (allocated(kps)) deallocate(kps)
+  allocate(kps(nkp))
+  print*, nkp
+
+  ikp = kpini
+  if (kpini <= kpfin) then
+    do i = 1, nkp
+      kps(i) = ikp
+      ikp = ikp + kpstep
+    end do
+  else
+    do i = 1, nkp
+      kps(i) = ikp
+      ikp = ikp - kpstep
+    end do
+  endif
+
+  print*, ikp
 
  case ('nst') ! number of st cases
    read(buffer, *, iostat=ios) nst
    if(rank.eq.0)write(stdout,*) 'parser:','Set ',trim(label),' = ',trim(buffer)
-  
    do i = 1, nst
    read(fh,*)sts(i)
    enddo 

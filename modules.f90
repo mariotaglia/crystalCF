@@ -149,7 +149,7 @@ real*8, allocatable :: kps(:)
 
 integer nst
 real*8 st
-real*8, allocatable :: sts(:)
+real*8 sts(100)
 endmodule
 
 module fields_fkfun
