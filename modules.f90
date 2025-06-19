@@ -145,11 +145,11 @@ real*8 hring
 real*8 oval
 integer nkp
 real*8 kp
-real*8 kps(1000)
+real*8, allocatable :: kps(:)
 
 integer nst
 real*8 st
-real*8 sts(100)
+real*8, allocatable :: sts(:)
 endmodule
 
 module fields_fkfun

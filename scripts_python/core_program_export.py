@@ -364,11 +364,18 @@ gamma_MD = ref_MD[ref_MD.columns[1]]
 F_MD = ref_MD[ref_MD.columns[2:]]
 y_label = [r'$\Delta$U (k$_{\text{B}}$T)',r'$-T\Delta$S (k$_{\text{B}}$T)',r'$\Delta$F (k$_{\text{B}}$T)']
 
+ref_pair_data = pd.read_excel(os.path.join(dir_script,"references","data_pair.xlsx"), engine="openpyxl",skiprows=1,header=[0,1])
+ref_pair = ref_pair_data[name_bin]
+filtered_ref_pair = ref_pair[
+    (ref_pair['Gamma'] >= np.min(gamma_value)) & (ref_pair['Gamma'] <= np.max(gamma_value))
+]
+
 F_plot = [DU_values[3],DS_values[3],DF_values[3]]
 for i, (lista, F) in enumerate(zip(F_plot,["ΔU", "-TΔS", "ΔF"])):
 	plt.figure(figsize=(8, 6))
-	plt.plot(gamma_value,F_plot[i],ls='none',marker='s',color='red',ms=7,label='MoltCF')
-	plt.scatter(gamma_MD,F_MD[F],marker='o',color='purple',s=50,label='MD (MD)',zorder=10)
+	plt.plot(gamma_value,F_plot[i],ls='none',marker='s',color='red',ms=7,label='MOLT-CF')
+	plt.scatter(gamma_MD,F_MD[F],marker='o',color='purple',s=50,label='MD (OTM)',zorder=10)
+	plt.scatter(filtered_ref_pair['Gamma'],filtered_ref_pair['DF'],marker='v',color='orange',s=50,label='Pairwise',zorder=10)
 
 	plt.axhline(0,ls='--',c='darkgray',zorder=-3)
 	plt.xticks(fontsize=18)
