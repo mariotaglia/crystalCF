@@ -318,7 +318,6 @@ case ('nkp') ! solvent volume fraction or chemical potential, depending on flagm
 
   if (allocated(kps)) deallocate(kps)
   allocate(kps(nkp))
-  print*, nkp
 
   ikp = kpini
   if (kpini <= kpfin) then

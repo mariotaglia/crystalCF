@@ -186,7 +186,7 @@ endif
 
 ! system
 
-  write(filename,'(A7, I3.3, A4)')'system.', cccc, '.dat'
+  write(filename,'(A7, I4.4, A4)')'system.', cccc, '.dat'
   open (unit=310, file=filename)
   write(310,*)'st          = ',st
   write(310,*)'kp          = ',kp
@@ -250,7 +250,7 @@ close(8)
 endif
 
 if(rank.eq.0) then
-write(filename,'(A4, I3.3, A4)')'out.', counter, '.dat'
+write(filename,'(A4, I4.4, A4)')'out.', counter, '.dat'
 open(unit=8, file=filename, form='unformatted')
 write(8)counter
 write(8)free_energy

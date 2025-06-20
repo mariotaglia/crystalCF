@@ -46,10 +46,37 @@ for i, line in enumerate(lines):
 	elif line.strip() == "!properties of ligand chains":
 		size_index = i + 1
 		nseg = lines[size_index].split()[1]
-	elif line.strip() == "! coverage":
-		size_index = i + 1
-		cov = lines[size_index].split()[0]
-		break
+
+n1_k_bin = n_k_bin["part1"]; n2_k_bin = n_k_bin["part2"]
+sections_info = [
+    ("! Rotation", 3, n1_k_bin+n2_k_bin),
+    ("! coverage", 1, n1_k_bin+n2_k_bin),
+    ("!Surface-polymer atraction", 1, n1_k_bin+n2_k_bin)
+]
+
+sections_found = []
+for key, lines_per_particle, tot_particles in sections_info:
+    for i, line in enumerate(lines):
+        if line.strip() == key:
+            start_index = i + 1
+            sections_found.append((key, start_index, lines_per_particle, tot_particles))
+            break
+    else:
+        print(f"Advertencia: No se encontró la sección {key}.")
+
+configs = [("part1", 0, n1_k_bin), ("part2", n1_k_bin, n2_k_bin)]  # (Name, Offset, number of particles)
+cov = {"part1": None, "part2": None}
+for label, offset, num_particles in configs:
+    modified_lines = lines.copy()
+
+    for key, start_index, lines_per_particle, tot_particles in sorted(sections_found, key=lambda x: x[1], reverse=True):
+        block_length = tot_particles * lines_per_particle
+        start_offset = start_index + offset*lines_per_particle
+        end_offset = start_offset + num_particles*lines_per_particle
+        # Extract the particle params from DEFINITIONS
+        new_block = modified_lines[start_offset:end_offset]
+        if key == "! coverage":
+        	cov[label] = new_block
 
 k_aL = {"kx": 1,"ky": 1,"kz": 1}
 if flag_reflexion == True:
@@ -156,7 +183,7 @@ for gamma_folder in gamma_folder_list:
 					elif line.strip() == "! coverage":
 						size_index = i + 1
 						for n in np.arange(0,k_part[label_struc]):
-							lines[size_index + n] = f"{cov}\n"
+							lines[size_index+n] = f"{cov[label][0]}"
 						break
 
 				write_DEF(DEF, lines) 
