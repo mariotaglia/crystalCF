@@ -19,6 +19,7 @@ ALLOCATE (Lcubell(NNN))
 ALLOCATE (rotmatCO(3,3,NNN))
 ALLOCATE (sigma(NNN))
 ALLOCATE (eeps(NNN))
+ALLOCATE (longp(NNN))
 ALLOCATE (klocta1(NNN))
 ALLOCATE (klocta2(NNN))
 ALLOCATE (klocta3(NNN))
@@ -40,5 +41,4 @@ ALLOCATE (plane4(3,NNN))
 ALLOCATE (plane5(3,NNN))
 ALLOCATE (plane6(3,NNN))
 ALLOCATE (plane7(3,NNN))
-
 end subroutine

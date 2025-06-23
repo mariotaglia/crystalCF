@@ -1,7 +1,7 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !  Esta subrutina se encarga de poner a todas los segmentos dentro del slab
 
-subroutine pxs
+subroutine pxs(chainlenght)
 
 use system
 use MPI
@@ -11,7 +11,7 @@ use const
 use transform
 
 implicit none
-    
+integer chainlenght    
 integer j, ii, jj
 real*8 pxtemp(3,long)
 real*8 x(3)
@@ -35,9 +35,12 @@ maxx(3) = float(dimz)*delta
 
 do jj = 1, cpp(rank+1)
   ii = cppini(rank+1)+jj
+
+if(longcha(ii).eq.chainlenght) then !!! only puts into lattice if the chainlenght is right
+
   flag = 0
 
-    do j=1,long
+    do j=1,longcha(ii)
        x(1) = in1(j ,2)
        x(2) = in1(j, 3)
        x(3) = in1(j, 1)
@@ -180,7 +183,7 @@ endselect
     newcuantas(ii) = newcuantas(ii)+1
     ntrans(newcuantas(ii),ii) = ing
 
-            do j = 1, long
+            do j = 1, longcha(ii)
             aa = floor(pxtemp(1,j)/delta) + 1
             px(newcuantas(ii),j,jj) = aa
             if(aa.lt.1) then
@@ -216,6 +219,8 @@ endselect
  
             enddo
     endif
+
+endif ! chainlenght
 
 enddo ! jj
 return
