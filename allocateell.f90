@@ -27,4 +27,5 @@ ALLOCATE (Rellf(3, NNN))
 ALLOCATE (orient(3, NNN))
 ALLOCATE (sigma(NNN))
 ALLOCATE (eeps(NNN))
+ALLOCATE (longp(NNN))
 end subroutine

@@ -111,6 +111,7 @@ integer ncha
 real*8, ALLOCATABLE :: in1(:,:)  ! segment positions 
 real*8, ALLOCATABLE :: posicion(:,:) ! posicion graft de la cadena ncha
 real*8, ALLOCATABLE :: ngpol(:) ! posicion graft de la cadena ncha
+integer, ALLOCATABLE :: longcha(:) ! chain lenght of chain ncha
 integer, ALLOCATABLE :: cpp(:)
 integer, ALLOCATABLE :: cppini(:)
 integer maxcpp
@@ -118,6 +119,9 @@ real*8 lseg
 real*8 lsegkai
 integer readchains
 integer ing ! number of transs in current chain
+
+integer longdif(100) ! different chain lenghts
+integer nlongdif ! number of different chain lenghts
 endmodule
 
 module molecules
@@ -238,6 +242,7 @@ real*8, allocatable :: Rellf(:,:)
 real*8, allocatable :: orient(:,:)
 real*8, allocatable :: sigma(:)
 real*8, allocatable :: eeps(:)
+integer, allocatable :: longp(:)
 
 ! cubooctahedron only
 real*8, allocatable :: Loctall(:)
@@ -277,4 +282,9 @@ real*8 MAT(3,3)
 real*8 TMAT(3,3)
 real*8 IMAT(3,3)
 endmodule
+
+
+
+
+
 

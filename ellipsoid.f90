@@ -181,9 +181,11 @@ ncha = ncha+1
 volx(ncha)=volx1(i)
 com(ncha,:)=com1(i,:)
 p0(ncha,:)=p1(i,:)
+longcha(ncha) = longp(j)
 enddo
 
 enddo
+
 title = 'avpro'
 counter = 1
 call savetodisk(volprot, title, counter)

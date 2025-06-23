@@ -39,6 +39,7 @@ character basura
 integer ndi
 real*8 ndr
 real*8 kpini, kpfin, kpstep, ikp
+integer flag
 
 stdout = 6
 
@@ -175,7 +176,12 @@ do while (ios == 0)
  case ('branched') ! used for branched chains 
    read(buffer, *, iostat=ios) branched
     
- if(branched.eq.1) then
+ if(branched.ne.0) then
+   if(rank.eq.0)write(stdout,*) 'parser: Branched chains not longer supported because of unequal chain lengths. Stopping'
+   call endall
+ endif
+        
+  if(branched.eq.1) then
    read(fh, *) basura
    read(fh, *)longb(1), longb(2), longb(3)
  endif
@@ -192,6 +198,11 @@ do while (ios == 0)
  case ('readchains') ! read chains from file?
    read(buffer, *, iostat=ios) readchains
    if(rank.eq.0)write(stdout,*) 'parser:','Set ',trim(label),' = ',trim(buffer)
+
+   if(readchains.ne.0) then
+     if(rank.eq.0)write(stdout,*) 'Readchains different to zero no longer supported because of unequal chain lengths. Stopping'
+     call endall
+   endif
 
  case ('dimx') ! cell dimensions
    read(buffer, *, iostat=ios) dimx
@@ -446,6 +457,17 @@ case ('nkp') ! solvent volume fraction or chemical potential, depending on flagm
      if(rank.eq.0)write(stdout,*) 'parser:','Set particle',j,'hydrophobicity to', eeps(j)
      enddo
 
+     read(fh, '(A)') basura
+     if(basura.eq."") then ! use default
+       longp = long
+       if(rank.eq.0)write(stdout,*) 'parser:','Using default chain lenght',long
+     else ! read from list        
+       do j = 1, NNN
+         read(fh, *) longp(j)
+       if(rank.eq.0)write(stdout,*) 'parser:','Set particle',j,'chain lenght to', longp(j)
+       enddo
+     endif
+
     call COrotation
 
     case(42, 52) ! 42: channel, 52: rod
@@ -522,6 +544,18 @@ case ('nkp') ! solvent volume fraction or chemical potential, depending on flagm
      if(rank.eq.0)write(stdout,*) 'parser:','Set particle',j,'hydrophobicity to', eeps(j)
      enddo
 
+     read(fh, '(A)') basura
+     if(basura.eq."") then ! use default
+       longp = long
+       if(rank.eq.0)write(stdout,*) 'parser:','Using default chain lenght',long
+     else ! read from list        
+       do j = 1, NNN
+         read(fh, *) longp(j)
+       if(rank.eq.0)write(stdout,*) 'parser:','Set particle',j,'chain lenght to', longp(j)
+       enddo
+     endif
+
+
     case(1) 
      read(fh, *) basura
      read(fh, *)NNN
@@ -563,6 +597,18 @@ case ('nkp') ! solvent volume fraction or chemical potential, depending on flagm
      read(fh, *) eeps(j)
      if(rank.eq.0)write(stdout,*) 'parser:','Set particle',j,'hydrophobicity to', eeps(j)
      enddo
+
+     read(fh, '(A)') basura
+     if(basura.eq."") then ! use default
+       longp = long
+       if(rank.eq.0)write(stdout,*) 'parser:','Using default chain lenght',long
+     else ! read from list        
+       do j = 1, NNN
+         read(fh, *) longp(j)
+       if(rank.eq.0)write(stdout,*) 'parser:','Set particle',j,'chain lenght to', longp(j)
+       enddo
+     endif
+
 
      endif ! NNN
 endselect
@@ -698,6 +744,32 @@ endif
 
 
 if(coordinate_system.eq.ndi)call stopundef('coordinate_system')
+
+
+!!!!!!!! Find different lenghts for NPs !!!!!!!!!!!!!
+
+nlongdif = 0
+do j = 1, NNN
+flag = 1
+  do i = 1, nlongdif
+     if(longp(j).eq.longdif(i)) then ! found chain lenght in previous particle 
+         flag = 0 
+     endif
+  enddo
+  if (flag.eq.1) then ! need to add a new chain lenght
+     nlongdif = nlongdif + 1
+     longdif(nlongdif) = longp(j)
+     if(long.lt.longp(j))long=longp(j) ! long is updated to the longest chain, important for array allocation
+  endif
+enddo
+
+
+! DEBUG
+print*, longp
+print*, nlongdif
+print*, longdif
+
+stop
 
 end subroutine
 
