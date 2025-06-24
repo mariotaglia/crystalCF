@@ -343,8 +343,6 @@ case ('nkp') ! solvent volume fraction or chemical potential, depending on flagm
     end do
   endif
 
-  print*, ikp
-
  case ('nst') ! number of st cases
    read(buffer, *, iostat=ios) nst
    if(rank.eq.0)write(stdout,*) 'parser:','Set ',trim(label),' = ',trim(buffer)
@@ -762,14 +760,6 @@ flag = 1
      if(long.lt.longp(j))long=longp(j) ! long is updated to the longest chain, important for array allocation
   endif
 enddo
-
-
-! DEBUG
-print*, longp
-print*, nlongdif
-print*, longdif
-
-stop
 
 end subroutine
 

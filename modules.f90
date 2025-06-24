@@ -111,7 +111,7 @@ integer ncha
 real*8, ALLOCATABLE :: in1(:,:)  ! segment positions 
 real*8, ALLOCATABLE :: posicion(:,:) ! posicion graft de la cadena ncha
 real*8, ALLOCATABLE :: ngpol(:) ! posicion graft de la cadena ncha
-integer, ALLOCATABLE :: longcha(:) ! chain lenght of chain ncha
+integer longcha(50000) ! chain lenght of chain ncha
 integer, ALLOCATABLE :: cpp(:)
 integer, ALLOCATABLE :: cppini(:)
 integer maxcpp

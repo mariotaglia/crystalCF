@@ -82,7 +82,7 @@ loctaS = Loctall(j) - delta
 
 !! Sum of number of polymer segments
 
- sumpolseg = sumpolseg + area*sigma(j)*long
+ sumpolseg = sumpolseg + area*sigma(j)*longp(j)
 
 !! volume
  volprot1 = volprot1 * 0.99
@@ -104,7 +104,7 @@ ncha = ncha + 1
 volx(ncha)=volx1(i)
 com(ncha,:)=com1(i,:)
 p0(ncha,:)=p1(i,:)
-longcha(ncha) = longp(j)
+longcha(ncha)=longp(j)
 enddo
 
 enddo ! NNN

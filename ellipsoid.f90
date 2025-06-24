@@ -157,7 +157,7 @@ do j = 1, NNN
 
  maxss = 1.0d100
 
- sumpolseg = sumpolseg + area*sigma(j)*long
+ sumpolseg = sumpolseg + area*sigma(j)*longp(j)
 
 !! volume  
  volprot1 = volprot1 * 0.99
