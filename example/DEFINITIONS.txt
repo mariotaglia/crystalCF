@@ -122,4 +122,4 @@ systemtype 9
 0.0
 0.0
 
-
+seed_lig 938121
