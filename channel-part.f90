@@ -93,7 +93,7 @@ volx(i)=volx1(i)
 com(i,:)=com1(i,:)
 p0(i,:)=p1(i,:)
 rotangle(i) = atan2(com1(i,1)-originc(1), com1(i,2)-originc(2))
-longcha(i) = long ! global value
+longc(i) = long ! global value
 enddo
 
  volprot = volprot+volprot1*0.99 ! sum channel

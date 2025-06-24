@@ -91,7 +91,6 @@ integer i
 real*8 volxx1(dimx,dimy,dimz)
 real*8 volxx(dimx,dimy,dimz)
 
-
 call make_ellipsoid ! update matrixes for all particles
 
 !cutarea = 0.01 ! throw away cells that have less area than cutarea x area of the cell with largest area  
@@ -157,7 +156,7 @@ do j = 1, NNN
 
  maxss = 1.0d100
 
- sumpolseg = sumpolseg + area*sigma(j)*long
+ sumpolseg = sumpolseg + area*sigma(j)*longp(j)
 
 !! volume  
  volprot1 = volprot1 * 0.99
@@ -181,10 +180,16 @@ ncha = ncha+1
 volx(ncha)=volx1(i)
 com(ncha,:)=com1(i,:)
 p0(ncha,:)=p1(i,:)
-longcha(ncha) = longp(j)
+longc(ncha) = longp(j)
 enddo
 
 enddo
+
+
+if(ncha.ge.maxvolx) then
+write(stdout,*) 'ellipsoid:', 'increase maxvolx'
+call endall
+endif
 
 title = 'avpro'
 counter = 1

@@ -129,7 +129,7 @@ volx(i)=volx1(i)
 com(i,:)=com1(i,:)
 p0(i,:)=p1(i,:)
 rotangle(i) = atan2(com1(i,1)-originc(1), com1(i,2)-originc(2))
-longcha(i) = long ! global value
+longc(i) = long ! global value
 enddo
 
 title = 'avpro'
@@ -265,7 +265,7 @@ volx(i)=volx1(i)
 com(i,:)=com1(i,:)
 p0(i,:)=p1(i,:)
 rotangle(i) = atan2(com1(i,1)-originc(1), com1(i,2)-originc(2))
-longcha(i) = long ! global value
+longc(i) = long ! global value
 enddo
 
 title = 'avpro'
@@ -406,7 +406,7 @@ volx(i)=volx1(i)
 com(i,:)=com1(i,:)
 p0(i,:)=p1(i,:)
 rotangle(i) = atan2(com1(i,1)-originc(1), com1(i,2)-originc(2))
-longcha(i) = long ! global value
+longc(i) = long ! global value
 enddo
 
 title = 'avpro'
@@ -1081,7 +1081,7 @@ do i = 1, Npolx
 
  volxx(p0(ncha,1),p0(ncha,2), p0(ncha,3)) = 1.0
  volx(ncha) = 1.0
- longcha(ncha) = long ! global value
+ longc(ncha) = long ! global value
  enddo
 enddo
 

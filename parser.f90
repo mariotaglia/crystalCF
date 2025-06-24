@@ -765,11 +765,11 @@ enddo
 
 
 ! DEBUG
-print*, longp
-print*, nlongdif
-print*, longdif
+!print*, longp
+!print*, nlongdif
+!print*, longdif
 
-stop
+!stop
 
 end subroutine
 

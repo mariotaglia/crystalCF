@@ -64,6 +64,7 @@ real*8, allocatable :: voleps1(:,:,:)
 integer, parameter :: maxvolx = 50000
 real*8 volx(maxvolx)
 real*8 com(maxvolx,3)
+integer longc(maxvolx)
 integer p0(maxvolx,3)
 end module
 

@@ -375,6 +375,7 @@ call allocatencha
 
 do i = 1, ncha
   ngpol(i) = volx(i)
+  longcha(i) = longc(i)
   posicion(i, :) = com(i,:)
   cpp(mod(i,size)+1) = cpp(mod(i,size)+1) + 1
 enddo
