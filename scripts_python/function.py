@@ -183,7 +183,6 @@ def extract_definitions(definitions_path):
         "centers": [],
         "R": [],
         "lseg": None,
-        "nseg": None,
         "PBC": []
     }
     lines = read_DEF(definitions_path)
@@ -225,11 +224,7 @@ def extract_definitions(definitions_path):
                 except ValueError:
                     print(f"Error al leer semiejes en línea: {lines[j]}")
                 j += 1
-        elif line == "!properties of ligand chains":
-            try:
-                data["nseg"] = float(lines[i+1].split()[1])
-            except ValueError:
-                print("Error al leer nseg.")
+
         elif line == "! segment lengths":
             try:
                 data["lseg"] = float(lines[i+1].split()[1])
@@ -299,12 +294,18 @@ def extract_references(csv_path):
 
 def update_particle_sizes(lines, gamma, R_np, n1_k_bin, n2_k_bin):
     size_index = None
+    nseg = []
     for i, line in enumerate(lines):
-        if line.strip() == "!properties of ligand chains":
-            size_index = i+1
-            nseg = float(lines[size_index].split()[1])
-            size_index = None
-        if line.startswith("! segment lengths"):
+        if line.startswith("!chains lenght"):
+            j = i + 1
+            while j < len(lines) and lines[j].strip() and not lines[j].startswith("!"):
+                try:
+                    nseg.append([float(x) for x in lines[j].strip().split()][0])
+                except ValueError:
+                    print(f"Error al leer semiejes en línea: {lines[j]}")
+                j += 1
+
+        elif line.startswith("! segment lengths"):
             size_index = i+1
             lseg = float(lines[size_index].split()[1])
 
@@ -327,8 +328,7 @@ def update_particle_sizes(lines, gamma, R_np, n1_k_bin, n2_k_bin):
                 lines[size_index] = f"{R_np} {R_np} {R_np}\n"
             D = 2*R_np
             l = lseg*np.cos(68*np.pi/180/2)
-            h = (nseg*l+0.2)
-            h = nseg*lseg
+            h = (nseg[0]*l+0.2)
             lamda = 2*h/D
             a = 6*h/2
             b = (gamma*R_np)**3 *(1 + 3*lamda)
@@ -406,11 +406,17 @@ def gamma_calc(definitions_path):
     lines = read_DEF(definitions_path)
     size_index = None
     R2_np = None
+    nseg = []
     for i, line in enumerate(lines):
-        if line.strip() == "!properties of ligand chains":
-            size_index = i+1
-            nseg = float(lines[size_index].split()[1])
-            size_index = None
+        if line.startswith("!chains lenght"):
+            j = i + 1
+            while j < len(lines) and lines[j].strip() and not lines[j].startswith("!"):
+                try:
+                    nseg.append([float(x) for x in lines[j].strip().split()][0])
+                except ValueError:
+                    print(f"Error al leer semiejes en línea: {lines[j]}")
+                j += 1
+
         if line.startswith("! segment lengths"):
             size_index = i+1
             lseg = float(lines[size_index].split()[1])
@@ -427,10 +433,10 @@ def gamma_calc(definitions_path):
                 j += 1
             size_index = None
     l = lseg*np.cos(68*np.pi/180/2)
-    h = (nseg*l+0.2)
-    lamda_fact = 2*h
+    h1 = (nseg[0]*l+0.2); h2 = (nseg[-1]*l+0.2)
+    lamda_fact1 = 2*h1; lamda_fact2 = 2*h2
     D1 = 2*R1_np ;D2 = 2*R2_np
-    gamma = R2_np*(1+3*lamda_fact/D2)**(1./3.) / (R1_np*(1+3*lamda_fact/D1)**(1./3.))
+    gamma = R2_np*(1+3*lamda_fact2/D2)**(1./3.) / (R1_np*(1+3*lamda_fact1/D1)**(1./3.))
     return gamma
 
 def join_F_csv(folder, name, bin_true):

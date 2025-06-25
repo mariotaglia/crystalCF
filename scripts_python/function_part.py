@@ -71,7 +71,7 @@ def path_carpeta(folder_init,n):
         x = os.path.dirname(x)
     return x
 
-def process_principal_part(reference_DEF, delta_list_part, aL, tosubmit, dir_fuente, k_aL, script_folder):
+def process_principal_part(reference_DEF, delta_list_part, aL, tosubmit, dir_fuente, k_aL, script_folder, chain_lenght):
     structure = os.getcwd()
     pairwise_folder = os.path.join(script_folder,"pairwise_additive_F")
     pairwise_file = "fitpairL12.dat" 
@@ -116,11 +116,11 @@ def process_principal_part(reference_DEF, delta_list_part, aL, tosubmit, dir_fue
             lines = read_DEF("DEFINITIONS.txt")
 
             output_DEF_ref = os.path.join(dir_fuente,"binary_ref")
-            process_secundario_part(structure, j, dir_fuente, delta_list, k_aL)
+            process_secundario_part(structure, j, dir_fuente, delta_list, k_aL, chain_lenght)
             os.chdir(dir_fuente)
             os.chdir(structure)
 
-def process_secundario_part(struc, dim, dir_fuente_part, delta_list, k_aL):
+def process_secundario_part(struc, dim, dir_fuente_part, delta_list, k_aL, chain_lenght):
     data = extract_definitions("DEFINITIONS.txt")
     dimx = int(data.get("dimx"))
     dimy = int(data.get("dimy"))
@@ -130,14 +130,14 @@ def process_secundario_part(struc, dim, dir_fuente_part, delta_list, k_aL):
     centers = data.get("centers", [])
     PBC = data.get("PBC", [])
     R = float(data.get("R")[0])
-    nseg = int(data.get("nseg")); lseg = float(data.get("lseg"))
+    nseg = int(chain_lenght); lseg = float(data.get("lseg"))
     delta_min = np.min(delta_list)
     dist_min = (2*R+2*lseg*nseg)
     N_ref = np.round(dist_min*1.50/delta_min)
     N_ref = int(N_ref/k_aL)
     if N_ref%2 == 0:
         N_ref += 1
-
+        
     center_ref_list = calculate_center_ref(N_ref, centers, dimx, dimy, dimz, delta, cdiva, PBC)
     pos_out, _ = process_positions(center_ref_list)
 
@@ -231,7 +231,8 @@ def definitions_ref_edit(lines, ref_folder, pos1, pos2, pos3):
         "!particle semiaxis x y z in nm": 2,
         "! Rotation": 6,  # 3 líneas por partícula, 2 partículas en original
         "! coverage": 2,
-        "!Surface-polymer atraction": 2
+        "!Surface-polymer atraction": 2,
+        "!chains lenght": 2
     }
     
     # Encontrar las posiciones de cada sección en el archivo
@@ -288,7 +289,12 @@ def definitions_ref_edit(lines, ref_folder, pos1, pos2, pos3):
             if i+2 < len(modified_lines) and not modified_lines[i+2].strip().startswith("!"):
                 del modified_lines[i+2]
             break
-    
+    for i, line in enumerate(modified_lines):
+        if line.strip() == "!chains lenght":
+            if i+2 < len(modified_lines) and not modified_lines[i+2].strip().startswith("!"):
+                del modified_lines[i+2]
+            break
+            
     # Guardar el archivo DEFINITIONS.txt en la carpeta correspondiente
     output_DEF = os.path.join(ref_folder, "DEFINITIONS.txt")
     with open(output_DEF, "w") as f:

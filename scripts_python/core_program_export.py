@@ -96,11 +96,40 @@ factor_aL_part = {"fcc": cdiva_fcc/cdiva_fcc**(1./3.), "bcc": 1}
 k_aL = {"kx": 1,"ky": 1,"kz": 1}
 DEF = os.path.join(dir_origin, "DEFINITIONS.txt")
 lines = read_DEF(DEF)
-for i, line in enumerate(lines):
-	if line.strip() == "!properties of ligand chains":
-		size_index = i + 1
-		nseg = lines[size_index].split()[1]
-		break
+sections_info = [
+    ("! Rotation", 3, n1_k_bin+n2_k_bin),
+    ("! coverage", 1, n1_k_bin+n2_k_bin),
+    ("!Surface-polymer atraction", 1, n1_k_bin+n2_k_bin),
+    ("!chains lenght", 1, n1_k_bin+n2_k_bin)
+]
+
+sections_found = []
+for key, lines_per_particle, tot_particles in sections_info:
+    for i, line in enumerate(lines):
+        if line.strip() == key:
+            start_index = i + 1
+            sections_found.append((key, start_index, lines_per_particle, tot_particles))
+            break
+    else:
+        print(f"Advertencia: No se encontró la sección {key}.")
+
+configs = [("part1", 0, n1_k_bin), ("part2", n1_k_bin, n2_k_bin)]  # (Name, Offset, number of particles)
+cov = {"part1": None, "part2": None}
+chain_lenght = {"part1": None, "part2": None}
+for label, offset, num_particles in configs:
+    modified_lines = lines.copy()
+
+    for key, start_index, lines_per_particle, tot_particles in sorted(sections_found, key=lambda x: x[1], reverse=True):
+        block_length = tot_particles * lines_per_particle
+        start_offset = start_index + offset*lines_per_particle
+        end_offset = start_offset + num_particles*lines_per_particle
+        # Extract the particle params from DEFINITIONS
+        new_block = modified_lines[start_offset:end_offset]
+        if key == "! coverage":
+        	cov[label] = [elem.replace('\n', '') for elem in new_block][0]
+        elif key == "!chains lenght":
+        	chain_lenght[label] = [elem.replace('\n', '') for elem in new_block][0]
+
 if flag_reflexion == True:
 	for i, line in enumerate(lines):
 		PBC = []
@@ -148,7 +177,7 @@ while True:
 				R1_np, R2_np = extract_R_bin(DEF)
 				R = {"part1": R1_np, "part2": R2_np}
 				gamma = float(gamma_folder.replace('_','.'))
-				aL = float(run_command(f"python3 {dir_script}/references/aL_estimate_bin.py {name_bin} {R1_np} {R2_np} {gamma_calc(DEF)} {nseg}"))
+				aL = float(run_command(f'python3 {dir_script}/references/aL_estimate_bin.py {name_bin} {R1_np} {R2_np} {gamma_calc(DEF)} {chain_lenght["part1"]} {chain_lenght["part2"]} {cov["part1"]} {cov["part2"]}'))
 				delta_dim_bin = [entry for entry in gamm_delta_dim if entry["gamma"] == gamma]
 				process_principal(output_file, name_bin, R, delta_dim_bin, aL, k_aL, f_name)
 				os.chdir(os.path.join(dir_origin,f"gamma_{gamma_folder}"))
@@ -165,7 +194,7 @@ while True:
 						DEF = os.path.join(dir_fuente[label], label_struc, "DEFINITIONS.txt")
 						os.chdir(f"{label_struc}")
 						R_np = extract_R_part(DEF)
-						aL = float(run_command(f"python3 {dir_script}/references/aL_min_{label_struc}.py {R_np} {nseg}"))
+						aL = float(run_command(f'python3 {dir_script}/references/aL_min_{label_struc}.py {R_np} {chain_lenght[label]} {cov[label]}'))
 						delta_list_part = delta_part[label_struc]
 						k_aL_part = 1
 						if flag_reflexion_part == True:
@@ -215,13 +244,6 @@ for gamma_folder in gamma_folder_list:
 	cdiva_bin = extract_cdiva(DEF)
 	size_index = None
 	for i, line in enumerate(lines):
-		if line.strip() == "!properties of ligand chains":
-			size_index = i+1
-			nseg = float(lines[size_index].split()[1])
-			size_index = None
-		if line.startswith("! coverage"):
-			size_index = i+1
-			sigma = float(lines[size_index].split()[0])
 		if line.startswith("!volume"):
 			size_index = i+1
 			vsol = float(lines[size_index].split()[1])
