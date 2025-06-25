@@ -121,12 +121,6 @@ systemtype 9
 !Surface-polymer atraction
 0.0
 0.0
-<<<<<<< HEAD
-
-seed_lig 938121
-=======
 ! chain lenght
-12
-12
-
->>>>>>> use long instead of longcha in geometry generation
+18
+9
