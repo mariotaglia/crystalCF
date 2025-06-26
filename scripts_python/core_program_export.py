@@ -75,7 +75,8 @@ if flag_reflexion == True:
 else: 
 	n1 = params_init['n1']; n2 = params_init['n2']
 	k_bin = params_init['num cell bin']
-
+	
+n_k_bin = {"part1": n1*k_bin, "part2": n2*k_bin}
 n = {"part1": n1, "part2": n2}
 gamma_list = params_init['gamma list']
 
@@ -92,7 +93,7 @@ final_output = os.path.join(dir_origin,f"results_{name_bin}")
 
 cdiva_fcc = np.sqrt(2)
 factor_aL_part = {"fcc": cdiva_fcc/cdiva_fcc**(1./3.), "bcc": 1}
-
+n1_k_bin = n_k_bin["part1"]; n2_k_bin = n_k_bin["part2"]
 k_aL = {"kx": 1,"ky": 1,"kz": 1}
 DEF = os.path.join(dir_origin, "DEFINITIONS.txt")
 lines = read_DEF(DEF)
