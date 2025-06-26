@@ -73,9 +73,9 @@ vsol 0.008
 
 !!! UNIT CELL !!!
 !system size
-dimx 23
-dimy 23
-dimz 23
+dimx 40
+dimy 40
+dimz 40
 
 delta 0.25
 
@@ -123,4 +123,6 @@ systemtype 9
 0.0
 ! chain lenght
 12
-12
+6
+
+seed_lig 938121
