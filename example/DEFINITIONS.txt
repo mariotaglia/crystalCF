@@ -124,3 +124,5 @@ systemtype 9
 ! chain lenght
 12
 12
+
+seed_lig 938121
