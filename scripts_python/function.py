@@ -326,12 +326,13 @@ def update_particle_sizes(lines, gamma, R_np, n1_k_bin, n2_k_bin):
         try:
             for n in np.arange(0,n1_k_bin):
                 lines[size_index] = f"{R_np} {R_np} {R_np}\n"
-            D = 2*R_np
+            D1 = 2*R_np
             l = lseg*np.cos(68*np.pi/180/2)
-            h = (nseg[0]*l+0.2)
-            lamda = 2*h/D
-            a = 6*h/2
-            b = (gamma*R_np)**3 *(1 + 3*lamda)
+            h1 = (nseg[0]*l+0.2)
+            h2 = (nseg[-1]*l+0.2)
+            lamda1 = 2*h1/D1
+            a = 6*h2/2
+            b = (gamma*R_np)**3 *(1 + 3*lamda1)
 
             factor = solve_cubic(a, b)
 
