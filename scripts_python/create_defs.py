@@ -65,7 +65,8 @@ def process_secundario_binario(lines, name_bin, output_folder, dim, n_k_bin, dir
         ("!particle semiaxis x y z in nm", 1, n1_k_bin+n2_k_bin),
         ("! Rotation", 3, n1_k_bin+n2_k_bin),
         ("! coverage", 1, n1_k_bin+n2_k_bin),
-        ("!Surface-polymer atraction", 1, n1_k_bin+n2_k_bin)
+        ("!Surface-polymer atraction", 1, n1_k_bin+n2_k_bin),
+        ("!chains lenght", 1, n1_k_bin+n2_k_bin)
     ]
 
     sections_found = []
@@ -79,7 +80,7 @@ def process_secundario_binario(lines, name_bin, output_folder, dim, n_k_bin, dir
             print(f"Advertencia: No se encontró la sección {key}.")
 
     configs = [("part1", 0, n1_k_bin), ("part2", n1_k_bin, n2_k_bin)]  # (Name, Offset, number of particles)
-
+    chain_lenght = {"part1": None, "part2": None}
     for label, offset, num_particles in configs:
         modified_lines = lines.copy()
 
@@ -92,7 +93,8 @@ def process_secundario_binario(lines, name_bin, output_folder, dim, n_k_bin, dir
                 end_offset = start_offset + num_particles*lines_per_particle
                 # Extract the particle params from DEFINITIONS
                 new_block = modified_lines[start_offset:end_offset]
-
+                if key == "!chains lenght":
+                    chain_lenght[label] = [elem.replace('\n', '') for elem in new_block][0]
                 # Eliminates original params an replace with the new ones
                 del modified_lines[start_index: start_index + block_length]
                 for line in reversed(new_block):
@@ -114,7 +116,8 @@ def process_secundario_binario(lines, name_bin, output_folder, dim, n_k_bin, dir
         centers = data.get("centers", [])
         PBC = data.get("PBC", [])
         R = float(data.get("R")[0])
-        nseg = int(data.get("nseg")); lseg = float(data.get("lseg"))
+        nseg = int(chain_lenght[label])
+        lseg = float(data.get("lseg"))
         delta_min = np.min(delta_bin)
         dist_min = (2*R+2*lseg*nseg)
         N_ref = np.round(dist_min*1.50/delta_min)
@@ -244,7 +247,8 @@ def definitions_ref_edit(lines, ref_folder, pos1, pos2, pos3, ni_k_bin):
         "!particle semiaxis x y z in nm": ni_k_bin,
         "! Rotation": 3*ni_k_bin,
         "! coverage": ni_k_bin,
-        "!Surface-polymer atraction": ni_k_bin
+        "!Surface-polymer atraction": ni_k_bin,
+        "!chains lenght": ni_k_bin
     }
     
     modified_lines = lines.copy()

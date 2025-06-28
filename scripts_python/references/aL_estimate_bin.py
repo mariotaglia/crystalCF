@@ -3,15 +3,18 @@ import math
 import sys
 import os
 
-if len(sys.argv) < 6:
+if len(sys.argv) < 9:
     raise ValueError("You need to set name_bin, R1 and R2 params")
 
 name = str(sys.argv[1])
 R1 = float(sys.argv[2])
 R2 = float(sys.argv[3])
 gamma = float(sys.argv[4])
-l_pol = float(sys.argv[5])
-sigma = 5.85 #1/nm^2
+l_pol_1 = float(sys.argv[5])
+l_pol_2 = float(sys.argv[6])
+sigma_1 = float(sys.argv[7])
+sigma_2 = float(sys.argv[8])
+
 pi = math.pi
 Vol_NP_1 = pi*(4/3)*R1**3
 Vol_NP_2 = pi*(4/3)*R2**3
@@ -95,10 +98,10 @@ elif name=="MgZn2":
 		V_pol = 0.010
 
 if name == "NaZn13":
-	aL_min = (N1*Vol_NP_1+N1*sigma*A_1*V_pol*l_pol+ N2*Vol_NP_2+N2*sigma*A_2*V_pol*l_pol)**(1./3.) *2
+	aL_min = (N1*Vol_NP_1+N1*sigma_1*A_1*V_pol*l_pol_1+ N2*Vol_NP_2+N2*sigma_2*A_2*V_pol*l_pol_2)**(1./3.) *2
 
 else:
-	aL_min = (N1*Vol_NP_1+N1*sigma*A_1*V_pol*l_pol+ N2*Vol_NP_2+N2*sigma*A_2*V_pol*l_pol)**(1./3.)
+	aL_min = (N1*Vol_NP_1+N1*sigma_1*A_1*V_pol*l_pol_1+ N2*Vol_NP_2+N2*sigma_2*A_2*V_pol*l_pol_2)**(1./3.)
 
 def output():
 	print(str(aL_min))
