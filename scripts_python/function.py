@@ -9,6 +9,7 @@ import numpy as np
 import hashlib
 from references.dependecies_init import edit_def_bin, extract_definitions
 from collections import defaultdict
+import math
 
 def run_command(command):
     """Run the command on the terminal and return it's output."""
@@ -30,7 +31,7 @@ def extract_params_init(params_init, cond):
     data = {
         "name": None, "n1": None, "n2": None, "R1": None,
         "gamma list": [], "list delta bin": [], "list gamma delta sum dim": [],
-        "cell part": [], "list delta part": {}, "num cell part": {}, "cell bin factor": None,
+        "cell part": [], "list delta part": {}, "list part delta sum dim": [], "num cell part": {}, "cell bin factor": None,
         "num cell bin": None, "flag generate energy vs aL curves": None,
         "flag reflexion binary": None, "flag reflexion part": None, "PBC": []
     }
@@ -98,6 +99,7 @@ def extract_params_init(params_init, cond):
         elif line == "!num cell bin":
             data["num cell bin"] = int(lines[i+1].split()[1])
             i += 1
+        
         elif line == "!cell part":
             j = i + 1
             while j < len(lines) and not lines[j].startswith("!"):
@@ -106,6 +108,7 @@ def extract_params_init(params_init, cond):
                     data["cell part"].append(cell_name)
                 j += 1
             i = j - 1  # Saltar líneas procesadas
+        
         elif line == "!list delta part":
             j = i + 1
             while j < len(lines) and not lines[j].startswith("!"):
@@ -114,7 +117,72 @@ def extract_params_init(params_init, cond):
                     values = parts[1].strip("[]\n").replace(",", " ").split()
                     data["list delta part"][parts[0]] = [float(x) for x in values]
                 j += 1
-            i = j - 1 
+            i = j - 1
+
+        elif line == "!point sum dims part":
+            j = i + 1
+            ref = [-1, 0, 1]
+            struct_ref = ["fcc", "bcc"]
+            delta_ref = data["list delta part"]
+            part_delta_map = {(p, s, d): dims for p, s, d, dims in data["list part delta sum dim"]}
+
+            while j < len(lines) and not lines[j].startswith("!"):
+                line_j = lines[j].strip()
+                if line_j.startswith("part"):
+                    parts = line_j.split(maxsplit=3)
+                    part_value = parts[1]
+                    part = "part1" if part_value == "A" else "part2"
+
+                    if len(parts) < 3:
+                        j += 1
+                        continue  # Línea incompleta
+
+                    token_2 = parts[2]
+                    if token_2 in struct_ref:
+                        cell_values = [token_2]
+                        raw_info = parts[3] if len(parts) > 3 else ""
+                    else:
+                        cell_values = struct_ref.copy()
+                        raw_info = line_j.split(maxsplit=2)[2]  # todo lo que viene después de 'part A'
+
+                    # Extraer delta y lista
+                    if "delta" in raw_info:
+                        split_part = raw_info.split("delta")
+                        dims_text = split_part[0]
+                        delta_text = split_part[1]
+                        sum_dim_values = [int(x) for x in re.findall(r'-?\d+', dims_text)]
+                        try:
+                            delta_value = float(delta_text.strip())
+                        except ValueError:
+                            raise ValueError(f"No se puede interpretar delta en la línea: {line_j}")
+                    else:
+                        sum_dim_values = [int(x) for x in re.findall(r'-?\d+', raw_info)]
+                        delta_value = None
+
+                    # Asignar
+                    for cell in cell_values:
+                        if delta_value is None:
+                            for delta in delta_ref[cell]:
+                                part_delta_map[(part, cell, delta)] = sum_dim_values
+                        else:
+                            part_delta_map[(part, cell, delta_value)] = sum_dim_values
+                j += 1
+            i = j - 1
+
+            # Completar con valores por defecto
+            for part in ["part1", "part2"]:
+                for cell in struct_ref:
+                    for delta in delta_ref[cell]:
+                        if (part, cell, delta) not in part_delta_map:
+                            part_delta_map[(part, cell, delta)] = ref.copy()
+
+            # Guardar en formato lista
+            data["list part delta sum dim"] = [
+                {"part": p, "cell": c, "delta": d, "dim": dims}
+                for (p, c, d), dims in part_delta_map.items()
+            ]
+            data["list part delta sum dim"].sort(key=lambda x: (x["part"], x["cell"], x["delta"]))
+
         elif line == "!num cell part":
             j = i + 1
             while j < len(lines) and not lines[j].startswith("!"):
@@ -332,7 +400,7 @@ def update_particle_sizes(lines, gamma, R_np, n1_k_bin, n2_k_bin):
             h2 = (nseg[-1]*l+0.2)
             lamda1 = 2*h1/D1
             a = 6*h2/2
-            b = (gamma*R_np)**3 *(1 + 3*lamda1)
+            b = np.power(gamma*R_np,3) *(1 + 3*lamda1)
 
             factor = solve_cubic(a, b)
 
@@ -407,16 +475,20 @@ def gamma_calc(definitions_path):
     lines = read_DEF(definitions_path)
     size_index = None
     R2_np = None
+    nseg_var = []
     nseg = []
     for i, line in enumerate(lines):
         if line.startswith("!chains lenght"):
             j = i + 1
             while j < len(lines) and lines[j].strip() and not lines[j].startswith("!"):
                 try:
-                    nseg.append([float(x) for x in lines[j].strip().split()][0])
+                    nseg_var.append([float(x) for x in lines[j].strip().split()][0])
                 except ValueError:
                     print(f"Error al leer semiejes en línea: {lines[j]}")
                 j += 1
+
+        if line.strip() == "!properties of ligand chains":
+            nseg = float(lines[i+1].split()[1])
 
         if line.startswith("! segment lengths"):
             size_index = i+1
@@ -433,11 +505,20 @@ def gamma_calc(definitions_path):
                     R2_np = R1_np
                 j += 1
             size_index = None
+
+    if len(nseg_var)>1:
+        chain_lenght = {"part1": nseg_var[0], "part2": nseg_var[-1]}
+    else: chain_lenght = {"part1": None, "part2": None}
+
+    for label in ['part1','part2']:
+        if chain_lenght[label] == None:
+            chain_lenght[label] = nseg
+
     l = lseg*np.cos(68*np.pi/180/2)
-    h1 = (nseg[0]*l+0.2); h2 = (nseg[-1]*l+0.2)
+    h1 = (chain_lenght['part1']*l+0.2); h2 = (chain_lenght['part2']*l+0.2)
     lamda_fact1 = 2*h1; lamda_fact2 = 2*h2
     D1 = 2*R1_np ;D2 = 2*R2_np
-    gamma = R2_np*(1+3*lamda_fact2/D2)**(1./3.) / (R1_np*(1+3*lamda_fact1/D1)**(1./3.))
+    gamma = R2_np*np.power(1+3*lamda_fact2/D2,(1./3.)) / (R1_np*np.power((1+3*lamda_fact1/D1),(1./3.)))
     return gamma
 
 def join_F_csv(folder, name, bin_true):
@@ -521,3 +602,61 @@ def join_F_csv_ref(folder, name):
     data_final = df_final.drop(index=0, errors='ignore')
     output_DEF = os.path.join(ruta_archivos, f"{name}_references_output.csv")
     data_final.to_csv(output_DEF, index=False)
+
+def vol_tot_bin(name,R1,R2,l_pol_1,l_pol_2,sigma_1,sigma_2,V_pol):
+    pi = math.pi
+    Vol_NP_1 = pi*(4./3.)*np.power(R1,3)
+    Vol_NP_2 = pi*(4./3.)*np.power(R2,3)
+    A_1 = 4*pi*np.power(R1,2)
+    A_2 = 4*pi*np.power(R2,2)
+
+    if name == "NaCl":
+        N1 = 2
+        N2 = 2
+    elif name == "CsCl":
+        N1 = 1
+        N2 = 1
+    elif name == "CaCu5":
+        N1 = 1
+        N2 = 5
+
+    elif name == "AlB2":
+        N1 = 1
+        N2 = 2
+
+    elif name == "Li3Bi":
+        N1 = 2
+        N2 = 6
+
+    elif name == "AuCu":
+        N1 = 2
+        N2 = 2
+
+    elif name == "Cu3Au":
+        N1 = 1
+        N2 = 3
+
+    elif name == "NaZn13":
+        N1 = 1
+        N2 = 12
+
+    elif name == "CaB6":
+        N1 = 1
+        N2 = 6
+
+    elif name == "Fe4C":
+        N1 = 1
+        N2 = 4
+
+    elif name == "bccAB6":
+        N1 = 2
+        N2 = 12
+
+    elif name=="MgZn2":
+        N1 = 4
+        N2 = 8
+
+    v_tot = N1*Vol_NP_1+N1*float(sigma_1)*A_1*V_pol*float(l_pol_1) + N2*Vol_NP_2+N2*float(sigma_2)*A_2*V_pol*float(l_pol_2)
+
+    return v_tot
+

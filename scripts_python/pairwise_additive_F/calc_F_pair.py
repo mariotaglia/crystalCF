@@ -91,7 +91,7 @@ if os.path.isfile('distances.dat') == False:
 with open("distances.dat") as fp:
     l = fp.readlines()
     numdists = int(l[0])
-    print("Number of pairs to consider:", numdists)
+    #print("Number of pairs to consider:", numdists)
     dists=np.zeros(numdists)
     weights=np.zeros(numdists)
     partA=np.zeros(numdists)

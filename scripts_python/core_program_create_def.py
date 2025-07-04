@@ -30,7 +30,7 @@ n_k_bin = {"part1": n1*k_bin, "part2": n2*k_bin}
 flag_reflexion = params_init["flag reflexion binary"]
 flag_reflexion_part = params_init["flag reflexion part"]
 
-delta_part = params_init["list delta part"]
+part_delta_dim = params_init['list part delta sum dim']
 cell_part = params_init["cell part"]
 k_part = params_init["num cell part"]
 gamma_folder_list = ["{:.3f}".format(g).replace('.','_') for g in gamma_list]
@@ -202,7 +202,8 @@ for gamma_folder in gamma_folder_list:
 				k_aL_part = 1
 				if flag_reflexion_part == True:
 					k_aL_part = 2
-				process_principal_part(DEF, delta_part[label_struc], aL, tosubmit, dir_fuente[label], k_aL_part, dir_script, chain_lenght[label])
+				delta_dim_part = [entry for entry in part_delta_dim if (entry["part"] == label and entry["cell"] == label_struc)]
+				process_principal_part(DEF, delta_dim_part, aL, tosubmit, dir_fuente[label], k_aL_part, dir_script, chain_lenght[label])
 					
 folder_ref = [os.path.join(dir_inicial,"sim_part1/binary_ref")]
 for cell in cell_part:
