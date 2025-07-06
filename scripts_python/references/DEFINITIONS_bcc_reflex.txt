@@ -115,6 +115,4 @@ systemtype 1
 !Surface-polymer atraction
 0.0
 0.0
-!chains lenght
-12
-12
+

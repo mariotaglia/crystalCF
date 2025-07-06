@@ -9,9 +9,9 @@ import matplotlib.pyplot as plt
 import csv
 from scipy.interpolate import CubicSpline
 from collections import defaultdict
-from function import run_command, extract_R_bin, extract_cdiva, gamma_calc
+from function import run_command, extract_R_bin, extract_cdiva, gamma_calc, vol_tot_bin
 from function import path_carpeta, extract_params_init, read_DEF, join_F_csv, join_F_csv_ref
-from function_part import extract_R_part
+from function_part import extract_R_part, vol_tot_part
 from export_output import process_principal, process_reference_bin, process_principal_part, process_reference_part
 from calculate_energy import estimate_part_F,estimate_part_F_pair, estimate_part_contrib, estimate_bin_F, estimate_bin_F_pair, estimate_bin_contrib, delta_energy_F, delta_energy_US, delta_energy_contrib
 
@@ -81,7 +81,7 @@ n = {"part1": n1, "part2": n2}
 gamma_list = params_init['gamma list']
 
 gamm_delta_dim = params_init['list gamma delta sum dim']
-delta_part = params_init["list delta part"]
+part_delta_dim = params_init['list part delta sum dim']
 cell_part = params_init["cell part"]
 k_part = params_init["num cell part"]
 
@@ -92,7 +92,7 @@ os.makedirs(f"results_{name_bin}", exist_ok=True)
 final_output = os.path.join(dir_origin,f"results_{name_bin}")
 
 cdiva_fcc = np.sqrt(2)
-factor_aL_part = {"fcc": cdiva_fcc/cdiva_fcc**(1./3.), "bcc": 1}
+factor_aL_part = {"fcc": cdiva_fcc/np.power(cdiva_fcc,(1./3.)), "bcc": 1}
 n1_k_bin = n_k_bin["part1"]; n2_k_bin = n_k_bin["part2"]
 k_aL = {"kx": 1,"ky": 1,"kz": 1}
 DEF = os.path.join(dir_origin, "DEFINITIONS.txt")
@@ -130,6 +130,17 @@ for label, offset, num_particles in configs:
         	cov[label] = [elem.replace('\n', '') for elem in new_block][0]
         elif key == "!chains lenght":
         	chain_lenght[label] = [elem.replace('\n', '') for elem in new_block][0]
+
+for i, line in enumerate(lines):
+	nseg = []
+	for i, line in enumerate(lines):
+		if line.strip() == "!properties of ligand chains":
+			nseg = float(lines[i+1].split()[1])
+			break
+
+for label in ['part1','part2']:
+	if chain_lenght[label] == None:
+		chain_lenght[label] = nseg
 
 if flag_reflexion == True:
 	for i, line in enumerate(lines):
@@ -176,7 +187,8 @@ while True:
 				output_file = os.path.join(output_folder, f"{name_bin}_results_{f_name}.csv")
 				DEF = os.path.join(os.getcwd(), "DEFINITIONS.txt")
 				R1_np, R2_np = extract_R_bin(DEF)
-				R = {"part1": R1_np, "part2": R2_np}
+				R = {"part1": np.max([R1_np, R2_np]), "part2": np.min([R1_np, R2_np])}
+				R1_np = R["part1"]; R2_np = R["part2"]
 				gamma = float(gamma_folder.replace('_','.'))
 				aL = float(run_command(f'python3 {dir_script}/references/aL_estimate_bin.py {name_bin} {R1_np} {R2_np} {gamma_calc(DEF)} {chain_lenght["part1"]} {chain_lenght["part2"]} {cov["part1"]} {cov["part2"]}'))
 				delta_dim_bin = [entry for entry in gamm_delta_dim if entry["gamma"] == gamma]
@@ -184,8 +196,12 @@ while True:
 				os.chdir(os.path.join(dir_origin,f"gamma_{gamma_folder}"))
 				if not f_name == "F_pairwise":
 					output_file = os.path.join(output_folder, f"{name_bin}_references_{f_name}.csv")
-					process_reference_bin(output_file, dir_origin, f_name, R, gamma_folder)
-
+					if name_bin != "Li3Bi" and name_bin != "NaZn13":
+						process_reference_bin(output_file, dir_origin, f_name, R, gamma_folder)
+					else:
+						if not os.path.isfile(output_file):
+							with open(output_file, "w") as out_file:
+								out_file.write("#part,radius [nm],delta,dimx,dimy,dimz,F_reference\n")
 				dir_fuente = {"part1": os.path.join(dir_origin,"sim_part1"),"part2": os.path.join(os.getcwd(),"part2")}
 
 				for label in ["part1", "part2"]:
@@ -196,11 +212,13 @@ while True:
 						os.chdir(f"{label_struc}")
 						R_np = extract_R_part(DEF)
 						aL = float(run_command(f'python3 {dir_script}/references/aL_min_{label_struc}.py {R_np} {chain_lenght[label]} {cov[label]}'))
-						delta_list_part = delta_part[label_struc]
+						
 						k_aL_part = 1
 						if flag_reflexion_part == True:
 							k_aL_part = 2
-						process_principal_part(output_file, label_struc, R_np, delta_list_part, aL, k_aL_part, f_name)
+
+						delta_dim_part = [entry for entry in part_delta_dim if (entry["part"] == label and entry["cell"] == label_struc)]
+						process_principal_part(output_file, label_struc, R_np, delta_dim_part, aL, k_aL_part, f_name)
 
 						os.chdir(os.path.join(dir_fuente[label], f"{label_struc}_ref"))
 						output_file = os.path.join(output_folder, f"{label}_references_{f_name}.csv")
@@ -226,6 +244,8 @@ while True:
 
 ##################### ESTIMACIONES ###############################
 os.chdir(dir_origin)
+v_pol_part = 0.029
+v_pol_bin = 0.029
 
 import matplotlib.pyplot as plt
 fig1, ax1 = plt.subplots(figsize=(8, 6)); fig2, ax2 = plt.subplots(figsize=(8, 6)); fig3, ax3 = plt.subplots(figsize=(8, 6))
@@ -262,36 +282,54 @@ for gamma_folder in gamma_folder_list:
 	k_aL_part = 1
 	if flag_reflexion_part == True:
 		k_aL_part = 2
+	
+	if name_bin == 'NaZn13':
+		t = (gamma - 0.4) / (0.7 - 0.4)
+		v_pol_bin = 0.027 + (0.037 - 0.027) * t**2
+	if name_bin == 'AlB2':
+		t = (gamma - 0.4) / (0.7 - 0.4)
+		v_pol_bin = 0.026 + (0.031 - 0.026) * t**2
+	if name_bin == 'CaCu5':
+		t = (gamma - 0.5) / (0.8 - 0.5)
+		v_pol_bin = 0.025 + (0.0345 - 0.025) * t**2
+
 	for part in ["part1", "part2"]:
 		result_cell = []
 		for i, cell in enumerate(cell_part):
-			result_cell = estimate_part_F(part, cell, factor_aL_part[cell], n[part], k_part[cell], gen_curves_flag, k_aL_part)
-			#result_cell_pairwise = estimate_part_F_pair(part, cell, factor_aL_part[cell], n[part], k_part[cell], gen_curves_flag, k_aL_part)
-			aL_min = result_cell[0]
-			F_part = result_cell[1]
-			aL_array = result_cell[2]
-			#aL_min = result_cell_pairwise[0]
-			#F_part = result_cell_pairwise[1]
-			#aL_array = result_cell_pairwise[2]
-			U = estimate_part_contrib(part, cell, factor_aL_part[cell], n[part], k_part[cell], F_U, aL_array, aL_min, gen_curves_flag, k_aL_part)
-			S = estimate_part_contrib(part, cell, factor_aL_part[cell], n[part], k_part[cell], F_ST, aL_array, aL_min, gen_curves_flag, k_aL_part)
-
+			if 'F_pairwise' in F_name:
+				result_cell_pairwise = estimate_part_F_pair(part, cell, factor_aL_part[cell], n[part], k_part[cell],vol_tot_part(cell,R[part],chain_lenght[part],cov[part],v_pol_part), gen_curves_flag, k_aL_part, np.round(gamma,2))
+				aL_min = result_cell_pairwise[0]
+				F_part = result_cell_pairwise[1]
+				aL_array = result_cell_pairwise[2]	
+				U = 0; S = 0	
+			else:
+				result_cell = estimate_part_F(part, cell, factor_aL_part[cell], n[part], k_part[cell], gen_curves_flag, k_aL_part)
+				aL_min = result_cell[0]
+				F_part = result_cell[1]
+				aL_array = result_cell[2]
+				U = estimate_part_contrib(part, cell, factor_aL_part[cell], n[part], k_part[cell], F_U, aL_array, aL_min, gen_curves_flag, k_aL_part)
+				S = estimate_part_contrib(part, cell, factor_aL_part[cell], n[part], k_part[cell], F_ST, aL_array, aL_min, gen_curves_flag, k_aL_part)
+			
 			for i,key in enumerate(dict_delta):
 				list = [part,cell,aL_min,U,S,F_part]
 				dict_delta[key].append(list[i])
 
-	factor_aL_bin = cell_bin_factor*cdiva_bin**(-1.0/3.0)
-	result_bin = estimate_bin_F(name_bin, factor_aL_bin, k_bin, n1, n2, ax1, np.round(gamma,2), gen_curves_flag, k_aL)
-	#result_bin_pair = estimate_bin_F_pair(name_bin, factor_aL_bin, k_bin, n1, n2, ax4, np.round(gamma,2), gen_curves_flag, k_aL)
-	aL_min = result_bin[0]
-	F_bin = result_bin[1]
-	aL_array = result_bin[2]
-	#aL_min = result_bin_pair[0]
-	#F_bin = result_bin_pair[1]
-	#aL_array = result_bin_pair[2]
-	U_bin = estimate_bin_contrib(name_bin, factor_aL_bin, k_bin, n1, n2, F_U, aL_array, aL_min, ax2, np.round(gamma,2), gen_curves_flag, k_aL)
-	S_bin = estimate_bin_contrib(name_bin, factor_aL_bin, k_bin, n1, n2, F_ST, aL_array, aL_min, ax3, np.round(gamma,2), gen_curves_flag, k_aL)
-	#U_bin = 0; S_bin = 0
+	factor_aL_bin = cell_bin_factor*np.power(cdiva_bin,(-1.0/3.0))
+	
+	if 'F_pairwise' in F_name:
+		result_bin_pair = estimate_bin_F_pair(name_bin, factor_aL_bin, k_bin, n1, n2, vol_tot_bin(name_bin,R1_np,R2_np,chain_lenght["part1"],chain_lenght["part2"],cov["part1"],cov["part2"],v_pol_bin), ax4, np.round(gamma,2), gen_curves_flag, k_aL, cdiva_bin)
+		aL_min = result_bin_pair[0]
+		F_bin = result_bin_pair[1]
+		aL_array = result_bin_pair[2]; packing_bin = result_bin_pair[3]
+		U_bin = 0; S_bin = 0
+	else:
+		result_bin = estimate_bin_F(name_bin, factor_aL_bin, k_bin, n1, n2, ax1, np.round(gamma,2), gen_curves_flag, k_aL)
+		aL_min = result_bin[0]
+		F_bin = result_bin[1]
+		aL_array = result_bin[2]
+		U_bin = estimate_bin_contrib(name_bin, factor_aL_bin, k_bin, n1, n2, F_U, aL_array, aL_min, ax2, np.round(gamma,2), gen_curves_flag, k_aL)
+		S_bin = estimate_bin_contrib(name_bin, factor_aL_bin, k_bin, n1, n2, F_ST, aL_array, aL_min, ax3, np.round(gamma,2), gen_curves_flag, k_aL)
+	
 	for i,key in enumerate(dict_delta):
 		list = ["R2 [nm]", R2_np, "", "", "", ""]
 		dict_delta[key].append(list[i])
@@ -327,8 +365,11 @@ if gen_curves_flag == True:
 	ax2.set_ylabel(r'$\Delta$U (k$_{\text{b}}$T)',fontsize=22)
 	ax3.set_ylabel(r'-T$\Delta$S (k$_{\text{b}}$T)',fontsize=22)
 	ax4.set_ylabel(r'$\Delta$F (k$_{\text{b}}$T)',fontsize=22)
-	fig1.savefig(f"{final_output}/F_binary.png", format="png", dpi=300,bbox_inches='tight')
-	#fig4.savefig(f"{final_output}/F_binary_pairwise.png", format="png", dpi=300,bbox_inches='tight')
+	if 'F_pairwise' in F_name:
+		fig4.savefig(f"{final_output}/F_binary_pairwise.png", format="png", dpi=300,bbox_inches='tight')
+	else:
+		fig1.savefig(f"{final_output}/F_binary.png", format="png", dpi=300,bbox_inches='tight')
+	
 	fig2.savefig(f"{final_output}/U_binary.png", format="png", dpi=300,bbox_inches='tight')
 	fig3.savefig(f"{final_output}/S_binary.png", format="png", dpi=300,bbox_inches='tight')
 	for fig in [fig1,fig2,fig3,fig4]:
