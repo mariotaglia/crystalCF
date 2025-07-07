@@ -30,7 +30,7 @@ n_k_bin = {"part1": n1*k_bin, "part2": n2*k_bin}
 flag_reflexion = params_init["flag reflexion binary"]
 flag_reflexion_part = params_init["flag reflexion part"]
 
-delta_part = params_init["list delta part"]
+part_delta_dim = params_init['list part delta sum dim']
 cell_part = params_init["cell part"]
 k_part = params_init["num cell part"]
 gamma_folder_list = ["{:.3f}".format(g).replace('.','_') for g in gamma_list]
@@ -51,7 +51,8 @@ n1_k_bin = n_k_bin["part1"]; n2_k_bin = n_k_bin["part2"]
 sections_info = [
     ("! Rotation", 3, n1_k_bin+n2_k_bin),
     ("! coverage", 1, n1_k_bin+n2_k_bin),
-    ("!Surface-polymer atraction", 1, n1_k_bin+n2_k_bin)
+    ("!Surface-polymer atraction", 1, n1_k_bin+n2_k_bin),
+    ("!chains lenght", 1, n1_k_bin+n2_k_bin)
 ]
 
 sections_found = []
@@ -66,6 +67,7 @@ for key, lines_per_particle, tot_particles in sections_info:
 
 configs = [("part1", 0, n1_k_bin), ("part2", n1_k_bin, n2_k_bin)]  # (Name, Offset, number of particles)
 cov = {"part1": None, "part2": None}
+chain_lenght = {"part1": None, "part2": None}
 for label, offset, num_particles in configs:
     modified_lines = lines.copy()
 
@@ -76,7 +78,13 @@ for label, offset, num_particles in configs:
         # Extract the particle params from DEFINITIONS
         new_block = modified_lines[start_offset:end_offset]
         if key == "! coverage":
-        	cov[label] = new_block
+        	cov[label] = [elem.replace('\n', '') for elem in new_block][0]
+        elif key == "!chains lenght":
+        	chain_lenght[label] = [elem.replace('\n', '') for elem in new_block][0]
+
+for label in ['part1','part2']:
+	if chain_lenght[label] == None:
+		chain_lenght[label] = nseg
 
 k_aL = {"kx": 1,"ky": 1,"kz": 1}
 if flag_reflexion == True:
@@ -145,7 +153,7 @@ for gamma_folder in gamma_folder_list:
 	DEF = os.path.join(os.getcwd(), "DEFINITIONS.txt")
 	R1_np, R2_np = extract_R_bin(DEF)
 	update_cdiva("DEFINITIONS.txt", name_bin, gamma_calc(DEF))
-	aL = float(run_command(f'python3 {dir_script}/references/aL_estimate_bin.py {name_bin} {R1_np} {R2_np} {gamma_calc(DEF)} {nseg}'))
+	aL = float(run_command(f'python3 {dir_script}/references/aL_estimate_bin.py {name_bin} {R1_np} {R2_np} {gamma_calc(DEF)} {chain_lenght["part1"]} {chain_lenght["part2"]} {cov["part1"]} {cov["part2"]}'))
 	delta_dim_bin = [entry for entry in gamm_delta_dim if entry["gamma"] == gamma]
 	process_principal_binario(DEF, name_bin, delta_dim_bin, aL, n_k_bin, tosubmit, dir_fuente, k_aL, gamma, dir_script)
 	os.chdir(dir_fuente)
@@ -173,9 +181,6 @@ for gamma_folder in gamma_folder_list:
 						size_index = i + 1
 						lines[size_index] = seed
 						lines[size_index + 1] = seed_lig
-					elif line.strip() == "!properties of ligand chains":
-						size_index = i + 1
-						lines[size_index] = f"long {str(int(nseg))}\n"
 					elif line.strip() == "!particle semiaxis x y z in nm":
 						size_index = i + 1
 						for n in np.arange(0,k_part[label_struc]):
@@ -183,18 +188,22 @@ for gamma_folder in gamma_folder_list:
 					elif line.strip() == "! coverage":
 						size_index = i + 1
 						for n in np.arange(0,k_part[label_struc]):
-							lines[size_index+n] = f"{cov[label][0]}"
-						break
+							lines[size_index+n] = f"{cov[label]}\n"
+					elif line.strip() == "!chains lenght":
+						size_index = i + 1
+						for n in np.arange(0,k_part[label_struc]):
+							lines[size_index+n] = f"{chain_lenght[label]}\n"
 
 				write_DEF(DEF, lines) 
 
 				DEF = os.path.join(os.getcwd(), "DEFINITIONS.txt")
 				R_np = extract_R_part(DEF)
-				aL = float(run_command(f'python3 {dir_script}/references/aL_min_{label_struc}.py {R_np} {nseg}'))
+				aL = float(run_command(f'python3 {dir_script}/references/aL_min_{label_struc}.py {R_np} {chain_lenght[label]} {cov[label]}'))
 				k_aL_part = 1
 				if flag_reflexion_part == True:
 					k_aL_part = 2
-				process_principal_part(DEF, delta_part[label_struc], aL, tosubmit, dir_fuente[label], k_aL_part, dir_script)
+				delta_dim_part = [entry for entry in part_delta_dim if (entry["part"] == label and entry["cell"] == label_struc)]
+				process_principal_part(DEF, delta_dim_part, aL, tosubmit, dir_fuente[label], k_aL_part, dir_script, chain_lenght[label])
 					
 folder_ref = [os.path.join(dir_inicial,"sim_part1/binary_ref")]
 for cell in cell_part:

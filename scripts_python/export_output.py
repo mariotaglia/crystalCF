@@ -42,7 +42,12 @@ def process_principal(output_file, name_bin, R, delta_dim_bin, aL, k_aL, F):
                     with open(file_path, "r") as file:
                         first_line = file.readline().strip().split()
                         if len(first_line) > 1:
-                            value = first_line[1]  # Segunda columna
+                            #lista = ['Li3Bi','NaZn13', 'bccAB6']
+                            #if name_bin in lista:
+                            #    value = float(first_line[1])/8
+                            #else:
+                            value = first_line[1]
+
                             with open(output_file, "a") as out_file:
                                 out_file.write(f"{R1_np},{R2_np},{delta},{dim},{int(dim*k_aL['kx']/k_aL['ky'])},{int(dim*k_aL['kx']*k/k_aL['kz'])},{value}\n")
                         else:
@@ -130,29 +135,20 @@ def process_reference_bin(output_file, dir_inicial, F, R, gamma_folder):
                         delta_value = delta.replace('_', '.')  
                         writer.writerow([label,R[label], delta_value, dimx, dimy, dimz, f_ref])
 
-def process_principal_part(output_file, label_struc,R_np, delta_list_part, aL, k_aL, F):
+def process_principal_part(output_file, label_struc,R_np, delta_dim_part, aL, k_aL, F):
     structure = os.getcwd()
     if not os.path.isfile(output_file):
         with open(output_file, "w") as out_file:
             out_file.write("cell, radius [nm],delta,dimx,dimy,dimz,F_value\n")
-    delta_list = delta_list_part
-    if "bcc" in structure and "part2" in structure:
-        delta_list = delta_list_part+[0.26]
-    elif "fcc" in structure and "part1" in structure:
-        delta_list = delta_list_part+[0.26]
-
+    delta_list = sorted({entry["delta"] for entry in delta_dim_part if entry["delta"] is not None})
     for delta in delta_list:
-        delta_folder = str(delta).replace('.', '_')
         round_value = int(np.round(float(aL/k_aL) / float(delta)))
-        if (delta == 0.26 and ("bcc" in structure and "part2" in structure)):
-            dims = [round_value]
-        elif (delta == 0.26 and ("fcc" in structure and "part1" in structure)):
-            dims = [round_value]
-        else:
-            if F == 'F_pairwise':
-                dims = [round_value - 8,round_value - 7,round_value - 6,round_value - 5,round_value - 4,round_value - 3,round_value - 2,round_value - 1, round_value,round_value + 1,round_value + 2,round_value + 3]
-            else:
-                dims = [round_value - 1, round_value, round_value + 1]
+        dims = []
+        dims_sum_bin = [entry["dim"] for entry in delta_dim_part if entry["delta"] == delta][0]
+        #dims_sum_bin = [-8,-7,-6,-5,-4,-3,-2,1,0,1,2]
+        for sum_dim in dims_sum_bin:
+            dims.append(round_value + int(sum_dim))
+        delta_folder = str(delta).replace('.','_')
 
         for j in dims:
             folder_name = f"delta_{delta_folder}_dim_{j}"

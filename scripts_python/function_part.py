@@ -6,6 +6,7 @@ import subprocess
 import hashlib
 from collections import defaultdict
 from transform_refs import extract_definitions, calculate_center_ref, process_positions
+import math
 
 def run_command(command):
     """Run the command on the terminal and return it's output."""
@@ -71,29 +72,22 @@ def path_carpeta(folder_init,n):
         x = os.path.dirname(x)
     return x
 
-def process_principal_part(reference_DEF, delta_list_part, aL, tosubmit, dir_fuente, k_aL, script_folder):
+def process_principal_part(reference_DEF, delta_dim_part, aL, tosubmit, dir_fuente, k_aL, script_folder, chain_lenght):
     structure = os.getcwd()
     pairwise_folder = os.path.join(script_folder,"pairwise_additive_F")
     pairwise_file = "fitpairL12.dat" 
     DEF =  os.path.join(structure, "DEFINITIONS.txt")
     lines = read_DEF(DEF)
-    delta_list = delta_list_part
-    if "bcc" in structure and "part2" in structure:
-        delta_list = delta_list_part+[0.26]
-    elif "fcc" in structure and "part1" in structure:
-        delta_list = delta_list_part+[0.26]
-
+    delta_list = sorted({entry["delta"] for entry in delta_dim_part if entry["delta"] is not None})
     for delta in delta_list:
         round_value = int(np.round(float(aL/k_aL) / float(delta)))
-        if (delta == 0.26 and ("bcc" in structure and "part2" in structure)):
-            dims = [round_value]
-        elif (delta == 0.26 and ("fcc" in structure and "part1" in structure)):
-            dims = [round_value]
-        else:
-            dims = [round_value - 1, round_value,round_value + 1]
-            #dims = [round_value - 8,round_value - 7,round_value - 6,round_value - 5,round_value - 4,round_value - 3,round_value - 2,round_value - 1, round_value,round_value + 1,round_value + 2,round_value + 3]
-
+        dims = []
+        #dims_sum_bin = [entry["dim"] for entry in delta_dim_part if entry["delta"] == delta][0]
+        dims_sum_bin = [-8,-7,-6,-5,-4,-3,-2,1,0,1,2]
+        for sum_dim in dims_sum_bin:
+            dims.append(round_value + int(sum_dim))
         delta_folder = str(delta).replace('.','_')
+
         for j in dims:
             folder_name = f"delta_{delta_folder}_dim_{j}"
             os.makedirs(folder_name, exist_ok=True)
@@ -116,11 +110,11 @@ def process_principal_part(reference_DEF, delta_list_part, aL, tosubmit, dir_fue
             lines = read_DEF("DEFINITIONS.txt")
 
             output_DEF_ref = os.path.join(dir_fuente,"binary_ref")
-            process_secundario_part(structure, j, dir_fuente, delta_list, k_aL)
+            process_secundario_part(structure, j, dir_fuente, delta_list, k_aL, chain_lenght)
             os.chdir(dir_fuente)
             os.chdir(structure)
 
-def process_secundario_part(struc, dim, dir_fuente_part, delta_list, k_aL):
+def process_secundario_part(struc, dim, dir_fuente_part, delta_list, k_aL, chain_lenght):
     data = extract_definitions("DEFINITIONS.txt")
     dimx = int(data.get("dimx"))
     dimy = int(data.get("dimy"))
@@ -130,14 +124,14 @@ def process_secundario_part(struc, dim, dir_fuente_part, delta_list, k_aL):
     centers = data.get("centers", [])
     PBC = data.get("PBC", [])
     R = float(data.get("R")[0])
-    nseg = int(data.get("nseg")); lseg = float(data.get("lseg"))
+    nseg = int(chain_lenght); lseg = float(data.get("lseg"))
     delta_min = np.min(delta_list)
     dist_min = (2*R+2*lseg*nseg)
     N_ref = np.round(dist_min*1.50/delta_min)
     N_ref = int(N_ref/k_aL)
     if N_ref%2 == 0:
         N_ref += 1
-
+        
     center_ref_list = calculate_center_ref(N_ref, centers, dimx, dimy, dimz, delta, cdiva, PBC)
     pos_out, _ = process_positions(center_ref_list)
 
@@ -231,7 +225,8 @@ def definitions_ref_edit(lines, ref_folder, pos1, pos2, pos3):
         "!particle semiaxis x y z in nm": 2,
         "! Rotation": 6,  # 3 líneas por partícula, 2 partículas en original
         "! coverage": 2,
-        "!Surface-polymer atraction": 2
+        "!Surface-polymer atraction": 2,
+        "!chains lenght": 2
     }
     
     # Encontrar las posiciones de cada sección en el archivo
@@ -288,8 +283,27 @@ def definitions_ref_edit(lines, ref_folder, pos1, pos2, pos3):
             if i+2 < len(modified_lines) and not modified_lines[i+2].strip().startswith("!"):
                 del modified_lines[i+2]
             break
-    
+    for i, line in enumerate(modified_lines):
+        if line.strip() == "!chains lenght":
+            if i+2 < len(modified_lines) and not modified_lines[i+2].strip().startswith("!"):
+                del modified_lines[i+2]
+            break
+            
     # Guardar el archivo DEFINITIONS.txt en la carpeta correspondiente
     output_DEF = os.path.join(ref_folder, "DEFINITIONS.txt")
     with open(output_DEF, "w") as f:
         f.writelines(modified_lines) 
+
+def vol_tot_part(name,R,l_pol,sigma,V_pol):
+    pi = math.pi
+    Vol_NP = (4./3.)*pi*np.power(R,3)
+    A = 4*pi*np.power(R,2)
+
+    if name == "fcc":
+        N = 4
+    if name == "bcc":
+        N = 2
+
+    v_tot = N*Vol_NP + N*float(sigma)*A*float(V_pol)*float(l_pol)
+
+    return v_tot
