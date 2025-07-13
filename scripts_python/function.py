@@ -288,7 +288,7 @@ def extract_definitions(definitions_path):
             while j < len(lines) and lines[j].strip() and not lines[j].startswith("!"):
                 try:
                     semiaxis_values = [float(x) for x in lines[j].strip().split()]
-                    data["R"].append(semiaxis_values[0]) 
+                    data["R"].append(semiaxis_values[0])
                 except ValueError:
                     print(f"Error al leer semiejes en línea: {lines[j]}")
                 j += 1
@@ -372,10 +372,14 @@ def update_particle_sizes(lines, gamma, R_np, n1_k_bin, n2_k_bin):
                 except ValueError:
                     print(f"Error al leer semiejes en línea: {lines[j]}")
                 j += 1
-
         elif line.startswith("! segment lengths"):
             size_index = i+1
             lseg = float(lines[size_index].split()[1])
+    if len(nseg)==0:
+        for i, line in enumerate(lines):
+            if line.startswith("!properties of ligand chains"):
+                x = int(lines[i+1].strip().split()[1])
+                nseg = [x,x]
 
     from scipy.optimize import fsolve
 

@@ -47,15 +47,7 @@ elif name == "Li3Bi":
 elif name == "AuCu":
 	N1 = 2
 	N2 = 2
-	if gamma<=np.sqrt(3)-1:
-		V_pol = 0.030
-		R2 = R1*0.88/2
-		Vol_NP_1 = pi*(4/3)*R1**3
-		Vol_NP_2 = pi*(4/3)*R2**3
-		A_1 = 4*pi*R1**2
-		A_2 = 4*pi*R2**2
-	else:
-		V_pol = 0.035
+	V_pol = 0.032
 
 elif name == "Cu3Au":
 	V_pol = 0.038
@@ -100,6 +92,11 @@ elif name=="MgZn2":
 if name == "NaZn13":
 	aL_min = (N1*Vol_NP_1+N1*sigma_1*A_1*V_pol*l_pol_1+ N2*Vol_NP_2+N2*sigma_2*A_2*V_pol*l_pol_2)**(1./3.) *2
 
+elif name == "AuCu":
+	if gamma<=np.sqrt(3)-1:
+		aL_min = (N1*Vol_NP_1+N1*sigma_1*A_1*V_pol*l_pol_1)**(1./3.)*np.power(np.sqrt(2),1/3)
+	else:
+		aL_min = (N1*Vol_NP_1+N1*sigma_1*A_1*V_pol*l_pol_1+ N2*Vol_NP_2+N2*sigma_2*A_2*V_pol*l_pol_2)**(1./3.)*np.sqrt(0.5*gamma**2+gamma-0.5)**(1./3.)
 else:
 	aL_min = (N1*Vol_NP_1+N1*sigma_1*A_1*V_pol*l_pol_1+ N2*Vol_NP_2+N2*sigma_2*A_2*V_pol*l_pol_2)**(1./3.)
 

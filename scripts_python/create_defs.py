@@ -206,7 +206,6 @@ def process_secundario_binario(lines, name_bin, output_folder, dim, n_k_bin, dir
         ("!Surface-polymer atraction", 1, n1_k_bin+n2_k_bin),
         ("!chains lenght", 1, n1_k_bin+n2_k_bin)
     ]
-
     sections_found = []
     for key, lines_per_particle, tot_particles in sections_info:
         for i, line in enumerate(lines):
@@ -215,7 +214,13 @@ def process_secundario_binario(lines, name_bin, output_folder, dim, n_k_bin, dir
                 sections_found.append((key, start_index, lines_per_particle, tot_particles))
                 break
         else:
-            print(f"Advertencia: No se encontró la sección {key}.")
+            if key == '!chains lenght':
+                for i, line in enumerate(lines):
+                    if line.startswith("!properties of ligand chains"):
+                        nseg = int(lines[i+1].strip().split()[1])
+                        continue
+            else:
+                print(f"Advertencia: No se encontró la sección {key}.")
 
     configs = [("part1", 0, n1_k_bin), ("part2", n1_k_bin, n2_k_bin)]  # (Name, Offset, number of particles)
     chain_lenght = {"part1": None, "part2": None}
@@ -241,6 +246,10 @@ def process_secundario_binario(lines, name_bin, output_folder, dim, n_k_bin, dir
         output_DEF = os.path.join(output_folder[label], f"DEFINITIONS.txt")
         with open(output_DEF, "w") as f:
             f.writelines(modified_lines)
+
+    for label in ['part1','part2']:
+        if chain_lenght[label] == None:
+            chain_lenght[label] = nseg
 
     for label in ["part1", "part2"]:
         os.chdir(output_folder[label])

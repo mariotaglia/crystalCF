@@ -43,6 +43,9 @@ def to_latex_formula(name):
     return f"{prefix} {formula}".strip()
 
 ################### INICIO ##################
+F_U = ["F_trans","F_trans_sv","F_vdW"]
+F_ST = ["F_conf","F_conf_sv","F_mixs", "F_HS"]
+F_name = F_U+F_ST+['F_tot_gcanon']#+["F_pairwise"]
 
 dir_origin= os.getcwd()
 dir_script = os.path.expanduser("~/develop/crystalCF/scripts_python")
@@ -163,9 +166,6 @@ if flag_reflexion == True:
 ################## EXPORTACTION #############
 gamma_folder_list = ["{:.3f}".format(g).replace('.','_') for g in gamma_list]
 
-F_U = ["F_trans","F_trans_sv","F_vdW"]
-F_ST = ["F_conf","F_conf_sv","F_mixs", "F_HS"]
-F_name = F_U+F_ST+['F_tot_gcanon']#+["F_pairwise"]
 
 while True:
 	check_extract = input("¿Quiere extraer los F.data? (s/n): ").strip().lower()
@@ -187,7 +187,7 @@ while True:
 				output_file = os.path.join(output_folder, f"{name_bin}_results_{f_name}.csv")
 				DEF = os.path.join(os.getcwd(), "DEFINITIONS.txt")
 				R1_np, R2_np = extract_R_bin(DEF)
-				R = {"part1": np.max([R1_np, R2_np]), "part2": np.min([R1_np, R2_np])}
+				R = {"part1": R1_np, "part2": R2_np}
 				R1_np = R["part1"]; R2_np = R["part2"]
 				gamma = float(gamma_folder.replace('_','.'))
 				aL = float(run_command(f'python3 {dir_script}/references/aL_estimate_bin.py {name_bin} {R1_np} {R2_np} {gamma_calc(DEF)} {chain_lenght["part1"]} {chain_lenght["part2"]} {cov["part1"]} {cov["part2"]}'))
@@ -283,16 +283,6 @@ for gamma_folder in gamma_folder_list:
 	if flag_reflexion_part == True:
 		k_aL_part = 2
 	
-	if name_bin == 'NaZn13':
-		t = (gamma - 0.4) / (0.7 - 0.4)
-		v_pol_bin = 0.027 + (0.037 - 0.027) * t**2
-	if name_bin == 'AlB2':
-		t = (gamma - 0.4) / (0.7 - 0.4)
-		v_pol_bin = 0.026 + (0.031 - 0.026) * t**2
-	if name_bin == 'CaCu5':
-		t = (gamma - 0.5) / (0.8 - 0.5)
-		v_pol_bin = 0.025 + (0.0345 - 0.025) * t**2
-
 	for part in ["part1", "part2"]:
 		result_cell = []
 		for i, cell in enumerate(cell_part):
@@ -380,13 +370,12 @@ os.chdir(dir_origin)
 
 gamma_value = []
 alpha_value = []
-DU_global = []
-DS_global = []
-DF_global = []
 
 DU_values = [[],[],[],[]]
 DS_values = [[],[],[],[]]
 DF_values = [[],[],[],[]]
+aL_values = [[],[],[],[]]
+R2_values = []
 
 dfs = []; columnas = 2
 for gamma_folder in gamma_folder_list:
@@ -394,22 +383,26 @@ for gamma_folder in gamma_folder_list:
 	
 	for j, name in enumerate(["part1", "part2", "binary", "Global"]):
 		if j<3:
-			values = df.loc[df["#part"] == name, ["ΔU_min", "-ΔST_min", "ΔF_min"]]
+			values = df.loc[df["#part"] == name, ["ΔU_min", "-ΔST_min", "ΔF_min", "aL_min"]]
 			gamma = df.loc[df["aL_min"] == "Global X", ["cell"]].iloc[0]
 			R2 = df.loc[df["#part"] == "R2 [nm]", ["cell"]].iloc[0]
 			alpha = R2/R1_np
 			if name != "binary":
-				DU, DS, DF = values.sort_values(by="ΔF_min").iloc[0]
+				DU, DS, DF, aL = values.sort_values(by="ΔF_min").iloc[0]
 			else:
-				DU, DS, DF = values.iloc[0]
+				DU, DS, DF, aL = values.iloc[0]
 
 		elif j == 3:
-			values = df.loc[df["aL_min"] == "Global X", ["cell", "ΔU_min", "-ΔST_min", "ΔF_min"]]
-			gamma, DU, DS, DF = values.iloc[0]
+			values = df.loc[df["aL_min"] == "Global X", ["cell", "ΔU_min", "-ΔST_min", "ΔF_min", "aL_min"]]
+			gamma, DU, DS, DF, aL = values.iloc[0]
+			R2_values.append(R2)
 		
 		DU_values[j].append(DU)
 		DS_values[j].append(DS)
 		DF_values[j].append(DF)
+		aL_values[j].append(aL)
+		
+
 
 	gamma_value.append(gamma)
 	alpha_value.append(alpha)
@@ -433,22 +426,28 @@ ref_pair = ref_pair_data[name_bin]
 filtered_ref_pair = ref_pair[
     (ref_pair['Gamma'] >= np.min(gamma_value)) & (ref_pair['Gamma'] <= np.max(gamma_value))
 ]
-
+import matplotlib.gridspec as gridspec
+from matplotlib.lines import Line2D
 F_plot = [DU_values[3],DS_values[3],DF_values[3]]
 for i, (lista, F) in enumerate(zip(F_plot,["ΔU", "-TΔS", "ΔF"])):
-	plt.figure(figsize=(8, 6))
-	plt.plot(gamma_value,F_plot[i],ls='none',marker='s',color='red',ms=7,label='MOLT-CF')
-	plt.scatter(gamma_MD,F_MD[F],marker='o',color='purple',s=50,label='MD (OTM)',zorder=10)
-	plt.scatter(filtered_ref_pair['Gamma'],filtered_ref_pair['DF'],marker='v',color='orange',s=50,label='Pairwise',zorder=10)
 
-	plt.axhline(0,ls='--',c='darkgray',zorder=-3)
-	plt.xticks(fontsize=18)
-	plt.yticks(fontsize=18)
-	plt.xlim(min(gamma_list)-0.05,max(gamma_list)+0.05)
-	plt.ylabel(y_label[i],fontsize=22)
-	plt.xlabel(r'$\gamma$',fontsize=22)
-	plt.title(f"{to_latex_formula(name_bin)}",fontsize=22,weight='bold')
-	plt.legend(fontsize=16)
+	fig = plt.figure(figsize=(8, 6), dpi=300, constrained_layout=True)
+	gs = gridspec.GridSpec(ncols=1, nrows=1, figure=fig) 
+	ax = fig.add_subplot(gs[0, 0])
+	ax.plot(gamma_value,F_plot[i],ls='none',marker='s',color='red',ms=7,label='MOLT-CF')
+	handles, labels = ax.get_legend_handles_labels()
+	handles.append(Line2D([], [], color='none'))
+	labels.append(f"A: {chain_lenght['part1']}, B: {chain_lenght['part2']}")
+	#plt.scatter(gamma_MD,F_MD[F],marker='o',color='purple',s=50,label='MD (OTM)',zorder=10)
+	#plt.scatter(filtered_ref_pair['Gamma'],filtered_ref_pair['DF'],marker='v',color='orange',s=50,label='Pairwise',zorder=10)
+
+	ax.axhline(0,ls='--',c='darkgray',zorder=-3)
+	ax.tick_params(axis='both', labelsize=18)
+	ax.set_xlim(min(gamma_list)-0.05,max(gamma_list)+0.05)
+	ax.set_ylabel(y_label[i],fontsize=22)
+	ax.set_xlabel(r'$\gamma$',fontsize=22)
+	ax.set_title(f"{to_latex_formula(name_bin)}",fontsize=22,weight='bold')
+	ax.legend(handles=handles, labels=labels, fontsize=16)
 	plt.savefig(f'{final_output}/{name_bin}_results_{F}.png',format='png',dpi=300,bbox_inches='tight')
 
 F_plot = [DU_values[3],DS_values[3],DF_values[3]]
@@ -466,6 +465,31 @@ for i, (lista, F) in enumerate(zip(F_plot,["ΔU", "-TΔS", "ΔF"])):
 	plt.legend(fontsize=16)
 	plt.savefig(f'{final_output}/{name_bin}_results_{F}_alpha.png',format='png',dpi=300,bbox_inches='tight')
 
+
+fig = plt.figure(figsize=(16, 6), dpi=300, constrained_layout=True)
+gs = gridspec.GridSpec(ncols=2, nrows=1, figure=fig) 
+ax = fig.add_subplot(gs[0, 0])
+ax.plot(gamma_value,aL_values[2],ls='none',marker='s',color='green',ms=7,label='MOLT-CF')
+#plt.scatter(gamma_MD,F_MD[F],marker='o',color='purple',s=50,label='MD (OTM)',zorder=10)
+#plt.scatter(filtered_ref_pair['Gamma'],filtered_ref_pair['DF'],marker='v',color='orange',s=50,label='Pairwise',zorder=10)
+ax.tick_params(axis='both', labelsize=18)
+ax.set_xlim(min(gamma_list)-0.05,max(gamma_list)+0.05)
+ax.set_ylabel(r"$aL_{BNSL}$",fontsize=22)
+ax.set_xlabel(r'$\gamma$',fontsize=22)
+ax.set_title(f"{to_latex_formula(name_bin)}",fontsize=22,weight='bold')
+ax.legend(handles=handles, labels=labels, fontsize=16)
+
+ax1 = fig.add_subplot(gs[0, 1])
+ax1.plot(gamma_value,R2_values,ls='none',marker='s',color='purple',ms=7,label='MOLT-CF')
+#plt.scatter(gamma_MD,F_MD[F],marker='o',color='purple',s=50,label='MD (OTM)',zorder=10)
+#plt.scatter(filtered_ref_pair['Gamma'],filtered_ref_pair['DF'],marker='v',color='orange',s=50,label='Pairwise',zorder=10)
+ax1.tick_params(axis='both', labelsize=18)
+ax1.set_xlim(min(gamma_list)-0.05,max(gamma_list)+0.05)
+ax1.set_ylabel(r"$R_{B}$",fontsize=22)
+ax1.set_xlabel(r'$\gamma$',fontsize=22)
+ax1.set_title(f"{to_latex_formula(name_bin)}",fontsize=22,weight='bold')
+ax1.legend(handles=handles, labels=labels, fontsize=16)
+plt.savefig(f'{final_output}/{name_bin}_aL_min.png',format='png',dpi=300,bbox_inches='tight')
 
 #####################################################
 

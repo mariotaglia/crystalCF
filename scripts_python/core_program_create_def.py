@@ -63,7 +63,11 @@ for key, lines_per_particle, tot_particles in sections_info:
             sections_found.append((key, start_index, lines_per_particle, tot_particles))
             break
     else:
-        print(f"Advertencia: No se encontró la sección {key}.")
+        if {key} == '!chains lenght':
+            sections_info = sections_info[:-1]
+            continue
+        else:
+            print(f"Advertencia: No se encontró la sección {key}.")
 
 configs = [("part1", 0, n1_k_bin), ("part2", n1_k_bin, n2_k_bin)]  # (Name, Offset, number of particles)
 cov = {"part1": None, "part2": None}

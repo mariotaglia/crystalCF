@@ -83,7 +83,7 @@ def estimate_part_F(part, part_cell, factor_aL_part, ni, k_part, gen_curves_flag
     #y_cell = CubicSpline(aL_cell, F_norm_cell)(x_cell)
 
     # Ajuste cúbico (polinomio de grado 3)
-    coeficientes = np.polyfit(aL_cell, F_norm_cell, 4)
+    coeficientes = np.polyfit(aL_cell, F_norm_cell, 5)
     polinomio = np.poly1d(coeficientes)
 
     # Evaluación del polinomio ajustado
@@ -186,7 +186,6 @@ def estimate_bin_F(name, factor_bcell, k_bin, n1, n2, ax, gamma, gen_curves_flag
         data_bin = data_bin.merge(data_bin_part[['delta', 'dimx', f'F_tot_gcanon_reference_{part}']], 
                                   on=['delta', 'dimx'], 
                                   how='left')
-        
     data_bin['aL'] = (data_bin['delta'] * data_bin['dimx'] * float(factor_bcell)*k_reflex["kx"]).round(4)
     data_bin["F_norm"] = data_bin["F_tot_gcanon"] - data_bin["F_tot_gcanon_reference_part1"] - data_bin["F_tot_gcanon_reference_part2"]
     data_bin.sort_values(by='aL', inplace=True)
