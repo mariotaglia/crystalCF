@@ -191,11 +191,11 @@ def process_principal_binario(reference_DEF, name_bin, delta_dim_bin, aL, n_k_bi
             lines = read_DEF("DEFINITIONS.txt")
             dir_origen = os.path.abspath(os.path.join(dir_fuente, os.pardir))
             output_DEF_ref = {"part1": os.path.join(dir_origen,"sim_part1","binary_ref","part1"),"part2": os.path.join(dir_fuente,"binary_ref","part2")}
-            process_secundario_binario(lines, name_bin, output_DEF_ref, int(dim*k_aL["kx"]), n_k_bin, dir_fuente, delta_list, k_aL, gamma)
+            process_secundario_binario(lines, name_bin, output_DEF_ref, n_k_bin, dir_fuente, delta_list, k_aL, gamma)
             os.chdir(dir_fuente)
             os.chdir(structure)
 
-def process_secundario_binario(lines, name_bin, output_folder, dim, n_k_bin, dir_fuente, delta_bin, k_aL, gamma):
+def process_secundario_binario(lines, name_bin, output_folder, n_k_bin, dir_fuente, delta_bin, k_aL, gamma):
     n1_k_bin = n_k_bin["part1"]; n2_k_bin = n_k_bin["part2"]
     sections_info = [
         ("! number of particles", 1, 1),

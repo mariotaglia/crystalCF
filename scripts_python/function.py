@@ -664,3 +664,51 @@ def vol_tot_bin(name,R1,R2,l_pol_1,l_pol_2,sigma_1,sigma_2,V_pol):
 
     return v_tot
 
+def N(name):
+    if name == "NaCl":
+        N1 = 4
+        N2 = 4
+    elif name == "CsCl":
+        N1 = 1
+        N2 = 1
+    elif name == "CaCu5":
+        N1 = 1
+        N2 = 5
+
+    elif name == "AlB2":
+        N1 = 1
+        N2 = 2
+
+    elif name == "Li3Bi":
+        N1 = 0.5
+        N2 = 1.5
+
+    elif name == "AuCu":
+        N1 = 2
+        N2 = 2
+
+    elif name == "Cu3Au":
+        N1 = 1
+        N2 = 3
+
+    elif name == "NaZn13":
+        N1 = 1
+        N2 = 12
+
+    elif name == "CaB6":
+        N1 = 1
+        N2 = 6
+
+    elif name == "Fe4C":
+        N1 = 1
+        N2 = 4
+
+    elif name == "bccAB6":
+        N1 = 2/2**3
+        N2 = 12/2**3
+
+    elif name=="MgZn2":
+        N1 = 4
+        N2 = 8
+
+    return N1, N2

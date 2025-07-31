@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import csv
 from scipy.interpolate import CubicSpline
 from collections import defaultdict
-from function import run_command, extract_R_bin, extract_cdiva, gamma_calc, vol_tot_bin
+from function import run_command, extract_R_bin, extract_cdiva, gamma_calc, vol_tot_bin, N
 from function import path_carpeta, extract_params_init, read_DEF, join_F_csv, join_F_csv_ref
 from function_part import extract_R_part, vol_tot_part
 from export_output import process_principal, process_reference_bin, process_principal_part, process_reference_part
@@ -244,8 +244,18 @@ while True:
 
 ##################### ESTIMACIONES ###############################
 os.chdir(dir_origin)
-v_pol_part = 0.029
-v_pol_bin = 0.029
+def v_pol_part(R):
+	x = R/R1_np
+	t = (x - 0.4) / (1 - 0.6)
+	y = 0.028 + (0.030 - 0.028) * (1 - (1 - t)**2)
+	return 0.029
+
+def v_pol_bin(R1, R2, name):
+	x = R2/R1
+	t = (x - 0.4) / (1 - 0.6)
+	y = 0.026 + (0.032 - 0.026) * (1 - (1 - t)**2)
+	y = 0.029
+	return y 
 
 import matplotlib.pyplot as plt
 fig1, ax1 = plt.subplots(figsize=(8, 6)); fig2, ax2 = plt.subplots(figsize=(8, 6)); fig3, ax3 = plt.subplots(figsize=(8, 6))
@@ -287,7 +297,9 @@ for gamma_folder in gamma_folder_list:
 		result_cell = []
 		for i, cell in enumerate(cell_part):
 			if 'F_pairwise' in F_name:
-				result_cell_pairwise = estimate_part_F_pair(part, cell, factor_aL_part[cell], n[part], k_part[cell],vol_tot_part(cell,R[part],chain_lenght[part],cov[part],v_pol_part), gen_curves_flag, k_aL_part, np.round(gamma,2))
+				result_cell_pairwise = estimate_part_F_pair(part, cell, factor_aL_part[cell], n[part], 
+					k_part[cell],vol_tot_part(cell,R[part],chain_lenght[part],cov[part], v_pol_part(R[part])), gen_curves_flag, k_aL_part, np.round(gamma,2))
+				print(v_pol_part(R[part]))
 				aL_min = result_cell_pairwise[0]
 				F_part = result_cell_pairwise[1]
 				aL_array = result_cell_pairwise[2]	
@@ -307,7 +319,9 @@ for gamma_folder in gamma_folder_list:
 	factor_aL_bin = cell_bin_factor*np.power(cdiva_bin,(-1.0/3.0))
 	
 	if 'F_pairwise' in F_name:
-		result_bin_pair = estimate_bin_F_pair(name_bin, factor_aL_bin, k_bin, n1, n2, vol_tot_bin(name_bin,R1_np,R2_np,chain_lenght["part1"],chain_lenght["part2"],cov["part1"],cov["part2"],v_pol_bin), ax4, np.round(gamma,2), gen_curves_flag, k_aL, cdiva_bin)
+		result_bin_pair = estimate_bin_F_pair(name_bin, factor_aL_bin, k_bin, n1, n2, 
+			vol_tot_bin(name_bin,R1_np,R2_np,chain_lenght["part1"],chain_lenght["part2"],cov["part1"],cov["part2"],v_pol_bin(R1_np, R2_np, name_bin)), ax4, np.round(gamma,2), gen_curves_flag, k_aL, cdiva_bin)
+		print(v_pol_bin(R1_np, R2_np, name_bin))
 		aL_min = result_bin_pair[0]
 		F_bin = result_bin_pair[1]
 		aL_array = result_bin_pair[2]; packing_bin = result_bin_pair[3]
@@ -401,8 +415,6 @@ for gamma_folder in gamma_folder_list:
 		DS_values[j].append(DS)
 		DF_values[j].append(DF)
 		aL_values[j].append(aL)
-		
-
 
 	gamma_value.append(gamma)
 	alpha_value.append(alpha)

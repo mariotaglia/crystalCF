@@ -197,7 +197,7 @@ def estimate_bin_F(name, factor_bcell, k_bin, n1, n2, ax, gamma, gen_curves_flag
     x_bin =  np.arange(aL_bin[0], aL_bin[-1], 0.001)
     #y_bin = CubicSpline(aL_bin, F_norm_bin)(x_bin)
 
-    coeficientes = np.polyfit(aL_bin, F_norm_bin, 4)
+    coeficientes = np.polyfit(aL_bin, F_norm_bin, 5)
     polinomio = np.poly1d(coeficientes)
     y_bin = polinomio(x_bin)
 
@@ -342,7 +342,7 @@ def estimate_bin_F_pair(name, factor_bcell, k_bin, n1, n2, vol_tot, ax, gamma, g
     x_bin =  np.arange(aL_bin[0], aL_bin[-1], 0.001)
     #y_bin = CubicSpline(aL_bin, F_norm_bin)(x_bin)
 
-    packing_list = np.linspace(0.6,1.0,100)
+    packing_list = np.linspace(0.7,1.0,100)
     if name == 'MgZn2':
         x_bin = np.power(vol_tot/packing_list/cdiva/2, 1./3.)
     elif name == 'NaCl':
@@ -441,7 +441,7 @@ def estimate_part_F_pair(part, part_cell, factor_aL_part, ni, k_part, vol_tot, g
     #coeficientes = np.polyfit(aL_cell, F_norm_cell, 4)
     #polinomio = np.poly1d(coeficientes)
 
-    packing_list = np.linspace(0.7,1.0,100)
+    packing_list = np.linspace(0.85,1.0,100)
     # Evaluación del polinomio ajustado
     x_cell = np.power(vol_tot/packing_list, 1./3.)
     mask = (x_cell >= aL_cell[0]) & (x_cell <= aL_cell[-1])
