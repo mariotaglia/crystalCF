@@ -194,14 +194,19 @@ while True:
 				delta_dim_bin = [entry for entry in gamm_delta_dim if entry["gamma"] == gamma]
 				process_principal(output_file, name_bin, R, delta_dim_bin, aL, k_aL, f_name)
 				os.chdir(os.path.join(dir_origin,f"gamma_{gamma_folder}"))
-				if not f_name == "F_pairwise":
+				if "F_pairwise" in F_name:
+					if not f_name == "F_pairwise":
+						output_file = os.path.join(output_folder, f"{name_bin}_references_{f_name}.csv")
+						if name_bin != "Li3Bi" and name_bin != "NaZn13":
+							process_reference_bin(output_file, dir_origin, f_name, R, gamma_folder)
+						else:
+							if not os.path.isfile(output_file):
+								with open(output_file, "w") as out_file:
+									out_file.write("#part,radius [nm],delta,dimx,dimy,dimz,F_reference\n")
+				else:
 					output_file = os.path.join(output_folder, f"{name_bin}_references_{f_name}.csv")
-					if name_bin != "Li3Bi" and name_bin != "NaZn13":
-						process_reference_bin(output_file, dir_origin, f_name, R, gamma_folder)
-					else:
-						if not os.path.isfile(output_file):
-							with open(output_file, "w") as out_file:
-								out_file.write("#part,radius [nm],delta,dimx,dimy,dimz,F_reference\n")
+					process_reference_bin(output_file, dir_origin, f_name, R, gamma_folder)
+
 				dir_fuente = {"part1": os.path.join(dir_origin,"sim_part1"),"part2": os.path.join(os.getcwd(),"part2")}
 
 				for label in ["part1", "part2"]:

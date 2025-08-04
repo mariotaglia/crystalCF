@@ -227,9 +227,14 @@ def extract_params_init(params_init, cond):
             data["n2"] = 2
             data["num cell bin"] = 1
         elif data["name"] == "Li3Bi":
-            data["n1"] = 4
-            data["n2"] = 5
-            data["num cell bin"] = 1
+            if data["cell bin factor"] == 1:
+                data["n1"] = 4
+                data["n2"] = 5
+                data["num cell bin"] = 1
+            elif data["cell bin factor"] == 2**0.5:
+                data["n1"] = 2
+                data["n2"] = 4
+                data["num cell bin"] = 1
         elif data["name"] == "NaZn13":
             data["n1"] = 1
             data["n2"] = 32

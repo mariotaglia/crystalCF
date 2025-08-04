@@ -26,6 +26,7 @@ R1_np = params_init['R1']
 gamma_list = params_init['gamma list']
 gamm_delta_dim = params_init['list gamma delta sum dim']
 k_bin = params_init['num cell bin']
+cell_bin_factor = params_init["cell bin factor"]
 n_k_bin = {"part1": n1*k_bin, "part2": n2*k_bin}
 flag_reflexion = params_init["flag reflexion binary"]
 flag_reflexion_part = params_init["flag reflexion part"]
@@ -157,6 +158,7 @@ for gamma_folder in gamma_folder_list:
 	DEF = os.path.join(os.getcwd(), "DEFINITIONS.txt")
 	R1_np, R2_np = extract_R_bin(DEF)
 	update_cdiva("DEFINITIONS.txt", name_bin, gamma_calc(DEF))
+
 	aL = float(run_command(f'python3 {dir_script}/references/aL_estimate_bin.py {name_bin} {R1_np} {R2_np} {gamma_calc(DEF)} {chain_lenght["part1"]} {chain_lenght["part2"]} {cov["part1"]} {cov["part2"]}'))
 	delta_dim_bin = [entry for entry in gamm_delta_dim if entry["gamma"] == gamma]
 	process_principal_binario(DEF, name_bin, delta_dim_bin, aL, n_k_bin, tosubmit, dir_fuente, k_aL, gamma, dir_script)

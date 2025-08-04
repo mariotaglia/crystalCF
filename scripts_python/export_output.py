@@ -43,10 +43,10 @@ def process_principal(output_file, name_bin, R, delta_dim_bin, aL, k_aL, F):
                         first_line = file.readline().strip().split()
                         if len(first_line) > 1:
                             lista = ['Li3Bi','NaZn13', 'bccAB6']
-                            if name_bin in lista:
-                                value = float(first_line[1])/8
-                            else:
-                                value = first_line[1]
+                            #if name_bin in lista:
+                            #    value = float(first_line[1])/8
+                            #else:
+                            value = first_line[1]
 
                             with open(output_file, "a") as out_file:
                                 out_file.write(f"{R1_np},{R2_np},{delta},{dim},{int(dim*k_aL['kx']/k_aL['ky'])},{int(dim*k_aL['kx']*k/k_aL['kz'])},{value}\n")
