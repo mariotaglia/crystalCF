@@ -74,6 +74,11 @@ elif name == "bccAB6":
 	N1 = 2
 	N2 = 12
 
+elif name == "Th3P4":
+	V_pol = 0.032
+	N1 = 12
+	N2 = 16
+
 elif name=="MgZn2":
 	N1 = 4
 	N2 = 8

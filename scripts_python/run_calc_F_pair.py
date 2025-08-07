@@ -26,7 +26,7 @@ def run_process_final(gamma_list, name_bin, run_program_file):
         search_path = os.walk(base_path)
         for root, _, files in search_path:
             if 'fitpairL12.dat' in files:
-                paths.append(root)
+                #paths.append(root)
                 print(root)
 
         for dir1 in paths:
@@ -41,8 +41,8 @@ def run_process_final(gamma_list, name_bin, run_program_file):
         search_path = os.walk(base_path)
         for root, _, files in search_path:
             if 'fitpairL12.dat' in files:
+                #continue
                 paths.append(root)
-                print(root)
 
         for dir1 in paths:
             os.chdir(dir1)

@@ -26,7 +26,7 @@ def process_principal(output_file, name_bin, R, delta_dim_bin, aL, k_aL, F):
         round_value = int(np.round(float(aL/k_aL["kx"]) / float(delta)))
         dims = []
         dims_sum_bin = [entry["dim"] for entry in delta_dim_bin if entry["delta"] == delta][0]
-        #dims_sum_bin = [-8,-7,-6,-5,-4,-3,-2,1,0,1,2]
+        #dims_sum_bin = dims_sum_bin = np.arange(-8,16,1)
         for sum_dim in dims_sum_bin:
             dims.append(round_value + int(sum_dim))
         delta_folder = str(delta).replace('.', '_')

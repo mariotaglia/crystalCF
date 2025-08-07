@@ -431,18 +431,21 @@ for gamma_folder in gamma_folder_list:
 	df = pd.concat([df, pd.DataFrame([[""] * len(df.columns)], columns=df.columns)], ignore_index=True)
 	dfs.append(df)
 
-#datos MD:
-ref_MD = pd.read_excel(os.path.join(dir_script,"references","ref_MD_backup.xlsx"), engine="openpyxl")
-ref_MD = ref_MD.loc[ref_MD.iloc[:, 0] == name_bin]
-gamma_MD = ref_MD[ref_MD.columns[1]]
-F_MD = ref_MD[ref_MD.columns[2:]]
 y_label = [r'$\Delta$U (k$_{\text{B}}$T)',r'$-T\Delta$S (k$_{\text{B}}$T)',r'$\Delta$F (k$_{\text{B}}$T)']
 
-ref_pair_data = pd.read_excel(os.path.join(dir_script,"references","data_pair.xlsx"), engine="openpyxl",skiprows=1,header=[0,1])
-ref_pair = ref_pair_data[name_bin]
-filtered_ref_pair = ref_pair[
-    (ref_pair['Gamma'] >= np.min(gamma_value)) & (ref_pair['Gamma'] <= np.max(gamma_value))
-]
+if 'F_pairwise' not in F_name:
+	#datos MD:
+	ref_MD = pd.read_excel(os.path.join(dir_script,"references","ref_MD_backup.xlsx"), engine="openpyxl")
+	ref_MD = ref_MD.loc[ref_MD.iloc[:, 0] == name_bin]
+	gamma_MD = ref_MD[ref_MD.columns[1]]
+	F_MD = ref_MD[ref_MD.columns[2:]]
+
+	ref_pair_data = pd.read_excel(os.path.join(dir_script,"references","data_pair.xlsx"), engine="openpyxl",skiprows=1,header=[0,1])
+	ref_pair = ref_pair_data[name_bin]
+	filtered_ref_pair = ref_pair[
+	    (ref_pair['Gamma'] >= np.min(gamma_value)) & (ref_pair['Gamma'] <= np.max(gamma_value))
+	]
+
 import matplotlib.gridspec as gridspec
 from matplotlib.lines import Line2D
 F_plot = [DU_values[3],DS_values[3],DF_values[3]]
