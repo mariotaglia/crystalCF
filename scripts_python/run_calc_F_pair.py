@@ -26,8 +26,23 @@ def run_process_final(gamma_list, name_bin, run_program_file):
         search_path = os.walk(base_path)
         for root, _, files in search_path:
             if 'fitpairL12.dat' in files:
-                paths.append(root)
+                #paths.append(root)
                 print(root)
+
+        for dir1 in paths:
+            os.chdir(dir1)
+            os.system(f"python3 {run_program_file}")
+            os.system("wait")
+
+    for i, gamma in enumerate(gamma_list):
+        base_path = os.path.join(dir_origin,f"gamma_{gamma}","part2")
+        paths = []
+        
+        search_path = os.walk(base_path)
+        for root, _, files in search_path:
+            if 'fitpairL12.dat' in files:
+                #continue
+                paths.append(root)
 
         for dir1 in paths:
             os.chdir(dir1)
@@ -69,6 +84,5 @@ params_init = extract_params_init('init_params.txt')
 name_bin = params_init['name']
 gamma_list = params_init['gamma list']
 gamma_folder_list = ["{:.3f}".format(g).replace('.','_') for g in gamma_list]
-
 os.chdir(dir_origin)
 run_process_final(gamma_folder_list, name_bin, run_program_file)

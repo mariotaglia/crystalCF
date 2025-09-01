@@ -6,6 +6,7 @@ import subprocess
 import hashlib
 from collections import defaultdict
 from transform_refs import extract_definitions, calculate_center_ref, process_positions
+import math
 
 def run_command(command):
     """Run the command on the terminal and return it's output."""
@@ -71,29 +72,22 @@ def path_carpeta(folder_init,n):
         x = os.path.dirname(x)
     return x
 
-def process_principal_part(reference_DEF, delta_list_part, aL, tosubmit, dir_fuente, k_aL, script_folder, chain_lenght):
+def process_principal_part(reference_DEF, delta_dim_part, aL, tosubmit, dir_fuente, k_aL, script_folder, chain_lenght):
     structure = os.getcwd()
     pairwise_folder = os.path.join(script_folder,"pairwise_additive_F")
     pairwise_file = "fitpairL12.dat" 
     DEF =  os.path.join(structure, "DEFINITIONS.txt")
     lines = read_DEF(DEF)
-    delta_list = delta_list_part
-    if "bcc" in structure and "part2" in structure:
-        delta_list = delta_list_part+[0.26]
-    elif "fcc" in structure and "part1" in structure:
-        delta_list = delta_list_part+[0.26]
-
+    delta_list = sorted({entry["delta"] for entry in delta_dim_part if entry["delta"] is not None})
     for delta in delta_list:
         round_value = int(np.round(float(aL/k_aL) / float(delta)))
-        if (delta == 0.26 and ("bcc" in structure and "part2" in structure)):
-            dims = [round_value]
-        elif (delta == 0.26 and ("fcc" in structure and "part1" in structure)):
-            dims = [round_value]
-        else:
-            dims = [round_value - 1, round_value,round_value + 1]
-            #dims = [round_value - 8,round_value - 7,round_value - 6,round_value - 5,round_value - 4,round_value - 3,round_value - 2,round_value - 1, round_value,round_value + 1,round_value + 2,round_value + 3]
-
+        dims = []
+        dims_sum_bin = [entry["dim"] for entry in delta_dim_part if entry["delta"] == delta][0]
+        #dims_sum_bin = [-8,-7,-6,-5,-4,-3,-2,1,0,1,2]
+        for sum_dim in dims_sum_bin:
+            dims.append(round_value + int(sum_dim))
         delta_folder = str(delta).replace('.','_')
+
         for j in dims:
             folder_name = f"delta_{delta_folder}_dim_{j}"
             os.makedirs(folder_name, exist_ok=True)
@@ -299,3 +293,17 @@ def definitions_ref_edit(lines, ref_folder, pos1, pos2, pos3):
     output_DEF = os.path.join(ref_folder, "DEFINITIONS.txt")
     with open(output_DEF, "w") as f:
         f.writelines(modified_lines) 
+
+def vol_tot_part(name,R,l_pol,sigma,V_pol):
+    pi = math.pi
+    Vol_NP = (4./3.)*pi*np.power(R,3)
+    A = 4*pi*np.power(R,2)
+
+    if name == "fcc":
+        N = 4
+    if name == "bcc":
+        N = 2
+
+    v_tot = N*Vol_NP + N*float(sigma)*A*float(V_pol)*float(l_pol)
+
+    return v_tot

@@ -7,7 +7,6 @@ use chainsdat
 use MPI
 use branches
 use solventchains
-use ellipsoid, only : longp
 implicit none
 integer i,il
 integer j
@@ -59,7 +58,7 @@ il=0
 
 do while (il.lt.cuantas)
 
-  call cadenas72mr(chains,nchas,transs,longp(iii)) ! generate chains
+  call cadenas72mr(chains,nchas,transs,longdif(iii)) ! generate chains
 
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
@@ -79,13 +78,13 @@ do while (il.lt.cuantas)
       il=il+1
       if(il.gt.cuantas)exit
       ing = transs(i)
-      do j=1,longp(iii)
+      do j=1,longdif(iii)
          in1(j,2)=chains(2,j,i)
          in1(j,3)=chains(3,j,i)
          in1(j,1)=chains(1,j,i)
 !         if((readchains.eq.-1).and.(rank.eq.0))write(3113,*)in1(j,1),in1(j,2),in1(j,3)
       enddo
-         call pxs(longp(iii)) ! only puts into lattice chains of length longp(iii)
+         call pxs(longdif(iii)) ! only puts into lattice chains of length longdif(iii)
   enddo
 enddo
 

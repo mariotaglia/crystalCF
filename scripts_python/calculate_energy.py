@@ -74,7 +74,7 @@ def estimate_part_F(part, part_cell, factor_aL_part, ni, k_part, gen_curves_flag
     df_cell = mean_al(data_part_cell)
     df_tot_cell = mean_al(data_part_cell)
 
-    k_reflex = k_reflex_part**3
+    k_reflex = np.power(k_reflex_part,3)
     aL_cell = df_cell['aL'].to_numpy()
     F_tot = df_cell["F_tot_gcanon"].to_numpy()*k_reflex/k_part
     F_norm_cell = df_cell['F_norm'].to_numpy()*k_reflex/k_part
@@ -83,7 +83,7 @@ def estimate_part_F(part, part_cell, factor_aL_part, ni, k_part, gen_curves_flag
     #y_cell = CubicSpline(aL_cell, F_norm_cell)(x_cell)
 
     # Ajuste cúbico (polinomio de grado 3)
-    coeficientes = np.polyfit(aL_cell, F_norm_cell, 4)
+    coeficientes = np.polyfit(aL_cell, F_norm_cell, 5)
     polinomio = np.poly1d(coeficientes)
 
     # Evaluación del polinomio ajustado
@@ -142,7 +142,7 @@ def estimate_part_contrib(part, part_cell, factor_aL_part, ni, k_part, F, aL_arr
         data_part_cell["F_norm"] = data_part_cell[f_name] - data_part_ref[f"{f_name}_reference"]
         data_part_cell.sort_values(by='aL', inplace=True)
 
-        k_reflex = k_reflex_part**3
+        k_reflex = np.power(k_reflex_part,3)
         df_cell = mean_al(data_part_cell)
         aL_cell = df_cell['aL'].to_numpy()
         F_cell.append(df_cell['F_norm'].to_numpy()*k_reflex/k_part)
@@ -186,7 +186,6 @@ def estimate_bin_F(name, factor_bcell, k_bin, n1, n2, ax, gamma, gen_curves_flag
         data_bin = data_bin.merge(data_bin_part[['delta', 'dimx', f'F_tot_gcanon_reference_{part}']], 
                                   on=['delta', 'dimx'], 
                                   how='left')
-        
     data_bin['aL'] = (data_bin['delta'] * data_bin['dimx'] * float(factor_bcell)*k_reflex["kx"]).round(4)
     data_bin["F_norm"] = data_bin["F_tot_gcanon"] - data_bin["F_tot_gcanon_reference_part1"] - data_bin["F_tot_gcanon_reference_part2"]
     data_bin.sort_values(by='aL', inplace=True)
@@ -198,7 +197,7 @@ def estimate_bin_F(name, factor_bcell, k_bin, n1, n2, ax, gamma, gen_curves_flag
     x_bin =  np.arange(aL_bin[0], aL_bin[-1], 0.001)
     #y_bin = CubicSpline(aL_bin, F_norm_bin)(x_bin)
 
-    coeficientes = np.polyfit(aL_bin, F_norm_bin, 4)
+    coeficientes = np.polyfit(aL_bin, F_norm_bin, 5)
     polinomio = np.poly1d(coeficientes)
     y_bin = polinomio(x_bin)
 
@@ -327,12 +326,11 @@ def delta_energy_contrib(dict_contrib, File_name, cell_min, n1, n2):
 
     return DF_calc
 
-def estimate_bin_F_pair(name, factor_bcell, k_bin, n1, n2, ax, gamma, gen_curves_flag, k_reflex):
+def estimate_bin_F_pair(name, factor_bcell, k_bin, n1, n2, vol_tot, ax, gamma, gen_curves_flag, k_reflex, cdiva):
     F_norm = []
     csv_file = [f"{name}_results_output.csv"]
     data_bin = pd.read_csv(csv_file[0], skiprows=0)
     k = k_reflex["kx"]*k_reflex["ky"]*k_reflex["kz"]
-        
     data_bin['aL'] = (data_bin['delta'] * data_bin['dimx'] * float(factor_bcell)*k_reflex["kx"]).round(4)
     data_bin["F_norm"] = data_bin['F_pairwise']
     data_bin.sort_values(by='aL', inplace=True)
@@ -342,71 +340,48 @@ def estimate_bin_F_pair(name, factor_bcell, k_bin, n1, n2, ax, gamma, gen_curves
     F_norm_bin = df_bin['F_norm'].to_numpy()*k/k_bin
     F_tot_bin = df_bin['F_pairwise'].to_numpy()*k/k_bin
     x_bin =  np.arange(aL_bin[0], aL_bin[-1], 0.001)
+    #y_bin = CubicSpline(aL_bin, F_norm_bin)(x_bin)
+    packing_list = np.linspace(0.7,1.0,100)
+    if name == 'MgZn2':
+        x_bin = np.power(vol_tot/packing_list/cdiva/2, 1./3.)
+    elif name == 'NaCl':
+        x_bin = np.power(vol_tot*k/packing_list, 1./3.)
+    else:    
+        x_bin = np.power(vol_tot*k/packing_list/cdiva, 1./3.)
+
+    mask = x_bin <= aL_bin[-1]
+    x_bin = x_bin[mask]
     y_bin = CubicSpline(aL_bin, F_norm_bin)(x_bin)
-
-    coeficientes = np.polyfit(aL_bin, F_norm_bin, 4)
-    polinomio = np.poly1d(coeficientes)
-    y_bin = polinomio(x_bin)
-
     F_min_bin = y_bin.min()
-    aL_min_bin = x_bin[y_bin.argmin()]
+
+    aL_min_bin = x_bin[y_bin == F_min_bin]
+    
+    if name == 'MgZn2':
+        packing = vol_tot/aL_min_bin**3/cdiva/2
+    elif name == 'NaCl':
+        packing = vol_tot*k/aL_min_bin**3
+    else:    
+        packing = vol_tot*k/aL_min_bin**3/cdiva
 
     if gen_curves_flag == True:
         fig_sub, ax_sub = plt.subplots(figsize=(8, 6))
-        ax_sub.scatter(aL_bin, F_norm_bin)
-        ax_sub.plot(x_bin,y_bin)
+        ax_sub.scatter(aL_bin, F_norm_bin/(n1+n2))
+        ax_sub.plot(x_bin,y_bin/(n1+n2))
         ax_sub.set_xlabel(r'$a_{\text{L}}$',fontsize=22)
         ax_sub.set_ylabel(r'$\Delta$F (k$_{\text{B}}$T)',fontsize=22)
         ax_sub.axvline(aL_min_bin,ls='--',c='darkgray',zorder=-1)
         fig_sub.savefig(f"F_{name}_pair.png",dpi=300, format="png",bbox_inches='tight')
         plt.close(fig_sub)
+
     ax.scatter(aL_bin, F_norm_bin/(n1+n2), label=fr'$\gamma: {gamma:.2f}$')
     ax.plot(x_bin,y_bin/(n1+n2))
     ax.scatter(aL_min_bin,F_min_bin/(n1+n2),marker='|', color='black',s=50,zorder=10)
     
-    return aL_min_bin, F_min_bin, x_bin
+    return aL_min_bin[0], F_min_bin, x_bin, packing
 
-def estimate_part_F_pair(part, part_cell, factor_aL_part, ni, k_part, gen_curves_flag, k_reflex_part):
+def estimate_part_F_pair(part, part_cell, factor_aL_part, ni, k_part, vol_tot, gen_curves_flag, k_reflex_part, gamma):
     F_norm = []
-    csv_file = [f"{part}_results_output.csv", f"{part}_references_output.csv"]
-    data_part = pd.read_csv(csv_file[0], skiprows=0).dropna()
-    data_part_ref = pd.read_csv(csv_file[1], skiprows=0).dropna()
-    data_part_cell = data_part[data_part["cell"] == part_cell].copy().reset_index(drop=True)
-    data_part_ref = data_part_ref[data_part_ref["cell"] == part_cell].copy().reset_index(drop=True)
-    data_part_cell['aL'] = data_part_cell['delta'] * data_part_cell['dimx'] *factor_aL_part*k_reflex_part
-    data_part_cell['aL'] = data_part_cell['aL'].round(4) #needed to calculate mean.
-    data_part_cell["F_norm"] = data_part_cell["F_tot_gcanon"] - data_part_ref["F_tot_gcanon_reference"]
-    data_part_cell.sort_values(by='aL', inplace=True)
-    df_cell = mean_al(data_part_cell)
-    df_tot_cell = mean_al(data_part_cell)
-
-    k_reflex = k_reflex_part**3
-    aL_cell = df_cell['aL'].to_numpy()
-    F_tot = df_cell["F_tot_gcanon"].to_numpy()*k_reflex/k_part
-    F_norm_cell = df_cell['F_norm'].to_numpy()*k_reflex/k_part
-
-    x_cell =  np.arange(aL_cell[0], aL_cell[-1], 0.001)
-    y_cell = CubicSpline(aL_cell, F_norm_cell)(x_cell)
-
-    # Ajuste cúbico (polinomio de grado 3)
-    coeficientes = np.polyfit(aL_cell, F_norm_cell, 4)
-    polinomio = np.poly1d(coeficientes)
-
-    # Evaluación del polinomio ajustado
-    y_cell = polinomio(x_cell)
-    F_min_cell = y_cell.min()
-    aL_min_cell = x_cell[y_cell.argmin()]
-
-    if gen_curves_flag == True:
-        fig_sub, ax_sub = plt.subplots(figsize=(8, 6))
-        ax_sub.scatter(aL_cell, F_norm_cell, label='Full MOLT-CF')
-        ax_sub.plot(x_cell,y_cell)
-        ax_sub.set_xlabel(r'a$_{\text{L}}$',fontsize=22)
-        ax_sub.set_ylabel(r'$\Delta$F (k$_{\text{B}}$T)',fontsize=22)
-        ax_sub.axvline(aL_min_cell,ls='--',c='darkgray',zorder=-1)
-
-    F_norm = []
-    csv_file = [f"{part}_results_output.csv", f"{part}_references_output.csv"]
+    csv_file = [f"{part}_results_output.csv"]
     data_part = pd.read_csv(csv_file[0], skiprows=0)
     data_part_cell = data_part[data_part["cell"] == part_cell].copy().reset_index(drop=True)
     data_part_cell['aL'] = data_part_cell['delta'] * data_part_cell['dimx'] *factor_aL_part*k_reflex_part
@@ -416,24 +391,27 @@ def estimate_part_F_pair(part, part_cell, factor_aL_part, ni, k_part, gen_curves
     df_cell = mean_al_pair(data_part_cell)
     df_tot_cell = mean_al_pair(data_part_cell)
 
-    k_reflex = k_reflex_part**3
+    k_reflex = np.power(k_reflex_part,3)
     aL_cell = df_cell['aL'].to_numpy()
     F_tot = df_cell["F_pairwise"].to_numpy()*k_reflex/k_part
     F_norm_cell = df_cell['F_norm'].to_numpy()*k_reflex/k_part
-
     x_cell =  np.arange(aL_cell[0], aL_cell[-1], 0.001)
-    y_cell = CubicSpline(aL_cell, F_norm_cell)(x_cell)
+    #y_cell = CubicSpline(aL_cell, F_norm_cell)(x_cell)
 
     # Ajuste cúbico (polinomio de grado 3)
-    coeficientes = np.polyfit(aL_cell, F_norm_cell, 4)
-    polinomio = np.poly1d(coeficientes)
+    #coeficientes = np.polyfit(aL_cell, F_norm_cell, 4)
+    #polinomio = np.poly1d(coeficientes)
 
+    packing_list = np.linspace(0.85,1.0,100)
     # Evaluación del polinomio ajustado
-    y_cell = polinomio(x_cell)
+    x_cell = np.power(vol_tot/packing_list, 1./3.)
+    mask = (x_cell >= aL_cell[0]) & (x_cell <= aL_cell[-1])
+    x_bin = x_cell[mask]
+    y_cell = CubicSpline(aL_cell, F_norm_cell)(x_cell)
     F_min_cell = y_cell.min()
-    aL_min_cell = x_cell[y_cell.argmin()]
-
+    aL_min_cell = x_cell[y_cell == F_min_cell]
     if gen_curves_flag == True:
+        fig_sub, ax_sub = plt.subplots(figsize=(8, 6))
         ax_sub.scatter(aL_cell, F_norm_cell, label='Pairwise')
         ax_sub.plot(x_cell,y_cell)
         ax_sub.set_xlabel(r'a$_{\text{L}}$',fontsize=22)
@@ -443,4 +421,4 @@ def estimate_part_F_pair(part, part_cell, factor_aL_part, ni, k_part, gen_curves
         fig_sub.savefig(f"F_{part}_{part_cell}_pair.png",dpi=300, format="png",bbox_inches='tight')
         plt.close(fig_sub)
 
-    return aL_min_cell, F_min_cell, x_cell
+    return aL_min_cell[0], F_min_cell, x_cell

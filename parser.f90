@@ -596,19 +596,21 @@ case ('nkp') ! solvent volume fraction or chemical potential, depending on flagm
      if(rank.eq.0)write(stdout,*) 'parser:','Set particle',j,'hydrophobicity to', eeps(j)
      enddo
 
-     read(fh, '(A)') basura
-     if(basura.eq."") then ! use default
+     read(fh,'(A)',iostat=ios) basura
+     if (ios < 0) then   ! ios < 0 → end‑of‑file
        longp = long
        if(rank.eq.0)write(stdout,*) 'parser:','Using default chain lenght',long
-     else ! read from list        
+     else ! read from list
+       if(basura.eq."") then ! use default
+       longp = long
+       endif
        do j = 1, NNN
-         read(fh, *) longp(j)
+       read(fh, *) longp(j)
        if(rank.eq.0)write(stdout,*) 'parser:','Set particle',j,'chain lenght to', longp(j)
        enddo
+       endif ! NNN
      endif
 
-
-     endif ! NNN
 endselect
 endselect
 

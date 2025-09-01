@@ -7,22 +7,159 @@ import hashlib
 from collections import defaultdict
 from transform_refs import calculate_center_ref, process_positions
 from function import run_command, read_DEF, write_DEF, extract_references, extract_definitions, generate_references_csv
+from itertools import product, combinations
+from collections import namedtuple
+
+def transform_reflex(lines, name_bin, structure):
+    if name_bin == "Li3Bi":
+        n1 = 4
+        n2 = 5
+    elif name_bin == "NaZn13":
+        n1 = 1
+        n2 = 32
+    elif name_bin == "bccAB6":
+        n1 = 2
+        n2 = 6
+
+    Particle = namedtuple("Particle", ["center", "semiaxis", "rotation", "coverage", "attraction", "chain_length"])
+
+    # Identificar las secciones
+    sections_info = [
+        ("! number of particles", 1, 1),
+        ("!Center", 1, n1+n2),
+        ("!particle semiaxis x y z in nm", 1, n1+n2),
+        ("! Rotation", 3, n1+n2),
+        ("! coverage", 1, n1+n2),
+        ("!Surface-polymer atraction", 1, n1+n2),
+        ("!chains lenght", 1, n1+n2)
+    ]
+    sections_found = {}
+    for key, lines_per_particle, tot_particles in sections_info:
+        for i, line in enumerate(lines):
+            if line.strip() == key:
+                sections_found[key] = (i + 1, lines_per_particle, tot_particles)
+                break
+        else:
+            raise ValueError(f"Sección {key} no encontrada")
+    new_lines = []
+    flag = False; i = 0
+    while flag == False: 
+        if lines[i].strip() == "! number of particles":
+            flag = True
+            break
+        if lines[i-1].strip() == "!PBC PBC xmin xmax ymin ymax zmin zmax, 1=yes, 2=wall, 0=bulk":
+            lines[i] = "PBC 1 1 1 1 1 1\n"
+        new_lines.append(lines[i])
+        i = i+1
+
+    # Leer partículas
+    total = n1 + n2
+    particles = []
+    for i in range(total):
+        center = list(map(float, lines[sections_found["!Center"][0] + i].split()))
+        semiaxis = list(map(float, lines[sections_found["!particle semiaxis x y z in nm"][0] + i].split()))
+        rotation = [list(map(float, lines[sections_found["! Rotation"][0] + i*3 + j].split())) for j in range(3)]
+        coverage = float(lines[sections_found["! coverage"][0] + i])
+        attraction = float(lines[sections_found["!Surface-polymer atraction"][0] + i])
+        chain_length = int(lines[sections_found["!chains lenght"][0] + i])
+        particles.append(Particle(center, semiaxis, rotation, coverage, attraction, chain_length))
+
+    # Transformación
+    mirror_planes = [
+        (True, False, False),
+        (False, True, False),
+        (False, False, True),
+        (True, True, False),
+        (True, False, True),
+        (False, True, True),
+        (True, True, True),
+    ]
+
+    all_particles = []
+
+    for p in particles:
+        center_half = [c / 2 for c in p.center]
+        all_particles.append(Particle(center_half, p.semiaxis, p.rotation, p.coverage, p.attraction, p.chain_length))
+
+    for plane in mirror_planes:
+        for p in particles:
+            cx, cy, cz = [c / 2 for c in p.center]
+            if plane[0]:
+                cx = 1.0 - cx
+            if plane[1]:
+                cy = 1.0 - cy
+            if plane[2]:
+                cz = 1.0 - cz
+            new_center = [cx, cy, cz]
+            all_particles.append(Particle(new_center, p.semiaxis, p.rotation, p.coverage, p.attraction, p.chain_length))
+
+    # Eliminar duplicados
+    seen = set()
+    unique_particles = []
+    for p in all_particles:
+        key = tuple(round(x % 1.0, 8) for x in p.center)
+        if key not in seen:
+            seen.add(key)
+            unique_particles.append(p)
+    
+    #for i, p in enumerate(unique_particles):
+    #    print(f"#{i:03d} Pos: {p.center}  Semiejes: {p.semiaxis}  Coverage: {p.coverage}")
+
+    # Guardar archivo
+    output_file = os.path.join(structure, "DEFINITIONS.txt")
+    with open(output_file, "w") as f:
+        f.writelines(new_lines)
+        f.write("! number of particles\n")
+        f.write(f"{len(unique_particles)}\n")
+
+        f.write("!Center\n")
+        for p in unique_particles:
+            f.write(f"{p.center[0]:.8f} {p.center[1]:.8f} {p.center[2]:.8f}\n")
+
+        f.write("!particle semiaxis x y z in nm\n")
+        for p in unique_particles:
+            f.write(f"{p.semiaxis[0]:.8f} {p.semiaxis[1]:.8f} {p.semiaxis[2]:.8f}\n")
+
+        f.write("! Rotation\n")
+        for p in unique_particles:
+            rot_flat = [f"{val:.6f}" for row in p.rotation for val in row]
+            for i in range(0, 9, 3):
+                f.write(f"{rot_flat[i]} {rot_flat[i+1]} {rot_flat[i+2]}\n")
+
+        f.write("! coverage\n")
+        for p in unique_particles:
+            f.write(f"{p.coverage:.2f}\n")
+
+        f.write("!Surface-polymer atraction\n")
+        for p in unique_particles:
+            f.write(f"{p.attraction:.2f}\n")
+
+        f.write("!chains lenght\n")
+        for p in unique_particles:
+            f.write(f"{p.chain_length}\n")
 
 def process_principal_binario(reference_DEF, name_bin, delta_dim_bin, aL, n_k_bin, tosubmit, dir_fuente, k_aL, gamma, script_folder):
     structure = os.getcwd()
     pairwise_folder = os.path.join(script_folder,"pairwise_additive_F")
-    pairwise_file = "fitpairL12.dat" 
+    pairwise_file = "fitpairL12.dat"
+
+    DEF2 =  os.path.join(structure, "DEFINITIONS.txt")
+    lines = read_DEF(DEF2)
+    #transform_reflex(lines, name_bin, structure)
     DEF =  os.path.join(structure, "DEFINITIONS.txt")
     lines = read_DEF(DEF)
     delta_list = sorted({entry["delta"] for entry in delta_dim_bin if entry["delta"] is not None})
+    k = 1
+    if name_bin == 'MgZn2':
+        k = 2
 
     for delta in delta_list:
         round_value = int(np.round(float(aL/k_aL["kx"]) / float(delta)))
         dims = []
         dims_sum_bin = [entry["dim"] for entry in delta_dim_bin if entry["delta"] == delta][0]
-        #dims_sum_bin = [-8,-7,-6,-5,-4,-3,-2,1,0,1,2]
+        #dims_sum_bin = np.arange(-8,16,1)
         for sum_dim in dims_sum_bin:
-            dims.append(round_value + int(sum_dim))
+            dims.append((round_value + int(sum_dim)))
         delta_folder = str(delta).replace('.','_')
         for dim in dims:
             folder_name = f'delta_{delta_folder}_dim_{dim}'
@@ -42,10 +179,11 @@ def process_principal_binario(reference_DEF, name_bin, delta_dim_bin, aL, n_k_bi
             with open("DEFINITIONS.txt", "r") as file:
                 content = file.read()
             
-            k = 1
-            if name_bin == 'MgZn2':
-                k = 2
-
+            #lista = ['Li3Bi', 'NaZn13', 'bccAB6']
+            #if name_bin in lista:
+            #    content = content.replace("dimx _DIM_", f'dimx {str(dim*2)}').replace("dimy _DIM_", f'dimy {str(int(dim*2*k_aL["kx"]/k_aL["ky"]))}')
+            #    content = content.replace("dimz _DIM_", f'dimz {str(int(dim*k*2*k_aL["kx"]/k_aL["kz"]))}').replace("_delta_", str(delta))
+            #else:
             content = content.replace("dimx _DIM_", f'dimx {str(dim)}').replace("dimy _DIM_", f'dimy {str(int(dim*k_aL["kx"]/k_aL["ky"]))}')
             content = content.replace("dimz _DIM_", f'dimz {str(int(dim*k*k_aL["kx"]/k_aL["kz"]))}').replace("_delta_", str(delta))
 
@@ -53,11 +191,11 @@ def process_principal_binario(reference_DEF, name_bin, delta_dim_bin, aL, n_k_bi
             lines = read_DEF("DEFINITIONS.txt")
             dir_origen = os.path.abspath(os.path.join(dir_fuente, os.pardir))
             output_DEF_ref = {"part1": os.path.join(dir_origen,"sim_part1","binary_ref","part1"),"part2": os.path.join(dir_fuente,"binary_ref","part2")}
-            process_secundario_binario(lines, name_bin, output_DEF_ref, int(dim*k_aL["kx"]), n_k_bin, dir_fuente, delta_list, k_aL, gamma)
+            process_secundario_binario(lines, name_bin, output_DEF_ref, n_k_bin, dir_fuente, delta_list, k_aL, gamma)
             os.chdir(dir_fuente)
             os.chdir(structure)
 
-def process_secundario_binario(lines, name_bin, output_folder, dim, n_k_bin, dir_fuente, delta_bin, k_aL, gamma):
+def process_secundario_binario(lines, name_bin, output_folder, n_k_bin, dir_fuente, delta_bin, k_aL, gamma):
     n1_k_bin = n_k_bin["part1"]; n2_k_bin = n_k_bin["part2"]
     sections_info = [
         ("! number of particles", 1, 1),
@@ -68,7 +206,6 @@ def process_secundario_binario(lines, name_bin, output_folder, dim, n_k_bin, dir
         ("!Surface-polymer atraction", 1, n1_k_bin+n2_k_bin),
         ("!chains lenght", 1, n1_k_bin+n2_k_bin)
     ]
-
     sections_found = []
     for key, lines_per_particle, tot_particles in sections_info:
         for i, line in enumerate(lines):
@@ -77,7 +214,13 @@ def process_secundario_binario(lines, name_bin, output_folder, dim, n_k_bin, dir
                 sections_found.append((key, start_index, lines_per_particle, tot_particles))
                 break
         else:
-            print(f"Advertencia: No se encontró la sección {key}.")
+            if key == '!chains lenght':
+                for i, line in enumerate(lines):
+                    if line.startswith("!properties of ligand chains"):
+                        nseg = int(lines[i+1].strip().split()[1])
+                        continue
+            else:
+                print(f"Advertencia: No se encontró la sección {key}.")
 
     configs = [("part1", 0, n1_k_bin), ("part2", n1_k_bin, n2_k_bin)]  # (Name, Offset, number of particles)
     chain_lenght = {"part1": None, "part2": None}
@@ -104,6 +247,10 @@ def process_secundario_binario(lines, name_bin, output_folder, dim, n_k_bin, dir
         with open(output_DEF, "w") as f:
             f.writelines(modified_lines)
 
+    for label in ['part1','part2']:
+        if chain_lenght[label] == None:
+            chain_lenght[label] = nseg
+
     for label in ["part1", "part2"]:
         os.chdir(output_folder[label])
         # Extraer datos y procesar posiciones
@@ -117,7 +264,7 @@ def process_secundario_binario(lines, name_bin, output_folder, dim, n_k_bin, dir
         PBC = data.get("PBC", [])
         R = float(data.get("R")[0])
         nseg = int(chain_lenght[label])
-        lseg = float(data.get("lseg"))
+        lseg = float(data["lseg"])
         delta_min = np.min(delta_bin)
         dist_min = (2*R+2*lseg*nseg)
         N_ref = np.round(dist_min*1.50/delta_min)
@@ -274,3 +421,4 @@ def definitions_ref_edit(lines, ref_folder, pos1, pos2, pos3, ni_k_bin):
     output_DEF = os.path.join(ref_folder, "DEFINITIONS.txt")
     with open(output_DEF, "w") as f:
         f.writelines(modified_lines) 
+
