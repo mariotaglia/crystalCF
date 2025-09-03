@@ -227,9 +227,14 @@ def extract_params_init(params_init, cond):
             data["n2"] = 2
             data["num cell bin"] = 1
         elif data["name"] == "Li3Bi":
-            data["n1"] = 4
-            data["n2"] = 5
-            data["num cell bin"] = 1
+            if data["cell bin factor"] == 1:
+                data["n1"] = 4
+                data["n2"] = 5
+                data["num cell bin"] = 1
+            elif data["cell bin factor"] == 2**0.5:
+                data["n1"] = 2
+                data["n2"] = 4
+                data["num cell bin"] = 1
         elif data["name"] == "NaZn13":
             data["n1"] = 1
             data["n2"] = 32
@@ -288,7 +293,7 @@ def extract_definitions(definitions_path):
             while j < len(lines) and lines[j].strip() and not lines[j].startswith("!"):
                 try:
                     semiaxis_values = [float(x) for x in lines[j].strip().split()]
-                    data["R"].append(semiaxis_values[0]) 
+                    data["R"].append(semiaxis_values[0])
                 except ValueError:
                     print(f"Error al leer semiejes en línea: {lines[j]}")
                 j += 1
@@ -372,10 +377,14 @@ def update_particle_sizes(lines, gamma, R_np, n1_k_bin, n2_k_bin):
                 except ValueError:
                     print(f"Error al leer semiejes en línea: {lines[j]}")
                 j += 1
-
         elif line.startswith("! segment lengths"):
             size_index = i+1
             lseg = float(lines[size_index].split()[1])
+    if len(nseg)==0:
+        for i, line in enumerate(lines):
+            if line.startswith("!properties of ligand chains"):
+                x = int(lines[i+1].strip().split()[1])
+                nseg = [x,x]
 
     from scipy.optimize import fsolve
 
@@ -609,10 +618,17 @@ def vol_tot_bin(name,R1,R2,l_pol_1,l_pol_2,sigma_1,sigma_2,V_pol):
     Vol_NP_2 = pi*(4./3.)*np.power(R2,3)
     A_1 = 4*pi*np.power(R1,2)
     A_2 = 4*pi*np.power(R2,2)
+    N1, N2 = N(name)
+    if name == 'Th3P4':
+        V_pol = 0.029
+    v_tot = N1*Vol_NP_1+N1*float(sigma_1)*A_1*V_pol*float(l_pol_1) + N2*Vol_NP_2+N2*float(sigma_2)*A_2*V_pol*float(l_pol_2)
 
+    return v_tot
+
+def N(name):
     if name == "NaCl":
-        N1 = 2
-        N2 = 2
+        N1 = 4
+        N2 = 4
     elif name == "CsCl":
         N1 = 1
         N2 = 1
@@ -625,8 +641,8 @@ def vol_tot_bin(name,R1,R2,l_pol_1,l_pol_2,sigma_1,sigma_2,V_pol):
         N2 = 2
 
     elif name == "Li3Bi":
-        N1 = 2
-        N2 = 6
+        N1 = 0.5
+        N2 = 1.5
 
     elif name == "AuCu":
         N1 = 2
@@ -649,14 +665,13 @@ def vol_tot_bin(name,R1,R2,l_pol_1,l_pol_2,sigma_1,sigma_2,V_pol):
         N2 = 4
 
     elif name == "bccAB6":
-        N1 = 2
-        N2 = 12
+        N1 = 2/2**3
+        N2 = 12/2**3
 
     elif name=="MgZn2":
         N1 = 4
         N2 = 8
-
-    v_tot = N1*Vol_NP_1+N1*float(sigma_1)*A_1*V_pol*float(l_pol_1) + N2*Vol_NP_2+N2*float(sigma_2)*A_2*V_pol*float(l_pol_2)
-
-    return v_tot
-
+    elif name=="Th3P4":
+        N1 = 12
+        N2 = 16
+    return N1, N2

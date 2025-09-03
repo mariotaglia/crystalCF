@@ -145,7 +145,7 @@ def process_principal_binario(reference_DEF, name_bin, delta_dim_bin, aL, n_k_bi
 
     DEF2 =  os.path.join(structure, "DEFINITIONS.txt")
     lines = read_DEF(DEF2)
-    transform_reflex(lines, name_bin, structure)
+    #transform_reflex(lines, name_bin, structure)
     DEF =  os.path.join(structure, "DEFINITIONS.txt")
     lines = read_DEF(DEF)
     delta_list = sorted({entry["delta"] for entry in delta_dim_bin if entry["delta"] is not None})
@@ -157,7 +157,7 @@ def process_principal_binario(reference_DEF, name_bin, delta_dim_bin, aL, n_k_bi
         round_value = int(np.round(float(aL/k_aL["kx"]) / float(delta)))
         dims = []
         dims_sum_bin = [entry["dim"] for entry in delta_dim_bin if entry["delta"] == delta][0]
-        #dims_sum_bin = [-8,-7,-6,-5,-4,-3,-2,1,0,1,2]
+        #dims_sum_bin = np.arange(-8,16,1)
         for sum_dim in dims_sum_bin:
             dims.append((round_value + int(sum_dim)))
         delta_folder = str(delta).replace('.','_')
@@ -191,11 +191,11 @@ def process_principal_binario(reference_DEF, name_bin, delta_dim_bin, aL, n_k_bi
             lines = read_DEF("DEFINITIONS.txt")
             dir_origen = os.path.abspath(os.path.join(dir_fuente, os.pardir))
             output_DEF_ref = {"part1": os.path.join(dir_origen,"sim_part1","binary_ref","part1"),"part2": os.path.join(dir_fuente,"binary_ref","part2")}
-            process_secundario_binario(lines, name_bin, output_DEF_ref, int(dim*k_aL["kx"]), n_k_bin, dir_fuente, delta_list, k_aL, gamma)
+            process_secundario_binario(lines, name_bin, output_DEF_ref, n_k_bin, dir_fuente, delta_list, k_aL, gamma)
             os.chdir(dir_fuente)
             os.chdir(structure)
 
-def process_secundario_binario(lines, name_bin, output_folder, dim, n_k_bin, dir_fuente, delta_bin, k_aL, gamma):
+def process_secundario_binario(lines, name_bin, output_folder, n_k_bin, dir_fuente, delta_bin, k_aL, gamma):
     n1_k_bin = n_k_bin["part1"]; n2_k_bin = n_k_bin["part2"]
     sections_info = [
         ("! number of particles", 1, 1),
@@ -206,7 +206,6 @@ def process_secundario_binario(lines, name_bin, output_folder, dim, n_k_bin, dir
         ("!Surface-polymer atraction", 1, n1_k_bin+n2_k_bin),
         ("!chains lenght", 1, n1_k_bin+n2_k_bin)
     ]
-
     sections_found = []
     for key, lines_per_particle, tot_particles in sections_info:
         for i, line in enumerate(lines):
@@ -215,7 +214,13 @@ def process_secundario_binario(lines, name_bin, output_folder, dim, n_k_bin, dir
                 sections_found.append((key, start_index, lines_per_particle, tot_particles))
                 break
         else:
-            print(f"Advertencia: No se encontró la sección {key}.")
+            if key == '!chains lenght':
+                for i, line in enumerate(lines):
+                    if line.startswith("!properties of ligand chains"):
+                        nseg = int(lines[i+1].strip().split()[1])
+                        continue
+            else:
+                print(f"Advertencia: No se encontró la sección {key}.")
 
     configs = [("part1", 0, n1_k_bin), ("part2", n1_k_bin, n2_k_bin)]  # (Name, Offset, number of particles)
     chain_lenght = {"part1": None, "part2": None}
@@ -241,6 +246,10 @@ def process_secundario_binario(lines, name_bin, output_folder, dim, n_k_bin, dir
         output_DEF = os.path.join(output_folder[label], f"DEFINITIONS.txt")
         with open(output_DEF, "w") as f:
             f.writelines(modified_lines)
+
+    for label in ['part1','part2']:
+        if chain_lenght[label] == None:
+            chain_lenght[label] = nseg
 
     for label in ["part1", "part2"]:
         os.chdir(output_folder[label])

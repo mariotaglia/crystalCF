@@ -106,6 +106,7 @@ volx(i)=volx1(i)
 com(i,:)=com1(i,:)
 p0(i,:)=p1(i,:)
 rotangle(i) = atan2(com1(i,1)-originc(1), com1(i,2)-originc(2))
+longc(i) = long ! use global
 enddo
 
 title = 'avpro'

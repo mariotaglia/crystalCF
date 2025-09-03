@@ -1,0 +1,9 @@
+Scripts to calculate p vs V plots for different temperature. 
+Usage:
+
+1. Set st and vpol in DEFINITIONS.txt. 
+   st is the interaction strength in kB T units, so if the interaction is temperature independent, st = A.T
+2. python3 run_iso.py
+3. python3 calc_iso.py "vsol" "temp"
+4. "vsol" should match the value of vsol used in DEFINITIONS.txt
+   "temp" is the temperature in K, if st = A.T was used, then "temp" should match T. 

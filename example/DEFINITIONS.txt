@@ -121,5 +121,8 @@ systemtype 9
 !Surface-polymer atraction
 0.0
 0.0
+! chain lenght
+12
+12
 
-
+seed_lig 938121

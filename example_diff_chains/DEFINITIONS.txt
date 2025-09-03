@@ -6,7 +6,7 @@ stdout 6
 sigmar 0.0
 !seed
 seed 938121
-seed_lig 14258825
+
 
 !!! SCAN !!!
 
@@ -20,10 +20,13 @@ vscan 2
 flagmu 1
 
 ! scan of chemical pot/volume fraction, format: ini step last
-nkp -35.0 0.01 -35.0
+nkp -20.0 0.01 -20.0
 
 !hydroph: list values of st, if vcan = 1, only the first value is used
-nst 1
+nst 4
+0.0
+0.2
+0.4
 0.5019
 
 !!! OUTPUT !!!
@@ -70,11 +73,11 @@ vsol 0.008
 
 !!! UNIT CELL !!!
 !system size
-dimx _DIM_
-dimy _DIM_
-dimz _DIM_
+dimx 40
+dimy 40
+dimz 40
 
-delta _delta_
+delta 0.25
 
 dx 0.0
 dy 0.0
@@ -82,39 +85,44 @@ dz 0.0
 
 transform_type 1
 !cdiva
-1.41421356237
+1.
 !gama
 90.0
 
 !PBC PBC xmin xmax ymin ymax zmin zmax, 1=yes, 2=wall, 0=bulk
-PBC 3 3 3 3 3 3
+PBC 1 1 1 1 1 1
 
 ! coordinate_system: 1: real coordinates in nm, 2: fractional coordinates
 coordinate_system 2
 
 !systemtype
-systemtype 1
+systemtype 9
 ! number of particles
 2
 !Center
 0.0 0.0 0.0
-1.0 1.0 1.0
-!particle semiaxis x y z in nm
-2.0 2.0 2.0
-0.8 0.8 0.8
+0.5 0.5 0.5
+!octahedron large
+5.04
+5.04
+!cube large
+3.564
+3.564
 ! Rotation
 1.0 0.0 0.0
-0.0 1.0 0.0
-0.0 0.0 1.0
+0.0 0.70710678 -0.70710678
+0.0 0.70710678 0.70710678
 1.0 0.0 0.0
-0.0 1.0 0.0
-0.0 0.0 1.0
+0.0 0.70710678 -0.70710678
+0.0 0.70710678 0.70710678
 ! coverage
 5.85
 5.85
 !Surface-polymer atraction
 0.0
 0.0
-!chains lenght
+! chain lenght
 12
-12
+6
+
+seed_lig 938121

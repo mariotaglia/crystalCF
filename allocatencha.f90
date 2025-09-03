@@ -15,6 +15,7 @@ ALLOCATE(ntrans(cuantas,ncha))
 ! chainsdat
 allocate(posicion(ncha,3))
 allocate(ngpol(ncha))
+allocate(longcha(ncha))
 allocate(newcuantas(ncha))
 
 ! solventchains

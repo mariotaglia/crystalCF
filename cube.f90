@@ -88,6 +88,7 @@ volx(i)=volx1(i)
 com(i,:)=com1(i,:)
 p0(i,:)=p1(i,:)
 rotangle(i) = 0.0
+longc(i) = long ! use global
 enddo
 
 title = 'avpro'

@@ -1,5 +1,6 @@
 subroutine fkfun(x,f,ier2)
 
+use chainsdat, only : longcha
 use molecules, only : benergy, vsol
 use const, only : stdout
 use results, only : xtotalsum, avpol
@@ -334,7 +335,7 @@ do jj = 1, cpp(rank+1)
 
  do i=1,newcuantas(ii)
    pro(i, jj)=dlog(shift)
-   do j=1,long
+   do j=1,longcha(ii)
     ax = px(i, j, jj) ! cada uno para su cadena...
     ay = py(i, j, jj)
     az = pz(i, j, jj)         
@@ -344,7 +345,7 @@ do jj = 1, cpp(rank+1)
     pro(i,jj) = pro(i,jj) -benergy*ntrans(i,ii) ! energy of trans bonds
     pro(i,jj)=dexp(pro(i,jj))
 
-   do j=1,long
+   do j=1,longcha(ii)
    fv = (1.0-volprot(px(i,j, jj),py(i,j, jj),pz(i,j, jj)))
    im = segtype(j)
     avpol_temp(px(i,j, jj),py(i,j, jj),pz(i,j, jj), im)= &

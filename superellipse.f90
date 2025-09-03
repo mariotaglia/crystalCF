@@ -119,6 +119,7 @@ do i = 1, ncha
    com(i,:)=com1(i,:)
    p0(i,:)=p1(i,:)
    rotangle(i) = atan2(com1(i,1)-originc(1), com1(i,2)-originc(2))
+   longc(i) = long ! use global value for long
 enddo
 
 title = 'avpro'

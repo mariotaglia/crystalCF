@@ -70,7 +70,7 @@ call kais
 if(rank.eq.0)write(stdout,*) 'Kai OK'
 
 if (systemtype.eq.1) then
-call update_matrix(flag) ! updates 'the matrix'
+call update_matrix(flag) ! updates matrix
 elseif (systemtype.eq.2) then
 call update_matrix_channel(flag) ! updates 'the matrix'
 elseif (systemtype.eq.3) then
