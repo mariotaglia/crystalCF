@@ -146,7 +146,6 @@ flagcrash = 0
 if (rank .eq. 0)call FKINFREE()
 
 return
-
 end subroutine
 
 
