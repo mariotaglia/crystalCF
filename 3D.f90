@@ -143,6 +143,8 @@ do i = 1, eqs*ncells
 enddo
 infile = 2 ! use xflag in next call to the solver
 flagcrash = 0
+if (rank .eq. 0)call FKINFREE()
+
 return
 
 end subroutine
