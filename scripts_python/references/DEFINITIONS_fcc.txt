@@ -24,7 +24,7 @@ nkp -35.0 0.01 -35.0
 
 !hydroph: list values of st, if vcan = 1, only the first value is used
 nst 1
-0.5019
+0.521
 
 !!! OUTPUT !!!
 
@@ -66,7 +66,7 @@ branched 0
 randominput 0
 
 !volume
-vsol 0.008
+vsol 0.0088
 
 !!! UNIT CELL !!!
 !system size

@@ -170,46 +170,46 @@ for gamma_folder in gamma_folder_list:
 		else:
 			DEF_part[cell] = os.path.join(dir_script,"references", f"DEFINITIONS_{cell}.txt")
 	R_part = {"part1": R1_np, "part2": R2_np}
-	if os.path.exists(os.path.join(dir_fuente,"part2")):
-		dir_fuente = {"part1": os.path.join(dir_inicial,"sim_part1"),"part2": os.path.join(os.getcwd(),"part2")}
-		for label in ["part1", "part2"]:
-			os.chdir(dir_fuente[label])
-			for label_struc in cell_part:
-				os.chdir(os.path.join(dir_fuente[label],label_struc))
-				dir_fuente_part = dir_fuente[label]
-				shutil.copy(DEF_part[label_struc], os.path.join(os.getcwd(),"DEFINITIONS.txt"))
-				DEF = os.path.join(os.getcwd(), "DEFINITIONS.txt")
-				lines = read_DEF(DEF)
-				size_index = None
-				for i, line in enumerate(lines):
-					if line.strip() == "!seed":
-						size_index = i + 1
-						lines[size_index] = seed
-						lines[size_index + 1] = seed_lig
-					elif line.strip() == "!particle semiaxis x y z in nm":
-						size_index = i + 1
-						for n in np.arange(0,k_part[label_struc]):
-							lines[size_index + n] = f"{R_part[label]} {R_part[label]} {R_part[label]}\n"
-					elif line.strip() == "! coverage":
-						size_index = i + 1
-						for n in np.arange(0,k_part[label_struc]):
-							lines[size_index+n] = f"{cov[label]}\n"
-					elif line.strip() == "!chains lenght":
-						size_index = i + 1
-						for n in np.arange(0,k_part[label_struc]):
-							lines[size_index+n] = f"{chain_lenght[label]}\n"
 
-				write_DEF(DEF, lines) 
+	dir_fuente = {"part1": os.path.join(dir_inicial,"sim_part1"),"part2": os.path.join(os.getcwd(),"part2")}
+	for label in ["part1", "part2"]:
+		os.chdir(dir_fuente[label])
+		for label_struc in cell_part:
+			os.chdir(os.path.join(dir_fuente[label],label_struc))
+			dir_fuente_part = dir_fuente[label]
+			shutil.copy(DEF_part[label_struc], os.path.join(os.getcwd(),"DEFINITIONS.txt"))
+			DEF = os.path.join(os.getcwd(), "DEFINITIONS.txt")
+			lines = read_DEF(DEF)
+			size_index = None
+			for i, line in enumerate(lines):
+				if line.strip() == "!seed":
+					size_index = i + 1
+					lines[size_index] = seed
+					lines[size_index + 1] = seed_lig
+				elif line.strip() == "!particle semiaxis x y z in nm":
+					size_index = i + 1
+					for n in np.arange(0,k_part[label_struc]):
+						lines[size_index + n] = f"{R_part[label]} {R_part[label]} {R_part[label]}\n"
+				elif line.strip() == "! coverage":
+					size_index = i + 1
+					for n in np.arange(0,k_part[label_struc]):
+						lines[size_index+n] = f"{cov[label]}\n"
+				elif line.strip() == "!chains lenght":
+					size_index = i + 1
+					for n in np.arange(0,k_part[label_struc]):
+						lines[size_index+n] = f"{chain_lenght[label]}\n"
 
-				DEF = os.path.join(os.getcwd(), "DEFINITIONS.txt")
-				R_np = extract_R_part(DEF)
-				aL = float(run_command(f'python3 {dir_script}/references/aL_min_{label_struc}.py {R_np} {chain_lenght[label]} {cov[label]}'))
-				k_aL_part = 1
-				if flag_reflexion_part == True:
-					k_aL_part = 2
-				delta_dim_part = [entry for entry in part_delta_dim if (entry["part"] == label and entry["cell"] == label_struc)]
-				process_principal_part(DEF, delta_dim_part, aL, tosubmit, dir_fuente[label], k_aL_part, dir_script, chain_lenght[label])
-					
+			write_DEF(DEF, lines) 
+
+			DEF = os.path.join(os.getcwd(), "DEFINITIONS.txt")
+			R_np = extract_R_part(DEF)
+			aL = float(run_command(f'python3 {dir_script}/references/aL_min_{label_struc}.py {R_np} {chain_lenght[label]} {cov[label]}'))
+			k_aL_part = 1
+			if flag_reflexion_part == True:
+				k_aL_part = 2
+			delta_dim_part = [entry for entry in part_delta_dim if (entry["part"] == label and entry["cell"] == label_struc)]
+			process_principal_part(DEF, delta_dim_part, aL, tosubmit, dir_fuente[label], k_aL_part, dir_script, chain_lenght[label])
+				
 folder_ref = [os.path.join(dir_inicial,"sim_part1/binary_ref")]
 for cell in cell_part:
 	folder_ref.append(os.path.join(dir_inicial,f"sim_part1/{cell}_ref"))
