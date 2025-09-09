@@ -197,7 +197,7 @@ for gamma_folder in gamma_folder_list:
 					lines[size_index + 1] = seed_lig
 
 				elif line.strip().startswith('nst'):
-					lines[i + 1] = f"{nst_val:.4f}\n"
+					lines[i + 1] = f"{nst_val:.5f}\n"
 				elif line.strip().startswith('benergy'):
 					lines[i] = f"benergy {benergy_val:.3f}\n"
 				elif line.strip().startswith('vsol'):

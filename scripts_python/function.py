@@ -466,14 +466,14 @@ def update_T(DEF, T):
     def add_dict(list,dict_delta):
         for i,key in enumerate(dict_delta):
              dict_delta[key].append(list[i])
-
-    T01 = [313.15,0.6205,0.00924,0.3729,640.742]
-    T02 = [333.15,0.6020,0.00924,0.7642,621.596]
-    T03 = [345.15,0.5996,0.00924,1.122,609.731]
+    
+    T01 = [313.15,0.6233,0.00926,0.3729,640.742]
+    T02 = [333.15,0.60975,0.00925,0.7642,621.596]
+    T03 = [345.15,0.5997,0.00924,1.122,609.731]
     T04 = [353.15,0.5825,0.00912,1.425,601.632]
     T05 = [377.15,0.5366,0.00880,2.4629,580.600]
-    T06 = [387.15,0.5210,0.0087,3.4773,565.068]
-    T07 = [452.15,0.4356,0.00805,12.776,477.51]
+    T06 = [387.15,0.5207,0.0087,3.4773,565.068]
+    T07 = [452.15,0.42910,0.00795,12.776,477.51]
     T08 = [507.82,0.4210,0.0087,30.34,233.182] #critico
     Tdict_list = [T01,T02,T03,T04,T05,T06,T07,T08]
 
@@ -487,7 +487,7 @@ def update_T(DEF, T):
         else:
             return None, None
 
-    def benergy_func(T, T_ref=387, benergy_ref=-0.65):
+    def benergy_func(T, T_ref=387.15, benergy_ref=-0.65):
         """Interpolación lineal de benergy entre dos referencias"""
         u = benergy_ref*T_ref
         return u/T
@@ -497,9 +497,9 @@ def update_T(DEF, T):
     lines = read_DEF(DEF)
     for i_line, line in enumerate(lines):
         if line.strip().startswith('nst'):
-            lines[i_line+1] = f"{nst_val:.4f}\n"
+            lines[i_line+1] = f"{nst_val:.5f}\n"
         if line.strip().startswith('benergy'):
-            lines[i_line] = f"benergy {benergy_val:.3f}\n"
+            lines[i_line] = f"benergy {benergy_val:.4f}\n"
         if line.strip().startswith('vsol'):
             lines[i_line] = f"vsol {volume:.5f}\n"
     write_DEF(DEF, lines)
