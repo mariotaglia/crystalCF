@@ -138,7 +138,7 @@ def transform_reflex(lines, name_bin, structure):
         for p in unique_particles:
             f.write(f"{p.chain_length}\n")
 
-def process_principal_binario(reference_DEF, name_bin, delta_dim_bin, aL, n_k_bin, tosubmit, dir_fuente, k_aL, gamma, script_folder):
+def process_principal_binario(reference_DEF, name_bin, delta_dim_bin, aL, n_k_bin, tosubmit, dir_fuente, k_aL, gamma, script_folder, flag_pairwise):
     structure = os.getcwd()
     pairwise_folder = os.path.join(script_folder,"pairwise_additive_F")
     pairwise_file = "fitpairL12.dat"
@@ -157,7 +157,8 @@ def process_principal_binario(reference_DEF, name_bin, delta_dim_bin, aL, n_k_bi
         round_value = int(np.round(float(aL/k_aL["kx"]) / float(delta)))
         dims = []
         dims_sum_bin = [entry["dim"] for entry in delta_dim_bin if entry["delta"] == delta][0]
-        #dims_sum_bin = np.arange(-8,16,1)
+        if flag_pairwise == True:
+            dims_sum_bin = np.arange(-8,16,1)
         for sum_dim in dims_sum_bin:
             dims.append((round_value + int(sum_dim)))
         delta_folder = str(delta).replace('.','_')
@@ -167,7 +168,9 @@ def process_principal_binario(reference_DEF, name_bin, delta_dim_bin, aL, n_k_bi
             os.chdir(folder_name)
             
             shutil.copy(tosubmit, "tosubmit.sh")
-            #shutil.copy(f"{pairwise_folder}/{pairwise_file}", pairwise_file)
+            if flag_pairwise == True:
+                shutil.copy(f"{pairwise_folder}/{pairwise_file}", pairwise_file)
+            
             shutil.copy(DEF, "DEFINITIONS.txt")
             
             with open("tosubmit.sh", "r") as file:

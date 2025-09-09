@@ -33,7 +33,7 @@ def extract_params_init(params_init, cond):
         "gamma list": [], "list delta bin": [], "list gamma delta sum dim": [],
         "cell part": [], "list delta part": {}, "list part delta sum dim": [], "num cell part": {}, "cell bin factor": None,
         "num cell bin": None, "flag generate energy vs aL curves": None,
-        "flag reflexion binary": None, "flag reflexion part": None, "PBC": []
+        "flag reflexion binary": None, "flag reflexion part": None, "PBC": [], "flag pairwise": None, "T": None
     }
 
     lines = read_DEF(params_init)
@@ -45,15 +45,21 @@ def extract_params_init(params_init, cond):
         if line == "!name":
             data["name"] = lines[i + 1].strip("\n")
             i += 1
+        elif line == "!temperature":
+            data["T"] = eval(lines[i+1].split()[0])
+            i += 1
+
         elif line.startswith(("n1", "n2")):
             key, value = line.split()
             data[key] = int(value)
+
         elif line == "!radius part1":
             data["R1"] = float(lines[i+1].split()[1])
             i += 1
         elif line == "!aL cell bin factor":
             data["cell bin factor"] = eval(lines[i+1].split()[0])
             i += 1
+
         elif line == "!list gamma":
             data["gamma list"] = [float(x) for x in lines[i+1].strip("[]\n").split(",")]
             i += 1
@@ -213,6 +219,13 @@ def extract_params_init(params_init, cond):
                 data["flag reflexion part"] = True
             else:
                 data["flag reflexion part"] = False
+            i += 1
+        elif line == "!flag pairwise":
+            value = lines[i + 1].strip("\n")
+            if value == "True":
+                data["flag pairwise"] = True
+            else:
+                data["flag pairwise"] = False
             i += 1
 
         i += 1
@@ -437,6 +450,58 @@ def update_R1(DEF, n1_k_bin, R1):
     for n in np.arange(0,n1_k_bin):
         lines[size_index+n] = f"{R1} {R1} {R1}\n"
 
+    write_DEF(DEF, lines)
+    shutil.copy(DEF, os.path.join(os.getcwd(), "DEFINITIONS_backup.txt"))
+
+def update_T(DEF, T):
+    DEF = "DEFINITIONS.txt"
+    dict_T = {
+        "T": [],
+        "nst": [],
+        "volume": [],
+        "pv": [],
+        "density": []
+    }
+
+    def add_dict(list,dict_delta):
+        for i,key in enumerate(dict_delta):
+             dict_delta[key].append(list[i])
+
+    T01 = [313.15,0.6205,0.00924,0.3729,640.742]
+    T02 = [333.15,0.6020,0.00924,0.7642,621.596]
+    T03 = [345.15,0.5996,0.00924,1.122,609.731]
+    T04 = [353.15,0.5825,0.00912,1.425,601.632]
+    T05 = [377.15,0.5366,0.00880,2.4629,580.600]
+    T06 = [387.15,0.5210,0.0087,3.4773,565.068]
+    T07 = [452.15,0.4356,0.00805,12.776,477.51]
+    T08 = [507.82,0.4210,0.0087,30.34,233.182] #critico
+    Tdict_list = [T01,T02,T03,T04,T05,T06,T07,T08]
+
+    for lista in Tdict_list:
+        add_dict(lista,dict_T)
+
+    def get_values(T_value):
+        if T_value in dict_T["T"]:
+            idx = dict_T["T"].index(T_value)
+            return dict_T["nst"][idx], dict_T["volume"][idx]
+        else:
+            return None, None
+
+    def benergy_func(T, T_ref=387, benergy_ref=-0.65):
+        """Interpolación lineal de benergy entre dos referencias"""
+        u = benergy_ref*T_ref
+        return u/T
+
+    nst_val, volume = get_values(T)
+    benergy_val = benergy_func(T)
+    lines = read_DEF(DEF)
+    for i_line, line in enumerate(lines):
+        if line.strip().startswith('nst'):
+            lines[i_line+1] = f"{nst_val:.4f}\n"
+        if line.strip().startswith('benergy'):
+            lines[i_line] = f"benergy {benergy_val:.3f}\n"
+        if line.strip().startswith('vsol'):
+            lines[i_line] = f"vsol {volume:.5f}\n"
     write_DEF(DEF, lines)
     shutil.copy(DEF, os.path.join(os.getcwd(), "DEFINITIONS_backup.txt"))
 

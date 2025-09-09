@@ -9,7 +9,7 @@ from collections import defaultdict
 from transform_refs import calculate_center_ref, process_positions
 from references.dependecies_init import list_reflexion
 from function import run_command, read_DEF, write_DEF, path_carpeta, extract_params_init
-from function import extract_R_bin, extract_references, update_particle_sizes, update_R1, extract_definitions, gamma_calc
+from function import extract_R_bin, extract_references, update_particle_sizes, update_R1, update_T, extract_definitions, gamma_calc
 from cdiva_function import update_cdiva
 from function_part import generate_references_part_csv, extract_R_part, process_principal_part, process_secundario_part
 from function_part import process_terciario_part
@@ -30,13 +30,15 @@ cell_bin_factor = params_init["cell bin factor"]
 n_k_bin = {"part1": n1*k_bin, "part2": n2*k_bin}
 flag_reflexion = params_init["flag reflexion binary"]
 flag_reflexion_part = params_init["flag reflexion part"]
-
+flag_pairwise = params_init["flag pairwise"]
+T = params_init["T"]
 part_delta_dim = params_init['list part delta sum dim']
 cell_part = params_init["cell part"]
 k_part = params_init["num cell part"]
 gamma_folder_list = ["{:.3f}".format(g).replace('.','_') for g in gamma_list]
 
 update_R1("DEFINITIONS.txt", n_k_bin["part1"], R1_np)
+update_T("DEFINITIONS.txt", T)
 DEF = os.path.join(dir_inicial, "DEFINITIONS.txt")
 lines = read_DEF(DEF)
 for i, line in enumerate(lines):
@@ -47,6 +49,13 @@ for i, line in enumerate(lines):
 	elif line.strip() == "!properties of ligand chains":
 		size_index = i + 1
 		nseg = lines[size_index].split()[1]
+	elif line.strip().startswith('nst'):
+		nst_val = float(lines[i+1].split()[0])
+	elif line.strip().startswith('benergy'):
+		benergy_val = float(lines[i].split()[1])
+	elif line.strip().startswith('vsol'):
+		volume = float(lines[i].split()[1])
+		break
 
 n1_k_bin = n_k_bin["part1"]; n2_k_bin = n_k_bin["part2"]
 sections_info = [
@@ -160,7 +169,7 @@ for gamma_folder in gamma_folder_list:
 	update_cdiva("DEFINITIONS.txt", name_bin, gamma_calc(DEF))
 	aL = float(run_command(f'python3 {dir_script}/references/aL_estimate_bin.py {name_bin} {R1_np} {R2_np} {gamma_calc(DEF)} {chain_lenght["part1"]} {chain_lenght["part2"]} {cov["part1"]} {cov["part2"]}'))
 	delta_dim_bin = [entry for entry in gamm_delta_dim if entry["gamma"] == gamma]
-	process_principal_binario(DEF, name_bin, delta_dim_bin, aL, n_k_bin, tosubmit, dir_fuente, k_aL, gamma, dir_script)
+	process_principal_binario(DEF, name_bin, delta_dim_bin, aL, n_k_bin, tosubmit, dir_fuente, k_aL, gamma, dir_script, flag_pairwise)
 	os.chdir(dir_fuente)
 
 	DEF_part = {}
@@ -186,6 +195,13 @@ for gamma_folder in gamma_folder_list:
 					size_index = i + 1
 					lines[size_index] = seed
 					lines[size_index + 1] = seed_lig
+
+				elif line.strip().startswith('nst'):
+					lines[i + 1] = f"{nst_val:.4f}\n"
+				elif line.strip().startswith('benergy'):
+					lines[i] = f"benergy {benergy_val:.3f}\n"
+				elif line.strip().startswith('vsol'):
+					lines[i] = f"vsol {volume:.5f}\n"
 				elif line.strip() == "!particle semiaxis x y z in nm":
 					size_index = i + 1
 					for n in np.arange(0,k_part[label_struc]):
@@ -208,7 +224,7 @@ for gamma_folder in gamma_folder_list:
 			if flag_reflexion_part == True:
 				k_aL_part = 2
 			delta_dim_part = [entry for entry in part_delta_dim if (entry["part"] == label and entry["cell"] == label_struc)]
-			process_principal_part(DEF, delta_dim_part, aL, tosubmit, dir_fuente[label], k_aL_part, dir_script, chain_lenght[label])
+			process_principal_part(DEF, delta_dim_part, aL, tosubmit, dir_fuente[label], k_aL_part, dir_script, chain_lenght[label], flag_pairwise)
 				
 folder_ref = [os.path.join(dir_inicial,"sim_part1/binary_ref")]
 for cell in cell_part:

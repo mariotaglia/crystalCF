@@ -72,7 +72,7 @@ def path_carpeta(folder_init,n):
         x = os.path.dirname(x)
     return x
 
-def process_principal_part(reference_DEF, delta_dim_part, aL, tosubmit, dir_fuente, k_aL, script_folder, chain_lenght):
+def process_principal_part(reference_DEF, delta_dim_part, aL, tosubmit, dir_fuente, k_aL, script_folder, chain_lenght, flag_pairwise):
     structure = os.getcwd()
     pairwise_folder = os.path.join(script_folder,"pairwise_additive_F")
     pairwise_file = "fitpairL12.dat" 
@@ -83,7 +83,8 @@ def process_principal_part(reference_DEF, delta_dim_part, aL, tosubmit, dir_fuen
         round_value = int(np.round(float(aL/k_aL) / float(delta)))
         dims = []
         dims_sum_bin = [entry["dim"] for entry in delta_dim_part if entry["delta"] == delta][0]
-        #dims_sum_bin = [-8,-7,-6,-5,-4,-3,-2,1,0,1,2]
+        if flag_pairwise == True:
+            dims_sum_bin = [-8,-7,-6,-5,-4,-3,-2,1,0,1,2]
         for sum_dim in dims_sum_bin:
             dims.append(round_value + int(sum_dim))
         delta_folder = str(delta).replace('.','_')
@@ -94,7 +95,9 @@ def process_principal_part(reference_DEF, delta_dim_part, aL, tosubmit, dir_fuen
             os.chdir(folder_name)
             
             shutil.copy(tosubmit, "tosubmit.sh")
-            #shutil.copy(f"{pairwise_folder}/{pairwise_file}", pairwise_file)
+            if flag_pairwise == True:
+                shutil.copy(f"{pairwise_folder}/{pairwise_file}", pairwise_file)
+            
             shutil.copy(DEF, "DEFINITIONS.txt")
             
             with open("tosubmit.sh", "r") as file:

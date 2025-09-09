@@ -43,10 +43,6 @@ def to_latex_formula(name):
     return f"{prefix} {formula}".strip()
 
 ################### INICIO ##################
-F_U = ["F_trans","F_trans_sv","F_vdW"]
-F_ST = ["F_conf","F_conf_sv","F_mixs", "F_HS"]
-F_name = F_U+F_ST+['F_tot_gcanon']#+["F_pairwise"]
-
 dir_origin= os.getcwd()
 dir_script = os.path.expanduser("~/develop/crystalCF/scripts_python")
 
@@ -55,6 +51,13 @@ name_bin = params_init['name']
 
 flag_reflexion = params_init["flag reflexion binary"]
 flag_reflexion_part = params_init["flag reflexion part"]
+flag_pairwise = params_init["flag pairwise"]
+
+F_U = ["F_trans","F_trans_sv","F_vdW"]
+F_ST = ["F_conf","F_conf_sv","F_mixs", "F_HS"]
+F_name = F_U+F_ST+['F_tot_gcanon']
+if flag_pairwise == True:
+	F_name = F_name +["F_pairwise"]
 
 if flag_reflexion == True:
 	if name_bin == "NaCl" or name_bin == "CsCl":
@@ -165,7 +168,6 @@ if flag_reflexion == True:
 
 ################## EXPORTACTION #############
 gamma_folder_list = ["{:.3f}".format(g).replace('.','_') for g in gamma_list]
-
 
 while True:
 	check_extract = input("¿Quiere extraer los F.data? (s/n): ").strip().lower()
