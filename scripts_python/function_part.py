@@ -72,7 +72,7 @@ def path_carpeta(folder_init,n):
         x = os.path.dirname(x)
     return x
 
-def process_principal_part(reference_DEF, delta_dim_part, aL, tosubmit, dir_fuente, k_aL, script_folder, chain_lenght, flag_pairwise):
+def process_principal_part(reference_DEF, delta_dim_part, aL, tosubmit, dir_fuente, k_aL, script_folder, chain_lenght, flag_pairwise=False):
     structure = os.getcwd()
     pairwise_folder = os.path.join(script_folder,"pairwise_additive_F")
     pairwise_file = "fitpairL12.dat" 

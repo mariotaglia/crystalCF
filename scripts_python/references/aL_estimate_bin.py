@@ -49,7 +49,7 @@ elif name == "AuCu":
 	N2 = 2
 	V_pol = 0.032
 
-elif name == "Cu3Au" or name=='CaTiO3b':
+elif name == "Cu3Au" or name=='CaTiO3b' or name=='Ni4N':
 	V_pol = 0.038
 	N1 = 1
 	N2 = 3
