@@ -199,6 +199,7 @@ while True:
 				if "F_pairwise" in F_name:
 					if not f_name == "F_pairwise":
 						output_file = os.path.join(output_folder, f"{name_bin}_references_{f_name}.csv")
+					else:
 						if name_bin != "Li3Bi" and name_bin != "NaZn13":
 							process_reference_bin(output_file, dir_origin, f_name, R, gamma_folder)
 						else:

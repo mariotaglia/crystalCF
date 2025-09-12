@@ -22,7 +22,7 @@ A_1 = 4*pi*R1**2
 A_2 = 4*pi*R2**2
 
 if name == "NaCl":
-	V_pol = 0.0285 #nm^3
+	V_pol = 0.033 #nm^3
 	N1 = 2
 	N2 = 2
 elif name == "CsCl":
