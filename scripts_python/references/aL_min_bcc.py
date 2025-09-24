@@ -13,7 +13,7 @@ sigma = float(sys.argv[3])
 pi = math.pi
 Vol_NP = pi*(4/3)*R**3
 A_NP = 4*pi*R**2
-V_pol = 0.03075 #nm^3
+V_pol = 0.03075 #0.032 #nm^3
 N = 2
 
 aL_min = (N*Vol_NP+N*sigma*A_NP*V_pol*l_pol)**(1./3.)

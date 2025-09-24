@@ -208,12 +208,9 @@ while True:
 									out_file.write("#part,radius [nm],delta,dimx,dimy,dimz,F_reference\n")
 				else:
 					output_file = os.path.join(output_folder, f"{name_bin}_references_{f_name}.csv")
-					if name_bin != "Li3Bi" and name_bin != "NaZn13":
-						process_reference_bin(output_file, dir_origin, f_name, R, gamma_folder)
-					else:
-						if not os.path.isfile(output_file):
-							with open(output_file, "w") as out_file:
-								out_file.write("#part,radius [nm],delta,dimx,dimy,dimz,F_reference\n")
+					process_reference_bin(output_file, dir_origin, f_name, R, gamma_folder)
+
+
 				dir_fuente = {"part1": os.path.join(dir_origin,"sim_part1"),"part2": os.path.join(os.getcwd(),"part2")}
 
 				for label in ["part1", "part2"]:

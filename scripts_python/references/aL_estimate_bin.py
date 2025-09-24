@@ -26,11 +26,11 @@ if name == "NaCl":
 	N1 = 2
 	N2 = 2
 elif name == "CsCl":
-	V_pol = 0.028 #nm^3
+	V_pol = 0.034 #nm^3 0.028
 	N1 = 1
 	N2 = 1
 elif name == "CaCu5":
-	V_pol = 0.031
+	V_pol = 0.0345
 	N1 = 1
 	N2 = 5
 
@@ -40,7 +40,7 @@ elif name == "AlB2":
 	N2 = 2
 
 elif name == "Li3Bi":
-	V_pol = 0.071
+	V_pol = 0.071 #0.075
 	N1 = 2
 	N2 = 6
 
@@ -55,12 +55,12 @@ elif name == "Cu3Au" or name=='CaTiO3b' or name=='Ni4N':
 	N2 = 3
 
 elif name == "NaZn13":
-	V_pol = 0.033
+	V_pol = 0.036
 	N1 = 1
-	N2 = 12
+	N2 = 13
 
 elif name == "CaB6":
-	V_pol = 0.031
+	V_pol = 0.0345
 	N1 = 1
 	N2 = 6
 
@@ -69,8 +69,13 @@ elif name == "Fe4C":
 	N1 = 1
 	N2 = 4
 
+elif name == "AB4":
+	V_pol = 0.045
+	N1 = 1*8
+	N2 = 4*8
+
 elif name == "bccAB6":
-	V_pol = 0.032
+	V_pol = 0.0345
 	N1 = 2
 	N2 = 12
 
@@ -84,15 +89,15 @@ elif name=="MgZn2":
 	N2 = 8
 	if R2<=R1*1.12/2:
 		R2 = R1*0.88/2
-		V_pol = 0.014
+		V_pol = 0.0158
 		A_2 = 4*pi*R2**2
 		Vol_NP_2 = pi*(4./3.)*R2**3
 
 	elif R2<=R1*1.48/2:
-		V_pol = 0.0115
+		V_pol = 0.013
 
 	else:
-		V_pol = 0.010
+		V_pol = 0.011
 
 if name == "NaZn13":
 	aL_min = (N1*Vol_NP_1+N1*sigma_1*A_1*V_pol*l_pol_1+ N2*Vol_NP_2+N2*sigma_2*A_2*V_pol*l_pol_2)**(1./3.) *2

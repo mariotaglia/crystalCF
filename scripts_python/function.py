@@ -136,17 +136,16 @@ def extract_params_init(params_init, cond):
                 line_j = lines[j].strip()
                 if line_j.startswith("part"):
                     parts = line_j.split(maxsplit=3)
-                    part_value = parts[1]
-                    part = "part1" if part_value == "A" else "part2"
+                    part = parts[0]
 
-                    if len(parts) < 3:
+                    if len(parts) < 2:
                         j += 1
                         continue  # Línea incompleta
 
-                    token_2 = parts[2]
+                    token_2 = parts[1]
                     if token_2 in struct_ref:
                         cell_values = [token_2]
-                        raw_info = parts[3] if len(parts) > 3 else ""
+                        raw_info = parts[2] if len(parts) > 2 else ""
                     else:
                         cell_values = struct_ref.copy()
                         raw_info = line_j.split(maxsplit=2)[2]  # todo lo que viene después de 'part A'
@@ -256,6 +255,11 @@ def extract_params_init(params_init, cond):
             data["n1"] = 2
             data["n2"] = 6
             data["num cell bin"] = 1
+        elif data["name"] == "AB4":
+            if data["cell bin factor"] == 1:
+                data["n1"] = 1
+                data["n2"] = 4
+                data["num cell bin"] = 1
     return data
 
 def extract_definitions(definitions_path):
