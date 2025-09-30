@@ -47,7 +47,14 @@ elif name == "Li3Bi":
 elif name == "AuCu":
 	N1 = 2
 	N2 = 2
-	V_pol = 0.032
+	if R2<=R1*1.24/2:
+		R2 = R1*1/2
+		V_pol = 0.041
+		A_2 = 4*pi*R2**2
+		Vol_NP_2 = pi*(4./3.)*R2**3
+
+	else:
+		V_pol = 0.039
 
 elif name == "Cu3Au" or name=='CaTiO3b' or name=='Ni4N':
 	V_pol = 0.038
@@ -65,7 +72,7 @@ elif name == "CaB6":
 	N2 = 6
 
 elif name == "Fe4C":
-	V_pol = 0.032
+	V_pol = 0.036
 	N1 = 1
 	N2 = 4
 

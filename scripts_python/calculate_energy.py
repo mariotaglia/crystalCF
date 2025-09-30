@@ -83,7 +83,7 @@ def estimate_part_F(part, part_cell, factor_aL_part, ni, k_part, gen_curves_flag
     #y_cell = CubicSpline(aL_cell, F_norm_cell)(x_cell)
 
     # Ajuste cúbico (polinomio de grado 3)
-    coeficientes = np.polyfit(aL_cell, F_norm_cell, 5)
+    coeficientes = np.polyfit(aL_cell, F_norm_cell, 6)
     polinomio = np.poly1d(coeficientes)
 
     # Evaluación del polinomio ajustado
