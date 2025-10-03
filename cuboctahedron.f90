@@ -126,6 +126,7 @@ call savetodisk(volprot, title, counter)
 COvol = 0.0
 do j = 1, NNN
    COvol = COvol + (1.0/6.0)*Loctall(j)**3 - 0.5*(Loctall(j) -Lcubell(j))**3
+   if(COvol.le.0.0)COvol=Lcubell(j)**3
 enddo
 
 if (rank.eq.0) then
@@ -771,8 +772,16 @@ if((flagin.eqv..true.).and.(flagout.eqv..true.)) then ! cell part inside annd ou
     voltemp = intcell_cuboctahedron(lcube,locta,center,rotmatrix,npart,ix,iy,iz,npoints)
 endif
 
+
+if(volprot(jx,jy,jz).ne.0.0) then ! this point was already accessed, particle is self-colliding due to PBC
+         write(stdout,*) 'cuboctahedron:','particle is self-colliding due to PBC', jx,jy,jz
+         stop
+endif
+
 sumvolprot = sumvolprot + voltemp
-volprot(jx,jy,jz) = voltemp
+volprot(jx,jy,jz) = volprot(jx,jy,jz)+ voltemp
+
+
 endif ! flagsym
 
 
