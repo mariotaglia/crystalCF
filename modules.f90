@@ -192,7 +192,7 @@ endmodule
 module kinsol
 use system
 integer iter
-integer, parameter :: maxiters = 5000
+integer, parameter :: maxiters = 1500
 integer *4 ier ! Kinsol error flag
 integer *8 neq ! Kinsol number of equations
 real*8 norma

@@ -552,7 +552,11 @@ real*8 lcube
 
 volprot = 0.0
 sumvolprot = 0.0 ! total volumen, including that outside the system
-maxAell = locta/2.0 ! maximum size CO
+if (Locta.le.Lcube*2) then
+  maxAell = locta/2.0 ! maximum size CO
+else
+  maxAell = lcube/2.0 ! maximum size CO
+endif
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! create a box in transformed coordinate enclosing the CO
