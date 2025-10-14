@@ -466,7 +466,7 @@ case ('nkp') ! solvent volume fraction or chemical potential, depending on flagm
        enddo
      endif
 
-    call COrotation
+     call COrotation
 
     case(42, 52) ! 42: channel, 52: rod
      read(fh, *) basura

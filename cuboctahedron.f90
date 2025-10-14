@@ -73,7 +73,27 @@ loctaS = Loctall(j) - delta
  voleps1 = voleps1-volprot1
  voleps1 = voleps1*eeps(j)
 
- area =  3.0**(1.0/2.0)*Loctall(j)**2 + 3.0*(1.0-3.0**(1.0/2.0))*(Loctall(j) - Lcubell(j))**2.0 ! MARIO
+ !area =  3.0**(1.0/2.0)*Loctall(j)**2 + 3.0*(1.0-3.0**(1.0/2.0))*(Loctall(j) - Lcubell(j))**2.0 ! MARIO
+
+ if (Loctall(j).le.Lcubell(j)*2) then
+  if (Loctall(j).le.Lcubell(j)) then
+    area = 3.0**(1.0/2.0) *Loctall(j)**3 ! Octahedra
+  else
+    area = 3.0**(1.0/2.0)*Loctall(j)**2 + 3.0*(1.0 - 3.0**(1.0/2.0))*(Loctall(j) - Lcubell(j))**2.0
+  endif
+
+ elseif (Loctall(j).gt.Lcubell(j)*2) then
+  if (Loctall(j).ge.Lcubell(j)*3) then
+    area = 6*Lcubell(j)**2 ! Cube
+  else
+    if (Lcubell(j).gt.0) then
+      area = 6*Lcubell(j)**2 + (1.0/32.0)*(2*3**(1.0/2.0) - 6)*Loctall(j)**2 *(3-Loctall(j)/Lcubell(j))**2
+    else
+      area = 0
+    endif
+  endif
+
+ endif
 
 !! Normalize volx1 and volxx1 so that the integral is equal to the total number of ligands on the CO j
 
@@ -136,8 +156,29 @@ write(stdout,*) 'cuboctahedron:', 'total number of segments in system =', sumpol
 endif
 
 do j = 1, NNN
- area = 3.0**(1.0/2.0)*Loctall(j)**2 + 3.0*(1.0-3.0**(1.0/2.0))*(Loctall(j) - Lcubell(j))**2.0 ! MARIO
+! area = 3.0**(1.0/2.0)*Loctall(j)**2 + 3.0*(1.0-3.0**(1.0/2.0))*(Loctall(j) - Lcubell(j))**2.0 ! MARIO
 ! area = 3.0**(1.0/2.0)*Loctall(j)**2 + 6.0*(1.0-2.0**(1.0/2.0))*(Loctall(j) - Lcubell(j))**2.0 ! LEO
+
+ if (Loctall(j).le.Lcubell(j)*2) then
+  if (Loctall(j).le.Lcubell(j)) then
+    area = 3.0**(1.0/2.0) *Loctall(j)**3 ! Octahedra
+  else
+    area = 3.0**(1.0/2.0)*Loctall(j)**2 + 3.0*(1.0 - 3.0**(1.0/2.0))*(Loctall(j) - Lcubell(j))**2.0
+  endif
+
+ elseif (Loctall(j).gt.Lcubell(j)*2) then
+  if (Loctall(j).ge.Lcubell(j)*3) then
+    area = 6*Lcubell(j)**2 ! Cube
+  else
+    if (Lcubell(j).gt.0) then
+      area = 6*Lcubell(j)**2 + 4*(3**0.5 - 3)*(Lcubell(j)*3/2 - Loctall(j)/2)**2
+    else
+      area = 0
+    endif
+  endif
+  
+ endif
+
  if (rank.eq.0) write(stdout,*) 'cuboctahedron:', ' Total nanocuboct #',j,' area', area
 enddo
 !
@@ -553,9 +594,9 @@ real*8 lcube
 volprot = 0.0
 sumvolprot = 0.0 ! total volumen, including that outside the system
 if (Locta.le.Lcube*2) then
-  maxAell = locta/2.0 ! maximum size CO
+  maxAell = (locta/2.0) ! maximum size CO
 else
-  maxAell = lcube/2.0 ! maximum size CO
+  maxAell = (lcube/2.0) * (abs(rotmatrix(3,1)) + abs(rotmatrix(3,2)) + abs(rotmatrix(3,3))) ! maximum size CO
 endif
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
