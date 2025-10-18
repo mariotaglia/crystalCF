@@ -7,6 +7,8 @@ use montecarlo, only : free_energy
 use ematrix, only : vscan, systemtype
 use kaist, only : nst, st, sts, kp, kps, nkp
 use clusters, only : dumpcluster
+use ellipsoid_create, only : update_matrix_ellipsoid
+use cuboctahedron_create, only : update_matrix_cuboctahedron
 
 implicit none
 integer counter, counterr
@@ -70,7 +72,7 @@ call kais
 if(rank.eq.0)write(stdout,*) 'Kai OK'
 
 if (systemtype.eq.1) then
-call update_matrix(flag) ! updates matrix
+call update_matrix_ellipsoid(flag) ! updates matrix
 elseif (systemtype.eq.2) then
 call update_matrix_channel(flag) ! updates 'the matrix'
 elseif (systemtype.eq.3) then
@@ -95,6 +97,8 @@ elseif (systemtype.eq.80) then
 call update_matrix_cylinder(flag) ! cylinder
 elseif (systemtype.eq.81) then
 call update_matrix_superellipse(flag) ! superellipse
+elseif (systemtype.eq.10) then
+call update_matrix_geom(flag) ! superellipse
 endif
 
   if(flag.eqv..true.) then

@@ -3,6 +3,7 @@ use system
 use transform
 use ellipsoid
 use COrotMod
+use cuboctahedron_create
 
 implicit none
 real*8 x(3), xx(3), v(3), maxx(3)

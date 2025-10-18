@@ -1,3 +1,10 @@
+module cuboctahedron_create
+  implicit none
+  public :: update_matrix_cuboctahedron
+  public :: intcell_cuboctahedron, BetweenPlanes, integrar_matrices, integrate_cuboctahedron, newintegrateg_cuboctahedron
+
+contains
+
 subroutine update_matrix_cuboctahedron(flag)
 use system
 use ellipsoid !cuidado agregar channel quizas
@@ -145,8 +152,22 @@ call savetodisk(volprot, title, counter)
 !temp = volume of cuboctahedron
 COvol = 0.0
 do j = 1, NNN
+ if (Loctall(j).le.Lcubell(j)*2) then
+  if (Loctall(j).le.Lcubell(j)) then
+   COvol = COvol + (1.0/6.0)*Loctall(j)**3
+  else
    COvol = COvol + (1.0/6.0)*Loctall(j)**3 - 0.5*(Loctall(j) -Lcubell(j))**3
-   if(COvol.le.0.0)COvol=Lcubell(j)**3
+  endif
+ elseif (Loctall(j).gt.Lcubell(j)*2) then
+   if (Loctall(j).ge.Lcubell(j)*3) then
+    COvol = COvol + Lcubell(j)**3 - 4*((3.0/2.0)*Lcubell(j) - Loctall(j)/2)**3
+   else
+    COvol = COvol + Lcubell(j)**3
+  endif
+ endif
+  
+ if(COvol.le.0.0)COvol=Lcubell(j)**3
+
 enddo
 
 if (rank.eq.0) then
@@ -560,7 +581,6 @@ sumvolx1 = sumvolx1 + 1.0
 end
 
 
-
 subroutine integrate_cuboctahedron(lcube,locta,center,rotmatrix,npart,npoints,volprot,sumvolprot,flag)
 use system
 use transform
@@ -576,7 +596,6 @@ real*8 rotmatrix(3,3)
 real*8 volprot(dimx,dimy,dimz)
 integer ix,iy,iz,ax,ay,az
 logical flagin, flagout
-real*8 intcell_cuboctahedron
 integer jx,jy, jz
 logical flag
 real*8 box(4)
@@ -712,6 +731,8 @@ x(1) = x(1) - center(1)
 x(2) = x(2) - center(2)
 x(3) = x(3) - center(3)
 
+write(stdout,*) 'geometries:', klocta1b(npart), npart
+
 call BetweenPlanes(plane1(:,npart),klocta1(npart),klocta1b(npart),x,test1)
 call BetweenPlanes(plane2(:,npart),klocta2(npart),klocta2b(npart),x,test2)
 call BetweenPlanes(plane3(:,npart),klocta3(npart),klocta3b(npart),x,test3)
@@ -817,7 +838,6 @@ if((flagin.eqv..true.).and.(flagout.eqv..true.)) then ! cell part inside annd ou
     voltemp = intcell_cuboctahedron(lcube,locta,center,rotmatrix,npart,ix,iy,iz,npoints)
 endif
 
-
 if(volprot(jx,jy,jz).ne.0.0) then ! this point was already accessed, particle is self-colliding due to PBC
          write(stdout,*) 'cuboctahedron:','particle is self-colliding due to PBC', jx,jy,jz
          stop
@@ -856,3 +876,5 @@ else
 endif
 
 end subroutine BetweenPlanes
+
+end module

@@ -1,3 +1,10 @@
+module ellipsoid_create
+  implicit none
+  public :: update_matrix_ellipsoid, mmmult, intcell_ellipsoid
+  public :: make_ellipsoid, integrate_ellipsoid, newintegrateg_ellipsoid
+  public :: randomvect, rotv, rotvo, rotvm
+contains
+
 subroutine randomvect(V)
 use const
 implicit none
@@ -16,10 +23,11 @@ V(2) = sin(theta)*sin(phi)
 V(3) = cos(phi)
 end subroutine
 
-subroutine make_ellipsoid
+subroutine make_ellipsoid(n)
 use system
 use ellipsoid
 implicit none
+integer n
 integer i
 integer j
 real deltaX
@@ -33,7 +41,7 @@ AAAX = 0.0
 deltaX = delta/2.0
 
 ! LOOP over particle
-do j = 1, NNN
+do j = 1, n
 
  ! orientation vector
  orient(:,j) = 0
@@ -61,7 +69,7 @@ do j = 1, NNN
 enddo
 end subroutine
 
-subroutine update_matrix(flag)
+subroutine update_matrix_ellipsoid(flag)
 use system
 use ellipsoid
 use ematrix
@@ -91,7 +99,7 @@ integer i
 real*8 volxx1(dimx,dimy,dimz)
 real*8 volxx(dimx,dimy,dimz)
 
-call make_ellipsoid ! update matrixes for all particles
+call make_ellipsoid(NNN) ! update matrixes for all particles
 
 !cutarea = 0.01 ! throw away cells that have less area than cutarea x area of the cell with largest area  
 cutarea = 0.0 ! throw away cells that have less area than cutarea x area of the cell with largest area  
@@ -121,12 +129,12 @@ do j = 1, NNN
 
  flag = .false.
 
- call integrate(AAAL(:,:,j),AellL(:,j), Rell(:,j),npoints, voleps1 , sumvoleps1, flag)
+ call integrate_ellipsoid(AAAL(:,:,j),AellL(:,j), Rell(:,j),npoints, voleps1 , sumvoleps1, flag)
  flag = .false. ! not a problem if eps lays outside boundaries
- call integrate(AAA(:,:,j),Aell(:,j), Rell(:,j),npoints, volprot1, sumvolprot1, flag)
+ call integrate_ellipsoid(AAA(:,:,j),Aell(:,j), Rell(:,j),npoints, volprot1, sumvolprot1, flag)
 
  npoints = 100000000
- call newintegrateg(Aell(:,j),Rell(:,j),npoints,volx1,sumvolx1, com1, p1, ncha1, volxx1)
+ call newintegrateg_ellipsoid(Aell(:,j),Rell(:,j),npoints,volx1,sumvolx1, com1, p1, ncha1, volxx1)
 
 !! volume
  temp = 4.0/3.0*pi*Aell(1,j)*Aell(2,j)*Aell(3,j)/(sumvolprot1*delta**3) ! rescales volume
@@ -214,10 +222,11 @@ counter = 1
 call savetodisk(volxx, title, counter)
 end subroutine
 
-subroutine integrate(AAA,Aell, Rell, npoints,volprot,sumvolprot, flag)
+subroutine integrate_ellipsoid(AAA,Aell, Rell, npoints,volprot,sumvolprot, flag)
 use system
 use transform
 use const
+
 implicit none
 real*8 sumvolprot
 integer npoints
@@ -228,8 +237,6 @@ real*8 dr(3), dxr(3)
 integer ix,iy,iz,ax,ay,az
 real*8 vect
 logical flagin, flagout
-real*8 intcell
-real*8 mmmult
 integer jx,jy, jz
 real*8 Rpos(3)
 real*8 maxAell
@@ -412,7 +419,7 @@ if(vect.le.1.0) then           ! inside the ellipsoid
        endif
     endif
 
-    voltemp =  intcell(AAA, Rell, ix,iy,iz, npoints)
+    voltemp =  intcell_ellipsoid(AAA, Rell, ix,iy,iz, npoints)
     sumvolprot = sumvolprot + voltemp
 
     if(flagsym.eqv..false.) then ! cell is not out of system due to reflection symmetry
@@ -476,7 +483,7 @@ else
        endif
     endif
 
-    voltemp = intcell(AAA, Rell, ix,iy,iz, npoints)
+    voltemp = intcell_ellipsoid(AAA, Rell, ix,iy,iz, npoints)
     sumvolprot = sumvolprot + voltemp
 
     if(flagsym.eqv..false.) then ! cell is not out of system due to reflection symmetry
@@ -556,7 +563,7 @@ enddo
 enddo
 end subroutine
 
-double precision function intcell(AAA,Rell,ix,iy,iz,n)
+double precision function intcell_ellipsoid(AAA,Rell,ix,iy,iz,n)
 use system
 use transform
 
@@ -567,7 +574,6 @@ integer ix,iy,iz,ax,ay,az
 integer cc
 real*8 vect
 integer n
-real*8 mmmult
 real*8 dr(3), dxr(3)
 
 cc = 0
@@ -589,7 +595,7 @@ enddo
 enddo
 enddo
 
-intcell = float(cc)/(float(n)**3)
+intcell_ellipsoid = float(cc)/(float(n)**3)
 end function
 
 double precision function mmmult(V,A)
@@ -601,7 +607,7 @@ C(1) = A(1,1)*V(1)+A(1,2)*V(2)+A(1,3)*V(3)
 C(2) = A(2,1)*V(1)+A(2,2)*V(2)+A(2,3)*V(3)
 C(3) = A(3,1)*V(1)+A(3,2)*V(2)+A(3,3)*V(3)
 mmmult = V(1)*C(1) + V(2)*C(2) + V(3)*C(3)
-endfunction
+end function
 
 subroutine rotv(A, B) ! applies rotation matrix B to ellipsoid matrix A
 implicit none
@@ -639,12 +645,13 @@ A = MATMUL(B, A)
 end subroutine
 
 
-subroutine newintegrateg(Aell,Rell, npoints,volx1,sumvolx1,com1,p1,ncha1,volxx1)
+subroutine newintegrateg_ellipsoid(Aell,Rell, npoints,volx1,sumvolx1,com1,p1,ncha1,volxx1)
 use system
 use transform
 use chainsdat
 use ematrix
 use const
+
 implicit none
 real*8 sumvolx1
 integer npoints
@@ -765,4 +772,6 @@ com1(i,:) = com1(i,:)/volx1(i)
 com1(i,:) = com1(i,:) + 1.5*lseg*((com1(i,:)-Rell(:)))/Aell(:)
 enddo
 
-end
+end subroutine
+
+end module

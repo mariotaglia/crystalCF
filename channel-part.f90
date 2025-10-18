@@ -10,6 +10,7 @@ use molecules
 use channel
 use transform, only : IMAT
 use rotchain
+use ellipsoid_create
 
 implicit none
 
@@ -35,7 +36,7 @@ real*8 volxx(dimx,dimy,dimz)
 real*8 x(3), v(3), hcyl
 
 
-call make_ellipsoid ! update matrixes for all particles
+call make_ellipsoid(NNN) ! update matrixes for all particles
 
 cutarea = 0.0 ! throw away cells that have less area than cutarea x area of the cell with largest area  
 sumpolseg = 0.0
@@ -120,13 +121,13 @@ do j = 1, NNN
 
  flag = .false.
 
- call integrate(AAAL(:,:,j),AellL(:,j), Rell(:,j),npoints, voleps1 , sumvoleps1, flag)
+ call integrate_ellipsoid(AAAL(:,:,j),AellL(:,j), Rell(:,j),npoints, voleps1 , sumvoleps1, flag)
  flag = .false. ! not a problem if eps lays outside boundaries
 
- call integrate(AAA(:,:,j),Aell(:,j), Rell(:,j),npoints, volprot1, sumvolprot1, flag)
+ call integrate_ellipsoid(AAA(:,:,j),Aell(:,j), Rell(:,j),npoints, volprot1, sumvolprot1, flag)
 
  npoints = 100000000
- call newintegrateg(Aell(:,j),Rell(:,j),npoints,volx1,sumvolx1, com1, p1, ncha1, volxx1)
+ call newintegrateg_ellipsoid(Aell(:,j),Rell(:,j),npoints,volx1,sumvolx1, com1, p1, ncha1, volxx1)
 
 !! volume
  temp = 4.0/3.0*pi*Aell(1,j)*Aell(2,j)*Aell(3,j)/(sumvolprot1*delta**3) ! rescales volume

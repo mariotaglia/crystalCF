@@ -252,6 +252,16 @@ real*8, allocatable :: rotmatCO(:,:,:)
 
 end module
 
+module geometries
+integer NNNell
+integer, allocatable :: ids_ell(:)
+
+! cubooctahedron only
+integer NNNco
+integer, allocatable :: ids_co(:)
+
+end module
+
 module COrotMod
 real*8, allocatable :: klocta1(:)
 real*8, allocatable :: klocta2(:)

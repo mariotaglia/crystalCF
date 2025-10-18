@@ -12,6 +12,7 @@ use molecules, only : benergy, vsol0
 use const, only : infile, randominput, seed, seed_lig, stdout
 use MPI
 use ellipsoid
+use geometries
 use chainsdat
 use transform
 use system
@@ -33,13 +34,14 @@ integer pos
 integer, parameter :: fh = 15
 integer ios
 integer line
-integer i, j
+integer i, j, k
 character(len=50) :: filename = 'DEFINITIONS.txt'
 character basura
 integer ndi
 real*8 ndr
 real*8 kpini, kpfin, kpstep, ikp
-integer flag
+integer flag, count
+logical :: reading_block
 
 stdout = 6
 
@@ -466,7 +468,7 @@ case ('nkp') ! solvent volume fraction or chemical potential, depending on flagm
        enddo
      endif
 
-     call COrotation
+     call COrotation(NNN, rotmatCO)
 
     case(42, 52) ! 42: channel, 52: rod
      read(fh, *) basura
@@ -554,7 +556,7 @@ case ('nkp') ! solvent volume fraction or chemical potential, depending on flagm
      endif
 
 
-    case(1) 
+    case(1) !superellipse
      read(fh, *) basura
      read(fh, *)NNN
 
@@ -611,6 +613,168 @@ case ('nkp') ! solvent volume fraction or chemical potential, depending on flagm
        endif ! NNN
      endif
 
+
+    case(10) !global geometry
+      NNN = 0
+      do while (ios == 0)
+         read(fh,'(A)', iostat=ios) buffer
+         if (ios /= 0) exit
+         buffer = adjustl(buffer)
+         if (buffer == '') cycle
+
+         select case (trim(buffer))
+
+         !=========================
+         case ('!id ellipsoid')
+            count = 0
+            reading_block = .true.
+            do while (reading_block)
+               read(fh,'(A)', iostat=ios) buffer
+               if (ios /= 0) exit
+               buffer = adjustl(buffer)
+               if (buffer == '' .or. buffer(1:1) == '!') exit
+               count = count + 1
+            end do
+            NNNell = count
+            if(rank.eq.0)write(stdout,*) 'parser:','number of ellipsoid particle',  NNNell
+            ALLOCATE (ids_ell(NNNell))
+
+            rewind(fh) !go back to starting line
+
+            do
+               read(fh,'(A)', iostat=ios) buffer
+               if (trim(buffer) == '!id ellipsoid') then
+                  do j = 1, NNNell
+                     read(fh,'(A)') buffer
+                     read(buffer,*) ids_ell(j)
+                     if(rank.eq.0)write(stdout,*) 'parser:','Set ellipsoid particle',j,'id to', ids_ell(j)
+                  end do
+                  exit
+               end if
+            end do
+
+         !=========================
+         case ('!id cuboctahedron')
+            count = 0
+            reading_block = .true.
+            do while (reading_block)
+               read(fh,'(A)', iostat=ios) buffer
+               if (ios /= 0) exit
+               buffer = adjustl(buffer)
+               if (buffer == '' .or. buffer(1:1) == '!') exit
+               count = count + 1
+            end do
+            NNNco = count
+            if(rank.eq.0)write(stdout,*) 'parser:','number of cuboctahedron particle',  NNNco
+            ALLOCATE(ids_co(NNNco))
+
+            rewind(fh) !go back to starting line
+
+            do
+               read(fh,'(A)', iostat=ios) buffer
+               if (trim(buffer) == '!id cuboctahedron') then
+                  do j = 1, NNNco
+                     read(fh,'(A)') buffer
+                     read(buffer,*) ids_co(j)
+                     if(rank.eq.0)write(stdout,*) 'parser:','Set cuboctahedron particle',j,'id to', ids_co(j)
+                  end do
+                  exit
+               end if
+            end do
+            exit
+          end select
+
+        end do
+        !=========================
+        if (NNN.eq.0) then
+        NNN = NNNell + NNNco
+        call allocate_geom
+        end if
+        if (NNN.eq.0) then
+          if(rank.eq.0)write(stdout,*) 'parser:','fail to find particle. Quit'
+          call endall
+        end if
+
+
+      do while (ios == 0)
+         read(fh,'(A)', iostat=ios) buffer
+         if (ios /= 0) exit
+         buffer = adjustl(buffer)
+         if (buffer == '') cycle
+
+         select case (trim(buffer))
+         !=========================
+         case ('!Center')
+            do j = 1, NNN
+            read(fh, *) Rellf(1,j), Rellf(2,j), Rellf(3,j)
+            if(rank.eq.0)write(stdout,*) 'parser:','Set particle',j,'pos to',  Rellf(1,j), Rellf(2,j), Rellf(3,j)
+            enddo
+
+         !=========================
+         case ('!particle semiaxis x y z in nm')
+           do j = 1, NNNell
+           read(fh, *) Aell(1,j), Aell(2,j), Aell(3,j)
+           if(rank.eq.0)write(stdout,*) 'parser:','Set ellipsoid particle',j,'axis to',  Aell(1,j), Aell(2,j), Aell(3,j)
+           enddo
+
+         !=========================
+         case ('!octahedron large')
+            do j = 1, NNNco
+              read(fh, *) Loctall(j)
+           if(rank.eq.0)write(stdout,*) 'parser:','Set cuboctahedron particle',j,'octahedron size to',  Loctall(j)
+           enddo
+
+         !=========================
+         case ('!cube large')
+            do j = 1, NNNco
+              read(fh, *) Lcubell(j)
+           if(rank.eq.0)write(stdout,*) 'parser:','Set cuboctahedron particle',j,'cube size to',  Lcubell(j)
+           enddo
+
+         !=========================
+         case ('! Rotation')
+           do j = 1, NNN
+           read(fh, *) rotmatrix(1,1,j), rotmatrix(1,2,j), rotmatrix(1,3,j)
+           read(fh, *) rotmatrix(2,1,j), rotmatrix(2,2,j), rotmatrix(2,3,j)
+           read(fh, *) rotmatrix(3,1,j), rotmatrix(3,2,j), rotmatrix(3,3,j)
+           if(rank.eq.0) then
+               write(stdout,*) 'parser:','Set particle',j,'rotation to:'
+               write(stdout,*) 'parser:', rotmatrix(1,1,j), rotmatrix(1,2,j), rotmatrix(1,3,j)
+               write(stdout,*) 'parser:', rotmatrix(2,1,j), rotmatrix(2,2,j), rotmatrix(2,3,j)
+               write(stdout,*) 'parser:', rotmatrix(3,1,j), rotmatrix(3,2,j), rotmatrix(3,3,j)
+           endif
+           end do
+         !=========================
+         case ('! coverage')
+           do j = 1, NNN
+              read(fh, *) sigma(j)
+           if(rank.eq.0)write(stdout,*) 'parser:','Set particle',j,'surface coverage to', sigma(j)
+           enddo
+         !=========================
+         case ('! hydrophobicity')
+           do j = 1, NNN
+             read(fh, *) eeps(j)
+             if(rank.eq.0)write(stdout,*) 'parser:','Set particle',j,'hydrophobicity to', eeps(j)
+           enddo
+
+         !=========================
+         case ('! chain length')
+            do j = 1, NNN
+               read(fh,'(A)') buffer
+               read(buffer,*) longp(j)
+               if(rank.eq.0)write(stdout,*) 'parser:','Set particle',j,'lenght chain to', longp(j)
+            end do
+
+         end select
+
+      end do
+      do i = 1, NNNco
+        rotmatCO(:,:,i) = rotmatrix(:,:,ids_co(i))
+      end do
+      call COrotation(NNNco, rotmatCO)
+
+     exit
+
 endselect
 endselect
 
@@ -618,6 +782,7 @@ endif
 
 enddo
 
+close(fh)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !
 ! Check validity of input
