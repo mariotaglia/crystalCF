@@ -731,8 +731,6 @@ x(1) = x(1) - center(1)
 x(2) = x(2) - center(2)
 x(3) = x(3) - center(3)
 
-write(stdout,*) 'geometries:', klocta1b(npart), npart
-
 call BetweenPlanes(plane1(:,npart),klocta1(npart),klocta1b(npart),x,test1)
 call BetweenPlanes(plane2(:,npart),klocta2(npart),klocta2b(npart),x,test2)
 call BetweenPlanes(plane3(:,npart),klocta3(npart),klocta3b(npart),x,test3)
