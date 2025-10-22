@@ -751,7 +751,7 @@ case ('nkp') ! solvent volume fraction or chemical potential, depending on flagm
            if(rank.eq.0)write(stdout,*) 'parser:','Set particle',j,'surface coverage to', sigma(j)
            enddo
          !=========================
-         case ('! hydrophobicity')
+         case ('!Surface-polymer atraction')
            do j = 1, NNN
              read(fh, *) eeps(j)
              if(rank.eq.0)write(stdout,*) 'parser:','Set particle',j,'hydrophobicity to', eeps(j)
