@@ -732,7 +732,7 @@ case ('nkp') ! solvent volume fraction or chemical potential, depending on flagm
            enddo
 
          !=========================
-         case ('! Rotation')
+         case ('!Rotation')
            do j = 1, NNN
            read(fh, *) rotmatrix(1,1,j), rotmatrix(1,2,j), rotmatrix(1,3,j)
            read(fh, *) rotmatrix(2,1,j), rotmatrix(2,2,j), rotmatrix(2,3,j)
@@ -745,7 +745,7 @@ case ('nkp') ! solvent volume fraction or chemical potential, depending on flagm
            endif
            end do
          !=========================
-         case ('! coverage')
+         case ('!coverage')
            do j = 1, NNN
               read(fh, *) sigma(j)
            if(rank.eq.0)write(stdout,*) 'parser:','Set particle',j,'surface coverage to', sigma(j)
@@ -758,7 +758,7 @@ case ('nkp') ! solvent volume fraction or chemical potential, depending on flagm
            enddo
 
          !=========================
-         case ('! chain length')
+         case ('!chains length')
             do j = 1, NNN
                read(fh,'(A)') buffer
                read(buffer,*) longp(j)
