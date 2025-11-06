@@ -687,15 +687,16 @@ case ('nkp') ! solvent volume fraction or chemical potential, depending on flagm
         end do
         !=========================
         if (NNN.eq.0) then
-        NNN = NNNell + NNNco
-        call allocate_geom
+          NNN = NNNell + NNNco
+          call allocate_geom
         end if
         if (NNN.eq.0) then
           if(rank.eq.0)write(stdout,*) 'parser:','fail to find particle. Quit'
           call endall
         end if
 
-
+      ios = 0
+      rewind(fh)
       do while (ios == 0)
          read(fh,'(A)', iostat=ios) buffer
          if (ios /= 0) exit
@@ -768,10 +769,12 @@ case ('nkp') ! solvent volume fraction or chemical potential, depending on flagm
          end select
 
       end do
-      do i = 1, NNNco
-        rotmatCO(:,:,i) = rotmatrix(:,:,ids_co(i))
-      end do
-      call COrotation(NNNco, rotmatCO)
+      if (NNNco.ne.0) then
+        do i = 1, NNNco
+          rotmatCO(:,:,i) = rotmatrix(:,:,ids_co(i))
+        end do
+        call COrotation(NNNco, rotmatCO)
+      endif
 
      exit
 
