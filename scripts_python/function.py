@@ -61,7 +61,7 @@ def extract_params_init(params_init, cond):
             i += 1
 
         elif line == "!list gamma":
-            data["gamma list"] = [float(x) for x in lines[i+1].strip("[]\n").split(",")]
+            data["gamma list"] = [np.rouind(float(x),3) for x in lines[i+1].strip("[]\n").split(",")]
             i += 1
         elif line == "!list delta bin":
             data["list delta bin"] = [float(x) for x in lines[i+1].strip("[]\n").split(",")]
