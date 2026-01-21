@@ -57,7 +57,7 @@ F_U = ["F_trans","F_trans_sv","F_vdW"]
 F_ST = ["F_conf","F_conf_sv","F_mixs", "F_HS"]
 F_name = F_U+F_ST+['F_tot_gcanon']
 if flag_pairwise == True:
-	F_name = F_name +["F_pairwise"]
+	F_name = ["F_pairwise_ML"]
 
 if flag_reflexion == True:
 	if name_bin == "NaCl" or name_bin == "CsCl":
@@ -168,6 +168,9 @@ if flag_reflexion == True:
 
 ################## EXPORTACTION #############
 gamma_folder_list = ["{:.3f}".format(g).replace('.','_') for g in gamma_list]
+if "F_pairwise_ML" in F_name: 
+	flag_pairwise=True
+else: flag_pairwise = False
 
 while True:
 	check_extract = input("¿Quiere extraer los F.data? (s/n): ").strip().lower()
@@ -194,18 +197,14 @@ while True:
 				gamma = float(gamma_folder.replace('_','.'))
 				aL = float(run_command(f'python3 {dir_script}/references/aL_estimate_bin.py {name_bin} {R1_np} {R2_np} {gamma_calc(DEF)} {chain_lenght["part1"]} {chain_lenght["part2"]} {cov["part1"]} {cov["part2"]}'))
 				delta_dim_bin = [entry for entry in gamm_delta_dim if entry["gamma"] == gamma]
-				process_principal(output_file, name_bin, R, delta_dim_bin, aL, k_aL, f_name)
+				process_principal(output_file, name_bin, R, delta_dim_bin, aL, k_aL, f_name, flag_pairwise)
 				os.chdir(os.path.join(dir_origin,f"gamma_{gamma_folder}"))
-				if "F_pairwise" in F_name:
-					if not f_name == "F_pairwise":
+				if "F_pairwise_ML" in F_name:
+					if not f_name == "F_pairwise_ML":
 						output_file = os.path.join(output_folder, f"{name_bin}_references_{f_name}.csv")
-					else:
-						if name_bin != "Li3Bi" and name_bin != "NaZn13":
-							process_reference_bin(output_file, dir_origin, f_name, R, gamma_folder)
-						else:
-							if not os.path.isfile(output_file):
-								with open(output_file, "w") as out_file:
-									out_file.write("#part,radius [nm],delta,dimx,dimy,dimz,F_reference\n")
+						if not os.path.isfile(output_file):
+							with open(output_file, "w") as out_file:
+								out_file.write("#part,radius [nm],delta,dimx,dimy,dimz,F_reference\n")
 				else:
 					output_file = os.path.join(output_folder, f"{name_bin}_references_{f_name}.csv")
 					process_reference_bin(output_file, dir_origin, f_name, R, gamma_folder)
@@ -227,19 +226,21 @@ while True:
 							k_aL_part = 2
 
 						delta_dim_part = [entry for entry in part_delta_dim if (entry["part"] == label and entry["cell"] == label_struc)]
-						process_principal_part(output_file, label_struc, R_np, delta_dim_part, aL, k_aL_part, f_name)
+						process_principal_part(output_file, label_struc, R_np, delta_dim_part, aL, k_aL_part, f_name, flag_pairwise)
 
 						os.chdir(os.path.join(dir_fuente[label], f"{label_struc}_ref"))
 						output_file = os.path.join(output_folder, f"{label}_references_{f_name}.csv")
 						base_folder = os.path.join(dir_fuente[label], f"{label_struc}_ref")
-						if not f_name == "F_pairwise":
+						if not f_name == "F_pairwise_ML":
 							process_reference_part(output_file, base_folder, cell_part, label_struc, f_name)
 
 			join_F_csv(output_folder, name_bin, True)
-			join_F_csv_ref(output_folder, name_bin)
+			if flag_pairwise=="False":
+				join_F_csv_ref(output_folder, name_bin)
 			for label in ["part1","part2"]:
 				join_F_csv(output_folder, label, False)
-				join_F_csv_ref(output_folder, label)
+				if flag_pairwise=="False":
+					join_F_csv_ref(output_folder, label)
 
 			print(f"Exportado gamma {gamma_folder.replace('_','.')}")
 		break
@@ -252,21 +253,13 @@ while True:
 		print("Respuesta no válida. Por favor, ingrese 's' o 'n'.")
 
 ##################### ESTIMACIONES ###############################
-os.chdir(dir_origin)
+os.chdir(dir_origin) 
 def v_pol_part(R):
-	x = R/R1_np
-	t = (x - 0.4) / (1 - 0.6)
-	y = 0.028 + (0.030 - 0.028) * (1 - (1 - t)**2)
-	return 0.029
+	return 0.028
 
 def v_pol_bin(R1, R2, name):
-	x = R2/R1
-	t = (x - 0.4) / (1 - 0.6)
-	y = 0.026 + (0.032 - 0.026) * (1 - (1 - t)**2)
-	y = 0.029
-	return y 
+	return 0.028
 
-import matplotlib.pyplot as plt
 fig1, ax1 = plt.subplots(figsize=(8, 6)); fig2, ax2 = plt.subplots(figsize=(8, 6)); fig3, ax3 = plt.subplots(figsize=(8, 6))
 fig4, ax4 = plt.subplots(figsize=(8, 6))
 params_init = extract_params_init('init_params.txt', True)
@@ -305,10 +298,9 @@ for gamma_folder in gamma_folder_list:
 	for part in ["part1", "part2"]:
 		result_cell = []
 		for i, cell in enumerate(cell_part):
-			if 'F_pairwise' in F_name:
+			if 'F_pairwise_ML' in F_name:
 				result_cell_pairwise = estimate_part_F_pair(part, cell, factor_aL_part[cell], n[part], 
-					k_part[cell],vol_tot_part(cell,R[part],chain_lenght[part],cov[part], v_pol_part(R[part])), gen_curves_flag, k_aL_part, np.round(gamma,2))
-				print(v_pol_part(R[part]))
+					vol_tot_part(cell,R[part],chain_lenght[part],cov[part], v_pol_part(R[part])), k_part[cell], gen_curves_flag, k_aL_part, np.round(gamma,2))
 				aL_min = result_cell_pairwise[0]
 				F_part = result_cell_pairwise[1]
 				aL_array = result_cell_pairwise[2]	
@@ -327,13 +319,12 @@ for gamma_folder in gamma_folder_list:
 
 	factor_aL_bin = cell_bin_factor*np.power(cdiva_bin,(-1.0/3.0))
 	
-	if 'F_pairwise' in F_name:
+	if 'F_pairwise_ML' in F_name:
 		result_bin_pair = estimate_bin_F_pair(name_bin, factor_aL_bin, k_bin, n1, n2, 
 			vol_tot_bin(name_bin,R1_np,R2_np,chain_lenght["part1"],chain_lenght["part2"],cov["part1"],cov["part2"],v_pol_bin(R1_np, R2_np, name_bin)), ax4, np.round(gamma,2), gen_curves_flag, k_aL, cdiva_bin)
-		print(v_pol_bin(R1_np, R2_np, name_bin))
 		aL_min = result_bin_pair[0]
 		F_bin = result_bin_pair[1]
-		aL_array = result_bin_pair[2]; packing_bin = result_bin_pair[3]
+		aL_array = result_bin_pair[2]#; packing_bin = result_bin_pair[3]
 		U_bin = 0; S_bin = 0
 	else:
 		result_bin = estimate_bin_F(name_bin, factor_aL_bin, k_bin, n1, n2, ax1, np.round(gamma,2), gen_curves_flag, k_aL)
@@ -378,7 +369,7 @@ if gen_curves_flag == True:
 	ax2.set_ylabel(r'$\Delta$U (k$_{\text{b}}$T)',fontsize=22)
 	ax3.set_ylabel(r'-T$\Delta$S (k$_{\text{b}}$T)',fontsize=22)
 	ax4.set_ylabel(r'$\Delta$F (k$_{\text{b}}$T)',fontsize=22)
-	if 'F_pairwise' in F_name:
+	if 'F_pairwise_ML' in F_name:
 		fig4.savefig(f"{final_output}/F_binary_pairwise.png", format="png", dpi=300,bbox_inches='tight')
 	else:
 		fig1.savefig(f"{final_output}/F_binary.png", format="png", dpi=300,bbox_inches='tight')
@@ -437,7 +428,7 @@ for gamma_folder in gamma_folder_list:
 
 y_label = [r'$\Delta$U (k$_{\text{B}}$T)',r'$-T\Delta$S (k$_{\text{B}}$T)',r'$\Delta$F (k$_{\text{B}}$T)']
 
-if 'F_pairwise' not in F_name:
+if 'F_pairwise_ML' not in F_name:
 	#datos MD:
 	ref_MD = pd.read_excel(os.path.join(dir_script,"references","ref_MD_backup.xlsx"), engine="openpyxl")
 	ref_MD = ref_MD.loc[ref_MD.iloc[:, 0] == name_bin]

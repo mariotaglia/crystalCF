@@ -115,7 +115,8 @@ com = 0.0
 ncha = 0
 
 do j = 1, NNN
-
+ seed = seed_np
+ write(stdout,*) 'ellipsoid:', j, seed
 ! rotate ellipsoid matrixes according to current rotation matrix
 
  call rotv(AAA(:,:,j), rotmatrix(:,:,j))
@@ -716,7 +717,7 @@ do j = 1,3
 select case (PBC((j-1)*2+1))
   case (0 , 2) ! BULK, WALL
     if(is(j).lt.1) then
-    write(stdout,*) 'Error in newintegrateg: out of boundary'
+    write(stdout,*) 'Error in newintegrateg: out of boundary ', is(j), j
     stop    
   endif
   case (1) ! PBC

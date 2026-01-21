@@ -55,7 +55,7 @@ com = 0.0
 ncha = 0
 
 do j = 1, NNNell
-
+   seed = seed_np
   ! rotate ellipsoid matrixes according to current rotation matrix
 
    call rotv(AAA(:,:,j), rotmatrix(:,:,ids_ell(j)))
@@ -135,7 +135,7 @@ end do
 !===========================================
 
 do j=1,NNNco ! loop ovr the cuboctahedron particles
-
+  seed = seed_np
   lcubeL = Lcubell(j) + delta 
   lcubeS = Lcubell(j) - delta
   loctaL = Loctall(j) + delta

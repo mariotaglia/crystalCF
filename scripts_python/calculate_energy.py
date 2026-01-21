@@ -3,6 +3,7 @@ import re
 import numpy as np
 import pandas as pd
 from scipy.interpolate import CubicSpline
+from scipy.interpolate import UnivariateSpline
 from scipy.optimize import minimize_scalar
 import matplotlib.pyplot as plt
 import math
@@ -38,9 +39,8 @@ def mean_al(df):
 def mean_al_pair(df):
     return df.groupby('aL', as_index=False).agg({
         'aL': 'mean',
-        'F_tot_gcanon': 'mean',
         'F_norm': 'mean',
-        'F_pairwise': 'mean'
+        'F_pairwise_ML': 'mean'
     })
 
 def estimate_part_F(part, part_cell, factor_aL_part, ni, k_part, gen_curves_flag, k_reflex_part):
@@ -334,46 +334,36 @@ def estimate_bin_F_pair(name, factor_bcell, k_bin, n1, n2, vol_tot, ax, gamma, g
     data_bin = pd.read_csv(csv_file[0], skiprows=0)
     k = k_reflex["kx"]*k_reflex["ky"]*k_reflex["kz"]
     data_bin['aL'] = (data_bin['delta'] * data_bin['dimx'] * float(factor_bcell)*k_reflex["kx"]).round(4)
-    data_bin["F_norm"] = data_bin['F_pairwise']
+    data_bin["F_norm"] = data_bin['F_pairwise_ML']
     data_bin.sort_values(by='aL', inplace=True)
 
     df_bin = mean_al_pair(data_bin)
     aL_bin = df_bin['aL'].to_numpy()
     F_norm_bin = df_bin['F_norm'].to_numpy()*k/k_bin
-    F_tot_bin = df_bin['F_pairwise'].to_numpy()*k/k_bin
+    F_tot_bin = df_bin['F_pairwise_ML'].to_numpy()*k/k_bin
     x_bin =  np.arange(aL_bin[0], aL_bin[-1], 0.001)
-    #y_bin = CubicSpline(aL_bin, F_norm_bin)(x_bin)
-    packing_list = np.linspace(0.7,1.0,100)
-    if name == 'MgZn2':
-        x_bin = np.power(vol_tot/packing_list/cdiva/2, 1./3.)
-    elif name == 'NaCl':
-        x_bin = np.power(vol_tot*k/packing_list, 1./3.)
-    else:    
-        x_bin = np.power(vol_tot*k/packing_list/cdiva, 1./3.)
 
-    mask = x_bin <= aL_bin[-1]
+    #coeficientes = np.polyfit(aL_bin, F_norm_bin, 4)
+    #polinomio = np.poly1d(coeficientes)
+    #y_bin = polinomio(x_bin)
+
+    packing_list = np.linspace(0.85,1.0,100)
+    # Evaluación del polinomio ajustado
+    x_bin = np.power(vol_tot/packing_list, 1./3.)
+    mask = (x_bin >= aL_bin[0]) & (x_bin <= aL_bin[-1])
     x_bin = x_bin[mask]
-    y_bin = CubicSpline(aL_bin, F_norm_bin)(x_bin)
+
+    y_bin = UnivariateSpline(aL_bin, F_norm_bin, s=0)(x_bin)
     F_min_bin = y_bin.min()
-
     aL_min_bin = x_bin[y_bin == F_min_bin]
-    
-    if name == 'MgZn2':
-        packing = vol_tot/aL_min_bin**3/cdiva/2
-    elif name == 'NaCl':
-        packing = vol_tot*k/aL_min_bin**3
-    else:    
-        packing = vol_tot*k/aL_min_bin**3/cdiva
 
-    aL_min_bin = x_bin[y_bin == F_min_bin]
-    packing = vol_tot/aL_min_bin**3
-    print(packing)
     if gen_curves_flag == True:
-        fig_sub, ax_sub = plt.subplots(figsize=(8, 6))
+        fig_sub, ax_sub = plt.subplots()
         ax_sub.scatter(aL_bin, F_norm_bin/(n1+n2))
         ax_sub.plot(x_bin,y_bin/(n1+n2))
         ax_sub.set_xlabel(r'$a_{\text{L}}$',fontsize=22)
         ax_sub.set_ylabel(r'$\Delta$F (k$_{\text{B}}$T)',fontsize=22)
+        ax_sub.set_ylim(ymax = 500)
         ax_sub.axvline(aL_min_bin,ls='--',c='darkgray',zorder=-1)
         fig_sub.savefig(f"F_{name}_pair.png",dpi=300, format="png",bbox_inches='tight')
         plt.close(fig_sub)
@@ -382,45 +372,47 @@ def estimate_bin_F_pair(name, factor_bcell, k_bin, n1, n2, vol_tot, ax, gamma, g
     ax.plot(x_bin,y_bin/(n1+n2))
     ax.scatter(aL_min_bin,F_min_bin/(n1+n2),marker='|', color='black',s=50,zorder=10)
     
-    return aL_min_bin[0], F_min_bin, x_bin, packing
+    return aL_min_bin[0], F_min_bin, x_bin
 
-def estimate_part_F_pair(part, part_cell, factor_aL_part, ni, k_part, vol_tot, gen_curves_flag, k_reflex_part, gamma):
+def estimate_part_F_pair(part, part_cell, factor_aL_part, ni, vol_tot, k_part, gen_curves_flag, k_reflex_part, gamma):
     F_norm = []
     csv_file = [f"{part}_results_output.csv"]
     data_part = pd.read_csv(csv_file[0], skiprows=0)
     data_part_cell = data_part[data_part["cell"] == part_cell].copy().reset_index(drop=True)
     data_part_cell['aL'] = data_part_cell['delta'] * data_part_cell['dimx'] *factor_aL_part*k_reflex_part
     data_part_cell['aL'] = data_part_cell['aL'].round(4) #needed to calculate mean.
-    data_part_cell["F_norm"] = data_part_cell["F_pairwise"]
+    data_part_cell["F_norm"] = data_part_cell["F_pairwise_ML"]
     data_part_cell.sort_values(by='aL', inplace=True)
     df_cell = mean_al_pair(data_part_cell)
     df_tot_cell = mean_al_pair(data_part_cell)
 
     k_reflex = np.power(k_reflex_part,3)
     aL_cell = df_cell['aL'].to_numpy()
-    F_tot = df_cell["F_pairwise"].to_numpy()*k_reflex/k_part
+    F_tot = df_cell["F_pairwise_ML"].to_numpy()*k_reflex/k_part
     F_norm_cell = df_cell['F_norm'].to_numpy()*k_reflex/k_part
     x_cell =  np.arange(aL_cell[0], aL_cell[-1], 0.001)
-    #y_cell = CubicSpline(aL_cell, F_norm_cell)(x_cell)
-
-    # Ajuste cúbico (polinomio de grado 3)
+    
     #coeficientes = np.polyfit(aL_cell, F_norm_cell, 4)
     #polinomio = np.poly1d(coeficientes)
-
-    packing_list = np.linspace(0.85,1.0,100)
+    #y_cell = polinomio(x_cell)
+    
+    packing_list = np.linspace(0.8,1.0,100)
     # Evaluación del polinomio ajustado
     x_cell = np.power(vol_tot/packing_list, 1./3.)
     mask = (x_cell >= aL_cell[0]) & (x_cell <= aL_cell[-1])
-    x_bin = x_cell[mask]
-    y_cell = CubicSpline(aL_cell, F_norm_cell)(x_cell)
+    x_cell = x_cell[mask]
+
+    y_cell = UnivariateSpline(aL_cell, F_norm_cell,s=0.5)(x_cell)
     F_min_cell = y_cell.min()
     aL_min_cell = x_cell[y_cell == F_min_cell]
     if gen_curves_flag == True:
-        fig_sub, ax_sub = plt.subplots(figsize=(8, 6))
+        fig_sub, ax_sub = plt.subplots()
         ax_sub.scatter(aL_cell, F_norm_cell, label='Pairwise')
         ax_sub.plot(x_cell,y_cell)
         ax_sub.set_xlabel(r'a$_{\text{L}}$',fontsize=22)
         ax_sub.set_ylabel(r'$\Delta$F (k$_{\text{B}}$T)',fontsize=22)
+        if np.min(F_norm_cell)<-500:
+            ax_sub.set_ylim(500)
         ax_sub.axvline(aL_min_cell,ls='--',c='darkgray',zorder=-1)
         ax_sub.legend()
         fig_sub.savefig(f"F_{part}_{part_cell}_pair.png",dpi=300, format="png",bbox_inches='tight')

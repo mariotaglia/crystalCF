@@ -51,7 +51,7 @@ com = 0.0
 ncha = 0
 
 do j=1,NNN ! loop ovr the particles
-
+seed = seed_np
 lcubeL = Lcubell(j) + delta 
 lcubeS = Lcubell(j) - delta
 loctaL = Loctall(j) + delta

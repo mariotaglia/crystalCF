@@ -9,7 +9,7 @@ subroutine readinput
 !
 
 use molecules, only : benergy, vsol0
-use const, only : infile, randominput, seed, seed_lig, stdout
+use const, only : infile, randominput, seed, seed_np, seed_lig, stdout
 use MPI
 use ellipsoid
 use geometries
@@ -55,6 +55,7 @@ ndr = -1.0d10
 !
 
 seed = ndi
+seed_np = ndi
 seed_lig = ndi
 PBC = ndi
 branched = ndi
@@ -156,6 +157,10 @@ do while (ios == 0)
 
  case ('seed') ! random seed 
    read(buffer, *, iostat=ios) seed
+   if(rank.eq.0)write(stdout,*) 'parser:','Set ',trim(label),' = ',trim(buffer)
+ 
+ case ('seed_np') ! random seed 
+   read(buffer, *, iostat=ios) seed_np
    if(rank.eq.0)write(stdout,*) 'parser:','Set ',trim(label),' = ',trim(buffer)
 
  case ('seed_lig') ! random seed_lig
@@ -864,6 +869,11 @@ endif
 if(seed.eq.ndi) then
    seed = 938121
    print*, 'seed undefined, used default:', seed
+endif
+
+if(seed_np.eq.ndi) then
+   seed_np = 938121
+   print*, 'seed_np undefined, used default:', seed
 endif
 
 if(seed_lig.eq.ndi) then
