@@ -235,11 +235,12 @@ while True:
 							process_reference_part(output_file, base_folder, cell_part, label_struc, f_name)
 
 			join_F_csv(output_folder, name_bin, True)
-			if flag_pairwise=="False":
+			if not flag_pairwise:
 				join_F_csv_ref(output_folder, name_bin)
+			
 			for label in ["part1","part2"]:
 				join_F_csv(output_folder, label, False)
-				if flag_pairwise=="False":
+				if not flag_pairwise:
 					join_F_csv_ref(output_folder, label)
 
 			print(f"Exportado gamma {gamma_folder.replace('_','.')}")

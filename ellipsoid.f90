@@ -116,7 +116,6 @@ ncha = 0
 
 do j = 1, NNN
  seed = seed_np
- write(stdout,*) 'ellipsoid:', j, seed
 ! rotate ellipsoid matrixes according to current rotation matrix
 
  call rotv(AAA(:,:,j), rotmatrix(:,:,j))
