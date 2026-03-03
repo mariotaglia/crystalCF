@@ -2,16 +2,16 @@ import numpy as np
 import os.path
 
 def ropm(r,L):
-    a = 0.09
+    a = 0.102
     b = 0.2
     lb = a*L+b
     ropm = r*np.power((1+3*lb/r),1/3)
     return ropm
 
 def F0(r1,r2):
-    a = -211.85
-    b = 9.6776
-    alfa = -0.55
+    a = -202.3
+    b = 8.32
+    alfa = -0.5
     reff = np.power((np.power(r1,alfa)+np.power(r2,alfa)),(1/alfa))
     return a*reff+b
 

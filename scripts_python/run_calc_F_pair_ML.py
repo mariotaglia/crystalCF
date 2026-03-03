@@ -5,43 +5,14 @@ import time
 def run_process_final(gamma_list, name_bin, run_program_file):
     dir_origin = os.getcwd()
     
-    base_path = os.path.join(dir_origin,f"sim_part1")
-    paths = []
-        
-    search_path = os.walk(base_path)
-
-    for root, _, files in search_path:
-        if 'fitpairL12.dat' in files:
-            paths.append(root)
-            #continue
-
-    for dir1 in paths:
-        os.chdir(dir1)
-        os.system(f"python3 {run_program_file}")
-        os.system("wait")
-
-    for i, gamma in enumerate(gamma_list):
-        base_path = os.path.join(dir_origin,f"gamma_{gamma}","binary")
+    for cell in ["fcc", "bcc"]:
+        base_path = os.path.join(dir_origin,f"sim_part1",cell)
         paths = []
-        
+            
         search_path = os.walk(base_path)
-        for root, _, files in search_path:
-            if 'fitpairL12.dat' in files:
-                paths.append(root)
-                #print(root)
 
-        for dir1 in paths:
-            os.chdir(dir1)
-            os.system(f"python3 {run_program_file}")
-            os.system("wait")
-
-    for i, gamma in enumerate(gamma_list):
-        base_path = os.path.join(dir_origin,f"gamma_{gamma}","part2")
-        paths = []
-        
-        search_path = os.walk(base_path)
         for root, _, files in search_path:
-            if 'fitpairL12.dat' in files:
+            if 'tosubmit.sh' in files:
                 #continue
                 paths.append(root)
 
@@ -49,6 +20,38 @@ def run_process_final(gamma_list, name_bin, run_program_file):
             os.chdir(dir1)
             os.system(f"python3 {run_program_file}")
             os.system("wait")
+
+    for i, gamma in enumerate(gamma_list):
+        base_path = os.path.join(dir_origin,f"gamma_{gamma}","binary")
+        paths = []
+        
+        search_path = os.walk(base_path)
+        for root, _, files in search_path:
+            if 'tosubmit.sh' in files:
+                #continue
+                paths.append(root)
+
+        for dir1 in paths:
+            os.chdir(dir1)
+            os.system(f"python3 {run_program_file}")
+            os.system("wait")
+
+    for i, gamma in enumerate(gamma_list):
+        for cell in ["fcc", "bcc"]:
+            base_path = os.path.join(dir_origin,f"gamma_{gamma}","part2",cell)
+            
+            paths = []
+            
+            search_path = os.walk(base_path)
+            for root, _, files in search_path:
+                if 'tosubmit.sh' in files:
+                    #continue
+                    paths.append(root)
+
+            for dir1 in paths:
+                os.chdir(dir1)
+                os.system(f"python3 {run_program_file}")
+                os.system("wait")
 
 def read_DEF(file_path):
     """Extract the lines from DEF."""
@@ -79,7 +82,7 @@ def extract_params_init(params_init):
 ################### START ##################
 dir_origin = os.getcwd()
 dir_script = os.path.expanduser("~/develop/crystalCF/scripts_python/pairwise_additive_F")
-run_program_file = os.path.join(dir_script,"calc_F_pair.py")
+run_program_file = os.path.join(dir_script,"calc_F_pair_ML.py")
 
 params_init = extract_params_init('init_params.txt')
 name_bin = params_init['name']

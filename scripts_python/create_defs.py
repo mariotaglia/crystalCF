@@ -11,6 +11,7 @@ from itertools import product, combinations
 from collections import namedtuple
 
 def transform_reflex(lines, name_bin, structure):
+    flag = True
     if name_bin == "Li3Bi":
         n1 = 4
         n2 = 5
@@ -20,123 +21,126 @@ def transform_reflex(lines, name_bin, structure):
     elif name_bin == "bccAB6":
         n1 = 2
         n2 = 6
+    else:
+        flag = False
 
-    Particle = namedtuple("Particle", ["center", "semiaxis", "rotation", "coverage", "attraction", "chain_length"])
+    if flag:
+        Particle = namedtuple("Particle", ["center", "semiaxis", "rotation", "coverage", "attraction", "chain_length"])
 
-    # Identificar las secciones
-    sections_info = [
-        ("! number of particles", 1, 1),
-        ("!Center", 1, n1+n2),
-        ("!particle semiaxis x y z in nm", 1, n1+n2),
-        ("! Rotation", 3, n1+n2),
-        ("! coverage", 1, n1+n2),
-        ("!Surface-polymer atraction", 1, n1+n2),
-        ("!chains lenght", 1, n1+n2)
-    ]
-    sections_found = {}
-    for key, lines_per_particle, tot_particles in sections_info:
-        for i, line in enumerate(lines):
-            if line.strip() == key:
-                sections_found[key] = (i + 1, lines_per_particle, tot_particles)
+        # Identificar las secciones
+        sections_info = [
+            ("! number of particles", 1, 1),
+            ("!Center", 1, n1+n2),
+            ("!particle semiaxis x y z in nm", 1, n1+n2),
+            ("! Rotation", 3, n1+n2),
+            ("! coverage", 1, n1+n2),
+            ("!Surface-polymer atraction", 1, n1+n2),
+            ("!chains lenght", 1, n1+n2)
+        ]
+        sections_found = {}
+        for key, lines_per_particle, tot_particles in sections_info:
+            for i, line in enumerate(lines):
+                if line.strip() == key:
+                    sections_found[key] = (i + 1, lines_per_particle, tot_particles)
+                    break
+            else:
+                raise ValueError(f"Sección {key} no encontrada")
+        new_lines = []
+        flag = False; i = 0
+        while flag == False: 
+            if lines[i].strip() == "! number of particles":
+                flag = True
                 break
-        else:
-            raise ValueError(f"Sección {key} no encontrada")
-    new_lines = []
-    flag = False; i = 0
-    while flag == False: 
-        if lines[i].strip() == "! number of particles":
-            flag = True
-            break
-        if lines[i-1].strip() == "!PBC PBC xmin xmax ymin ymax zmin zmax, 1=yes, 2=wall, 0=bulk":
-            lines[i] = "PBC 1 1 1 1 1 1\n"
-        new_lines.append(lines[i])
-        i = i+1
+            if lines[i-1].strip() == "!PBC PBC xmin xmax ymin ymax zmin zmax, 1=yes, 2=wall, 0=bulk":
+                lines[i] = "PBC 1 1 1 1 1 1\n"
+            new_lines.append(lines[i])
+            i = i+1
 
-    # Leer partículas
-    total = n1 + n2
-    particles = []
-    for i in range(total):
-        center = list(map(float, lines[sections_found["!Center"][0] + i].split()))
-        semiaxis = list(map(float, lines[sections_found["!particle semiaxis x y z in nm"][0] + i].split()))
-        rotation = [list(map(float, lines[sections_found["! Rotation"][0] + i*3 + j].split())) for j in range(3)]
-        coverage = float(lines[sections_found["! coverage"][0] + i])
-        attraction = float(lines[sections_found["!Surface-polymer atraction"][0] + i])
-        chain_length = int(lines[sections_found["!chains lenght"][0] + i])
-        particles.append(Particle(center, semiaxis, rotation, coverage, attraction, chain_length))
+        # Leer partículas
+        total = n1 + n2
+        particles = []
+        for i in range(total):
+            center = list(map(float, lines[sections_found["!Center"][0] + i].split()))
+            semiaxis = list(map(float, lines[sections_found["!particle semiaxis x y z in nm"][0] + i].split()))
+            rotation = [list(map(float, lines[sections_found["! Rotation"][0] + i*3 + j].split())) for j in range(3)]
+            coverage = float(lines[sections_found["! coverage"][0] + i])
+            attraction = float(lines[sections_found["!Surface-polymer atraction"][0] + i])
+            chain_length = int(lines[sections_found["!chains lenght"][0] + i])
+            particles.append(Particle(center, semiaxis, rotation, coverage, attraction, chain_length))
 
-    # Transformación
-    mirror_planes = [
-        (True, False, False),
-        (False, True, False),
-        (False, False, True),
-        (True, True, False),
-        (True, False, True),
-        (False, True, True),
-        (True, True, True),
-    ]
+        # Transformación
+        mirror_planes = [
+            (True, False, False),
+            (False, True, False),
+            (False, False, True),
+            (True, True, False),
+            (True, False, True),
+            (False, True, True),
+            (True, True, True),
+        ]
 
-    all_particles = []
+        all_particles = []
 
-    for p in particles:
-        center_half = [c / 2 for c in p.center]
-        all_particles.append(Particle(center_half, p.semiaxis, p.rotation, p.coverage, p.attraction, p.chain_length))
-
-    for plane in mirror_planes:
         for p in particles:
-            cx, cy, cz = [c / 2 for c in p.center]
-            if plane[0]:
-                cx = 1.0 - cx
-            if plane[1]:
-                cy = 1.0 - cy
-            if plane[2]:
-                cz = 1.0 - cz
-            new_center = [cx, cy, cz]
-            all_particles.append(Particle(new_center, p.semiaxis, p.rotation, p.coverage, p.attraction, p.chain_length))
+            center_half = [c / 2 for c in p.center]
+            all_particles.append(Particle(center_half, p.semiaxis, p.rotation, p.coverage, p.attraction, p.chain_length))
 
-    # Eliminar duplicados
-    seen = set()
-    unique_particles = []
-    for p in all_particles:
-        key = tuple(round(x % 1.0, 8) for x in p.center)
-        if key not in seen:
-            seen.add(key)
-            unique_particles.append(p)
-    
-    #for i, p in enumerate(unique_particles):
-    #    print(f"#{i:03d} Pos: {p.center}  Semiejes: {p.semiaxis}  Coverage: {p.coverage}")
+        for plane in mirror_planes:
+            for p in particles:
+                cx, cy, cz = [c / 2 for c in p.center]
+                if plane[0]:
+                    cx = 1.0 - cx
+                if plane[1]:
+                    cy = 1.0 - cy
+                if plane[2]:
+                    cz = 1.0 - cz
+                new_center = [cx, cy, cz]
+                all_particles.append(Particle(new_center, p.semiaxis, p.rotation, p.coverage, p.attraction, p.chain_length))
 
-    # Guardar archivo
-    output_file = os.path.join(structure, "DEFINITIONS.txt")
-    with open(output_file, "w") as f:
-        f.writelines(new_lines)
-        f.write("! number of particles\n")
-        f.write(f"{len(unique_particles)}\n")
+        # Eliminar duplicados
+        seen = set()
+        unique_particles = []
+        for p in all_particles:
+            key = tuple(round(x % 1.0, 8) for x in p.center)
+            if key not in seen:
+                seen.add(key)
+                unique_particles.append(p)
+        
+        #for i, p in enumerate(unique_particles):
+        #    print(f"#{i:03d} Pos: {p.center}  Semiejes: {p.semiaxis}  Coverage: {p.coverage}")
 
-        f.write("!Center\n")
-        for p in unique_particles:
-            f.write(f"{p.center[0]:.8f} {p.center[1]:.8f} {p.center[2]:.8f}\n")
+        # Guardar archivo
+        output_file = os.path.join(structure, "DEFINITIONS.txt")
+        with open(output_file, "w") as f:
+            f.writelines(new_lines)
+            f.write("! number of particles\n")
+            f.write(f"{len(unique_particles)}\n")
 
-        f.write("!particle semiaxis x y z in nm\n")
-        for p in unique_particles:
-            f.write(f"{p.semiaxis[0]:.8f} {p.semiaxis[1]:.8f} {p.semiaxis[2]:.8f}\n")
+            f.write("!Center\n")
+            for p in unique_particles:
+                f.write(f"{p.center[0]:.8f} {p.center[1]:.8f} {p.center[2]:.8f}\n")
 
-        f.write("! Rotation\n")
-        for p in unique_particles:
-            rot_flat = [f"{val:.6f}" for row in p.rotation for val in row]
-            for i in range(0, 9, 3):
-                f.write(f"{rot_flat[i]} {rot_flat[i+1]} {rot_flat[i+2]}\n")
+            f.write("!particle semiaxis x y z in nm\n")
+            for p in unique_particles:
+                f.write(f"{p.semiaxis[0]:.8f} {p.semiaxis[1]:.8f} {p.semiaxis[2]:.8f}\n")
 
-        f.write("! coverage\n")
-        for p in unique_particles:
-            f.write(f"{p.coverage:.2f}\n")
+            f.write("! Rotation\n")
+            for p in unique_particles:
+                rot_flat = [f"{val:.6f}" for row in p.rotation for val in row]
+                for i in range(0, 9, 3):
+                    f.write(f"{rot_flat[i]} {rot_flat[i+1]} {rot_flat[i+2]}\n")
 
-        f.write("!Surface-polymer atraction\n")
-        for p in unique_particles:
-            f.write(f"{p.attraction:.2f}\n")
+            f.write("! coverage\n")
+            for p in unique_particles:
+                f.write(f"{p.coverage:.2f}\n")
 
-        f.write("!chains lenght\n")
-        for p in unique_particles:
-            f.write(f"{p.chain_length}\n")
+            f.write("!Surface-polymer atraction\n")
+            for p in unique_particles:
+                f.write(f"{p.attraction:.2f}\n")
+
+            f.write("!chains lenght\n")
+            for p in unique_particles:
+                f.write(f"{p.chain_length}\n")
 
 def process_principal_binario(reference_DEF, name_bin, delta_dim_bin, aL, n_k_bin, tosubmit, dir_fuente, k_aL, gamma, script_folder, flag_pairwise):
     structure = os.getcwd()
@@ -145,7 +149,9 @@ def process_principal_binario(reference_DEF, name_bin, delta_dim_bin, aL, n_k_bi
 
     DEF2 =  os.path.join(structure, "DEFINITIONS.txt")
     lines = read_DEF(DEF2)
-    #transform_reflex(lines, name_bin, structure)
+    if flag_pairwise == True:
+        transform_reflex(lines, name_bin, structure)
+
     DEF =  os.path.join(structure, "DEFINITIONS.txt")
     lines = read_DEF(DEF)
     delta_list = sorted({entry["delta"] for entry in delta_dim_bin if entry["delta"] is not None})
@@ -182,13 +188,17 @@ def process_principal_binario(reference_DEF, name_bin, delta_dim_bin, aL, n_k_bi
             with open("DEFINITIONS.txt", "r") as file:
                 content = file.read()
             
-            #lista = ['Li3Bi', 'NaZn13', 'bccAB6']
-            #if name_bin in lista:
-            #    content = content.replace("dimx _DIM_", f'dimx {str(dim*2)}').replace("dimy _DIM_", f'dimy {str(int(dim*2*k_aL["kx"]/k_aL["ky"]))}')
-            #    content = content.replace("dimz _DIM_", f'dimz {str(int(dim*k*2*k_aL["kx"]/k_aL["kz"]))}').replace("_delta_", str(delta))
-            #else:
-            content = content.replace("dimx _DIM_", f'dimx {str(dim)}').replace("dimy _DIM_", f'dimy {str(int(dim*k_aL["kx"]/k_aL["ky"]))}')
-            content = content.replace("dimz _DIM_", f'dimz {str(int(dim*k*k_aL["kx"]/k_aL["kz"]))}').replace("_delta_", str(delta))
+            if  flag_pairwise == True:
+                lista = ['Li3Bi', 'NaZn13', 'bccAB6']
+                if name_bin in lista:
+                    content = content.replace("dimx _DIM_", f'dimx {str(dim*2)}').replace("dimy _DIM_", f'dimy {str(int(dim*2*k_aL["kx"]/k_aL["ky"]))}')
+                    content = content.replace("dimz _DIM_", f'dimz {str(int(dim*k*2*k_aL["kx"]/k_aL["kz"]))}').replace("_delta_", str(delta))
+                else:
+                    content = content.replace("dimx _DIM_", f'dimx {str(dim)}').replace("dimy _DIM_", f'dimy {str(int(dim*k_aL["kx"]/k_aL["ky"]))}')
+                    content = content.replace("dimz _DIM_", f'dimz {str(int(dim*k*k_aL["kx"]/k_aL["kz"]))}').replace("_delta_", str(delta))                    
+            else:
+                content = content.replace("dimx _DIM_", f'dimx {str(dim)}').replace("dimy _DIM_", f'dimy {str(int(dim*k_aL["kx"]/k_aL["ky"]))}')
+                content = content.replace("dimz _DIM_", f'dimz {str(int(dim*k*k_aL["kx"]/k_aL["kz"]))}').replace("_delta_", str(delta))
 
             write_DEF("DEFINITIONS.txt", content)
             lines = read_DEF("DEFINITIONS.txt")

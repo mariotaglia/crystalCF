@@ -689,8 +689,9 @@ def vol_tot_bin(name,R1,R2,l_pol_1,l_pol_2,sigma_1,sigma_2,V_pol):
     A_1 = 4*pi*np.power(R1,2)
     A_2 = 4*pi*np.power(R2,2)
     N1, N2 = N(name)
+
     if name == 'Th3P4':
-        V_pol = 0.029
+        V_pol = 0.032
     v_tot = N1*Vol_NP_1+N1*float(sigma_1)*A_1*V_pol*float(l_pol_1) + N2*Vol_NP_2+N2*float(sigma_2)*A_2*V_pol*float(l_pol_2)
 
     return v_tot
@@ -722,13 +723,13 @@ def N(name):
         N1 = 1
         N2 = 3
 
-    elif name == "CaTiO3b" or name == "Ni4N":
+    elif name == "CaTiO3b":
         N1 = 1
-        N2 = 5
+        N2 = 4
 
     elif name == "NaZn13":
         N1 = 1
-        N2 = 12
+        N2 = 13
 
     elif name == "CaB6":
         N1 = 1
@@ -745,6 +746,11 @@ def N(name):
     elif name=="MgZn2":
         N1 = 4
         N2 = 8
+    
+    elif name=="Ni4N":
+        N1 = 1
+        N2 = 4
+
     elif name=="Th3P4":
         N1 = 12
         N2 = 16
