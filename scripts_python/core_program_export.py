@@ -257,13 +257,25 @@ while True:
 os.chdir(dir_origin) 
 
 def v_pol_part(R):
-	return 0.0319
+	V_fit = np.poly1d([-0.00109562,  0.00656566, -0.01521595,  0.04613058])
+	return V_fit(R)
 
 def v_pol_bin(R1, R2, name):
-	return 0.0319
+	N1, N2, _ = N(name)
+	v1 = v_pol_part(R1); v2 = v_pol_part(R2)
+	Veff = (N1*v1*R1**2 + N2*v2*R2**2)/(N1*R1**2 + N2*R2**2)
+	return Veff
 
-fig1, ax1 = plt.subplots(figsize=(8, 6)); fig2, ax2 = plt.subplots(figsize=(8, 6)); fig3, ax3 = plt.subplots(figsize=(8, 6))
+df_part = pd.DataFrame()
+df_binary = pd.DataFrame()
+
+fig1, ax1 = plt.subplots(figsize=(8, 6)); fig2, ax2 = plt.subplots(figsize=(8, 6))
+fig3, ax3 = plt.subplots(figsize=(8, 6))
 fig4, ax4 = plt.subplots(figsize=(8, 6))
+
+fig5, ax5 = plt.subplots(figsize=(8, 6))
+fig6, ax6 = plt.subplots(figsize=(8, 6))
+
 params_init = extract_params_init('init_params.txt', True)
 n1 = params_init['n1']; n2 = params_init['n2']
 k_bin = params_init['num cell bin']
@@ -302,16 +314,18 @@ for gamma_folder in gamma_folder_list:
 		for i, cell in enumerate(cell_part):
 			if 'F_pairwise' in F_name:
 				result_cell_pairwise = estimate_part_F_pair(part, cell, factor_aL_part[cell], n[part], 
-					vol_tot_part(cell,R[part],chain_lenght[part],cov[part], v_pol_part(R[part])), k_part[cell], gen_curves_flag, k_aL_part, np.round(gamma,2))
+					vol_tot_part(cell,R[part],chain_lenght[part],cov[part], v_pol_part(R[part])), k_part[cell], gen_curves_flag, k_aL_part, np.round(gamma,2),df_part)
 				aL_min = result_cell_pairwise[0]
 				F_part = result_cell_pairwise[1]
-				aL_array = result_cell_pairwise[2]	
+				aL_array = result_cell_pairwise[2]
+				df_part = result_cell_pairwise[3]	
 				U = 0; S = 0	
 			else:
-				result_cell = estimate_part_F(part, cell, factor_aL_part[cell], n[part], k_part[cell], gen_curves_flag, k_aL_part)
+				result_cell = estimate_part_F(part, cell, factor_aL_part[cell], n[part], k_part[cell], gen_curves_flag, k_aL_part, R, ax5, df_part)
 				aL_min = result_cell[0]
 				F_part = result_cell[1]
 				aL_array = result_cell[2]
+				df_part = result_cell[3]
 				U = estimate_part_contrib(part, cell, factor_aL_part[cell], n[part], k_part[cell], F_U, aL_array, aL_min, gen_curves_flag, k_aL_part)
 				S = estimate_part_contrib(part, cell, factor_aL_part[cell], n[part], k_part[cell], F_ST, aL_array, aL_min, gen_curves_flag, k_aL_part)
 			
@@ -323,16 +337,18 @@ for gamma_folder in gamma_folder_list:
 	
 	if 'F_pairwise' in F_name:
 		result_bin_pair = estimate_bin_F_pair(name_bin, factor_aL_bin, k_bin, n1, n2, 
-			vol_tot_bin(name_bin,R1_np,R2_np,chain_lenght["part1"],chain_lenght["part2"],cov["part1"],cov["part2"],v_pol_bin(R1_np, R2_np, name_bin)), ax4, np.round(gamma,2), gen_curves_flag, k_aL, cdiva_bin)
+			vol_tot_bin(name_bin,R1_np,R2_np,chain_lenght["part1"],chain_lenght["part2"],cov["part1"],cov["part2"],v_pol_bin(R1_np, R2_np, name_bin)), ax4, np.round(gamma,2), gen_curves_flag, k_aL, cdiva_bin, df_binary)
 		aL_min = result_bin_pair[0]
 		F_bin = result_bin_pair[1]
 		aL_array = result_bin_pair[2]#; packing_bin = result_bin_pair[3]
+		df_binary = result_bin_pair[3]
 		U_bin = 0; S_bin = 0
 	else:
-		result_bin = estimate_bin_F(name_bin, factor_aL_bin, k_bin, n1, n2, ax1, np.round(gamma,2), gen_curves_flag, k_aL)
+		result_bin = estimate_bin_F(name_bin, factor_aL_bin, k_bin, n1, n2, ax1, np.round(gamma,2), gen_curves_flag, k_aL, R, ax6, df_binary)
 		aL_min = result_bin[0]
 		F_bin = result_bin[1]
 		aL_array = result_bin[2]
+		df_binary = result_bin[3]
 		U_bin = estimate_bin_contrib(name_bin, factor_aL_bin, k_bin, n1, n2, F_U, aL_array, aL_min, ax2, np.round(gamma,2), gen_curves_flag, k_aL)
 		S_bin = estimate_bin_contrib(name_bin, factor_aL_bin, k_bin, n1, n2, F_ST, aL_array, aL_min, ax3, np.round(gamma,2), gen_curves_flag, k_aL)
 	
@@ -361,27 +377,39 @@ for gamma_folder in gamma_folder_list:
 	with pd.ExcelWriter(f"results_gamma_{gamma_folder}.xlsx") as writer:
 		df_delta.to_excel(writer, sheet_name="Deltas", index=False)
 
+if 'F_pairwise' in F_name:
+    df_part.to_excel(f'{final_output}/datos_aL_part_pairwise.xlsx', index=False)
+    df_binary.to_excel(f'{final_output}/datos_aL_{name_bin}_pairwise.xlsx', index=False)
+else:
+    df_part.to_excel(f'{final_output}/datos_aL_part_moltcf.xlsx', index=False)
+    df_binary.to_excel(f'{final_output}/datos_aL_{name_bin}_moltcf.xlsx', index=False)
+
 if gen_curves_flag == True:
-	for ax in [ax1,ax2,ax3,ax4]:
+	for ax in [ax1,ax2,ax3,ax4,ax6]:
 		ax.set_xlabel(r'a$_{\text{L}}$',fontsize=22)
 		ax.legend(fontsize=16)
 	if 'F_pairwise' in F_name:
 		ax4.set_ylim(ymax = 25)
 
-	for fig in [fig1,fig2,fig3,fig4]:
+	for fig in [fig1,fig2,fig3,fig4,fig5,fig6]:
 		fig.suptitle(f'{to_latex_formula(name_bin)}',fontsize=22, y=0.95)
 	ax1.set_ylabel(r'$\Delta$F (k$_{\text{b}}$T)',fontsize=22)
 	ax2.set_ylabel(r'$\Delta$U (k$_{\text{b}}$T)',fontsize=22)
 	ax3.set_ylabel(r'-T$\Delta$S (k$_{\text{b}}$T)',fontsize=22)
 	ax4.set_ylabel(r'$\Delta$F (k$_{\text{b}}$T)',fontsize=22)
+	ax5.set_ylabel(r'$\nu_{\text{pol}}$)',fontsize=22)
 	if 'F_pairwise' in F_name:
 		fig4.savefig(f"{final_output}/F_binary_pairwise.png", format="png", dpi=300,bbox_inches='tight')
 	else:
 		fig1.savefig(f"{final_output}/F_binary.png", format="png", dpi=300,bbox_inches='tight')
 	
+	ax5.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15),ncol=3)
+	ax5.set_ylim(0.030,0.042)
 	fig2.savefig(f"{final_output}/U_binary.png", format="png", dpi=300,bbox_inches='tight')
 	fig3.savefig(f"{final_output}/S_binary.png", format="png", dpi=300,bbox_inches='tight')
-	for fig in [fig1,fig2,fig3,fig4]:
+	fig5.savefig(f"{final_output}/Vpol_part.png", format="png", dpi=300,bbox_inches='tight')
+	fig6.savefig(f"{final_output}/Vpol_bin.png", format="png", dpi=300,bbox_inches='tight')
+	for fig in [fig1,fig2,fig3,fig4,fig5,fig6]:
 		plt.close(fig)
 
 ####################### PLOT ###########################
@@ -459,6 +487,8 @@ for i, (lista, F) in enumerate(zip(F_plot,["ΔU", "-TΔS", "ΔF"])):
 		color = 'red'; marker = 's'; ms = 7; label = "MOLT-CF"
 	else:
 		color = 'blue'; marker = 'v'; ms = 7; label = "Pairwise"
+		ax.set_ylim(-np.abs(np.min(F_plot[i]))*1.25,np.abs(np.max(F_plot[i]))*1.25)
+
 	ax.plot(gamma_value,F_plot[i],ls='none',marker=marker,color=color,ms=ms,label=label)
 	#plt.scatter(gamma_MD,F_MD[F],marker='o',color='purple',s=50,label='MD (OTM)',zorder=10)
 	if 'F_pairwise' not in F_name:

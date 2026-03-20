@@ -88,6 +88,11 @@ elif name == "Th3P4":
 	N1 = 12
 	N2 = 16
 
+elif name == "sigma_aprox":
+	V_pol = 0.032
+	N1 = 8
+	N2 = 60
+
 elif name=="MgZn2":
 	N1 = 4
 	N2 = 8
