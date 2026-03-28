@@ -30,6 +30,8 @@ real*8 xh_tosend(dimx,dimy,dimz)
 real*8 qsv_tosend(dimx,dimy,dimz)
 integer iii
 integer, external :: PBCSYMI, PBCREFI
+integer :: id_cha, l_cha, ntrans_val
+real*8  :: pro_val
 
 ! poor solvent 
 real*8 sttemp
@@ -318,7 +320,7 @@ enddo ! iz
 
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! CALCULATE POLYMER VOLUME FRACTION
+! CALCULATE POLYMER VOLUME FRACTION (Readaptado para Disco)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 avpol = 0.0
@@ -326,46 +328,65 @@ avpol_tosend = 0.0
 q = 0.0
 sumtrans = 0.0
 
+rewind(90) ! Regresamos al inicio del archivo binario
+
 do jj = 1, cpp(rank+1)
-   ii = cppini(rank+1)+jj
+    ii = cppini(rank+1) + jj
 
-   q_tosend=0.0
-   sumtrans_tosend = 0.0
-   avpol_temp = 0.0
+    q_tosend = 0.0
+    sumtrans_tosend = 0.0
+    avpol_temp = 0.0
 
- do i=1,newcuantas(ii)
-   pro(i, jj)=dlog(shift)
-   do j=1,longcha(ii)
-    ax = px(i, j, jj) ! cada uno para su cadena...
-    ay = py(i, j, jj)
-    az = pz(i, j, jj)         
-    pro(i, jj) = pro(i, jj) + xpot(ax, ay, az, segtype(j))
+    do i = 1, newcuantas(ii)
+        
+        ! --- 1. LEER EL REGISTRO COMPLETO (Espejo del write) ---
+        ! id_cha, ntrans_val y l_cha deben estar declarados como escalares.
+        ! px(1, :, 1) actúa como el buffer temporal de cálculo.
+        read(90) id_cha, ntrans_val, l_cha, &
+                 px(1, 1:l_cha, 1), &
+                 py(1, 1:l_cha, 1), &
+                 pz(1, 1:l_cha, 1)
 
-   enddo
-    pro(i,jj) = pro(i,jj) -benergy*ntrans(i,ii) ! energy of trans bonds
-    pro(i,jj)=dexp(pro(i,jj))
+        ! --- 2. CÁLCULO DE ENERGÍA (Peso de Boltzmann) ---
+        pro_val = dlog(shift)
+        
+        do j = 1, l_cha
+            ax = px(1, j, 1)
+            ay = py(1, j, 1)
+            az = pz(1, j, 1)         
+            pro_val = pro_val + xpot(ax, ay, az, segtype(j))
+        enddo
+        
+        pro_val = pro_val - benergy * ntrans_val
+        pro_val = dexp(pro_val)
 
-   do j=1,longcha(ii)
-   fv = (1.0-volprot(px(i,j, jj),py(i,j, jj),pz(i,j, jj)))
-   im = segtype(j)
-    avpol_temp(px(i,j, jj),py(i,j, jj),pz(i,j, jj), im)= &
-    avpol_temp(px(i,j, jj),py(i,j, jj),pz(i,j, jj), im)+pro(i, jj)*vsol/(delta**3)/fv* &
-    ngpol(ii) ! ngpol(ii) has the number of chains grafted to the point ii
-   enddo
+        ! --- 3. ACUMULACIÓN DE FRACCIÓN DE VOLUMEN ---
+        do j = 1, l_cha
+            ax = px(1, j, 1)
+            ay = py(1, j, 1)
+            az = pz(1, j, 1)
+            
+            fv = (1.0 - volprot(ax, ay, az))
+            im = segtype(j)
+            
+            avpol_temp(ax, ay, az, im) = avpol_temp(ax, ay, az, im) + &
+                 pro_val * vsol / (delta**3) / fv * ngpol(ii)
+        enddo
 
-   q_tosend=q_tosend+pro(i, jj)
-   sumtrans_tosend = sumtrans_tosend+ntrans(i, ii)*pro(i,jj)
+        ! Acumuladores para la normalización
+        q_tosend = q_tosend + pro_val
+        sumtrans_tosend = sumtrans_tosend + ntrans_val * pro_val
 
- enddo ! i
-! norma 
-    
-avpol_tosend=avpol_tosend + avpol_temp/q_tosend
+    enddo ! Fin bucle i (configuraciones de la cadena ii)
 
-q(ii) = q_tosend ! no la envia ahora
-sumtrans(ii) = sumtrans_tosend/q_tosend
+    ! --- 4. NORMALIZACIÓN POR CADENA ---
+    if (q_tosend > 0.0d0) then
+        avpol_tosend = avpol_tosend + avpol_temp / q_tosend
+        q(ii) = q_tosend 
+        sumtrans(ii) = sumtrans_tosend / q_tosend
+    endif
 
-!write(stdout,*) rank+1,jj,ii,q(ii)
-enddo ! jj
+enddo ! Fin bucle jj (total de puntos de injerto del rank)
 
 !------------------ MPI ----------------------------------------------
 

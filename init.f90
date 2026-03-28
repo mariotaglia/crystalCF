@@ -39,6 +39,9 @@ implicit none
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Open common files
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
+character(len=32) :: filename
+write(filename, '("config_rank_", I3.3, ".bin")') rank
+open(unit=90, file=trim(filename), form='unformatted', status='replace')
 
 if(rank.eq.0) then
        open(unit=301, file='F_tot_gcanon.dat', access='APPEND')
@@ -75,6 +78,7 @@ close(312)
 close(313)
 close(315)
 close(316)
+close(unit=90, status='DELETE')
 
 call MPI_FINALIZE(ierr) ! finaliza MPI    
 stop

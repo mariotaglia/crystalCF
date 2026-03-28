@@ -13,22 +13,7 @@ def run_process_final(gamma_list, name_bin, run_program_file):
 
         for root, _, files in search_path:
             if 'tosubmit.sh' in files:
-                #continue
-                paths.append(root)
-
-        for dir1 in paths:
-            os.chdir(dir1)
-            os.system(f"python3 {run_program_file}")
-            os.system("wait")
-
-    for i, gamma in enumerate(gamma_list):
-        base_path = os.path.join(dir_origin,f"gamma_{gamma}","binary")
-        paths = []
-        
-        search_path = os.walk(base_path)
-        for root, _, files in search_path:
-            if 'tosubmit.sh' in files:
-                #continue
+                continue
                 paths.append(root)
 
         for dir1 in paths:
@@ -45,13 +30,30 @@ def run_process_final(gamma_list, name_bin, run_program_file):
             search_path = os.walk(base_path)
             for root, _, files in search_path:
                 if 'tosubmit.sh' in files:
-                    #continue
+                    continue
                     paths.append(root)
 
             for dir1 in paths:
                 os.chdir(dir1)
                 os.system(f"python3 {run_program_file}")
                 os.system("wait")
+
+    for i, gamma in enumerate(gamma_list):
+        base_path = os.path.join(dir_origin,f"gamma_{gamma}","binary")
+        paths = []
+        
+        search_path = os.walk(base_path)
+        for root, _, files in search_path:
+            if 'tosubmit.sh' in files:
+                #continue
+                paths.append(root)
+
+        for dir1 in paths:
+            os.chdir(dir1)
+            os.system(f"python3 {run_program_file}")
+            os.system("wait")
+
+
 
 def read_DEF(file_path):
     """Extract the lines from DEF."""
