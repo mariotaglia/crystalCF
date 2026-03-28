@@ -348,17 +348,17 @@ do jj = 1, cpp(rank+1)
                  pz(1, 1:l_cha, 1)
 
         ! --- 2. CÁLCULO DE ENERGÍA (Peso de Boltzmann) ---
-        pro_val = dlog(shift)
+        pro(i, jj) = dlog(shift)
         
         do j = 1, l_cha
             ax = px(1, j, 1)
             ay = py(1, j, 1)
             az = pz(1, j, 1)         
-            pro_val = pro_val + xpot(ax, ay, az, segtype(j))
+            pro(i, jj) = pro(i, jj) + xpot(ax, ay, az, segtype(j))
         enddo
         
-        pro_val = pro_val - benergy * ntrans_val
-        pro_val = dexp(pro_val)
+        pro(i, jj) = pro(i, jj) - benergy * ntrans_val
+        pro(i, jj) = dexp(pro(i, jj))
 
         ! --- 3. ACUMULACIÓN DE FRACCIÓN DE VOLUMEN ---
         do j = 1, l_cha
@@ -370,12 +370,12 @@ do jj = 1, cpp(rank+1)
             im = segtype(j)
             
             avpol_temp(ax, ay, az, im) = avpol_temp(ax, ay, az, im) + &
-                 pro_val * vsol / (delta**3) / fv * ngpol(ii)
+                 pro(i, jj) * vsol / (delta**3) / fv * ngpol(ii)
         enddo
-
+        
         ! Acumuladores para la normalización
-        q_tosend = q_tosend + pro_val
-        sumtrans_tosend = sumtrans_tosend + ntrans_val * pro_val
+        q_tosend = q_tosend + pro(i, jj)
+        sumtrans_tosend = sumtrans_tosend + ntrans_val * pro(i, jj)
 
     enddo ! Fin bucle i (configuraciones de la cadena ii)
 

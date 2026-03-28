@@ -39,9 +39,11 @@ implicit none
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Open common files
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
-character(len=32) :: filename
-write(filename, '("config_rank_", I3.3, ".bin")') rank
-open(unit=90, file=trim(filename), form='unformatted', status='replace')
+character(len=32) :: filename_cfg, filename_pro
+
+! Nombre para coordenadas (Unidad 90)
+write(filename_cfg, '("pxs_rank_", I3.3, ".bin")') rank
+open(unit=90, file=trim(filename_cfg), form='unformatted', status='replace')
 
 if(rank.eq.0) then
        open(unit=301, file='F_tot_gcanon.dat', access='APPEND')
