@@ -465,7 +465,7 @@ def estimate_part_F_pair(part, part_cell, factor_aL_part, ni, vol_tot, k_part, g
 
     return aL_min_cell[0], F_min_cell, x_cell, df_total
 
-def cdiva_func(name,gamma,cdiva=1):
+def cdiva_func(name,gamma,cdiva):
     if name == "CaCu5":
         if gamma < 2.0 / np.sqrt(3.0) - 1:
             a_fac = 1.0

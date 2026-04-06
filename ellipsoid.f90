@@ -171,7 +171,7 @@ do j = 1, NNN
  volprot = volprot+volprot1
 
 ! CHECK COLLISION HERE...
- if(maxval(volprot).gt.1.01) then ! collision
+ if(maxval(volprot).gt.1.005) then ! collision
    flag=.true. 
    exit
  endif
