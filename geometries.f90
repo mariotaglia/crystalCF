@@ -202,7 +202,7 @@ do j=1,NNNco ! loop ovr the cuboctahedron particles
    volprot = volprot+volprot1
 
   ! CHECK COLLISION HERE...
-   if(maxval(volprot).gt.1.0) then ! collision
+   if(maxval(volprot).gt.1.005) then ! collision
      flag=.true. 
    endif
    

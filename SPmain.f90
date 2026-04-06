@@ -104,6 +104,7 @@ endif
   if(flag.eqv..true.) then
     write(stdout,*) 'Initial position of particle does not fit in z'
     write(stdout,*) 'or particles collide'
+    call endall
     stop
   else
     if(rank.eq.0)write(stdout,*) 'Particle OK'
@@ -125,6 +126,7 @@ if(infile.ne.0) then
    if(flag.eqv..true.) then
     write(stdout,*) 'Initial position of particle does not fit in z'
     write(stdout,*) 'or particles collide'
+    call endall
     stop
    endif
 

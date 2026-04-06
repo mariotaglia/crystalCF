@@ -320,7 +320,7 @@ enddo ! iz
 
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! CALCULATE POLYMER VOLUME FRACTION (Readaptado para Disco)
+! CALCULATE POLYMER VOLUME FRACTION
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 avpol = 0.0
@@ -328,7 +328,7 @@ avpol_tosend = 0.0
 q = 0.0
 sumtrans = 0.0
 
-rewind(90) ! Regresamos al inicio del archivo binario
+rewind(90)
 
 do jj = 1, cpp(rank+1)
     ii = cppini(rank+1) + jj
@@ -339,15 +339,11 @@ do jj = 1, cpp(rank+1)
 
     do i = 1, newcuantas(ii)
         
-        ! --- 1. LEER EL REGISTRO COMPLETO (Espejo del write) ---
-        ! id_cha, ntrans_val y l_cha deben estar declarados como escalares.
-        ! px(1, :, 1) actúa como el buffer temporal de cálculo.
         read(90) id_cha, ntrans_val, l_cha, &
                  px(1, 1:l_cha, 1), &
                  py(1, 1:l_cha, 1), &
                  pz(1, 1:l_cha, 1)
 
-        ! --- 2. CÁLCULO DE ENERGÍA (Peso de Boltzmann) ---
         pro(i, jj) = dlog(shift)
         
         do j = 1, l_cha
