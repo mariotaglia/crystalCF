@@ -96,7 +96,7 @@ transform_type = ndi
 dumpcluster = ndi
 cluster_same = ndi
 cutoffcluster = ndr
-
+flag_write_pxyz = ndi
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Control file variables
@@ -174,6 +174,10 @@ do while (ios == 0)
 
  case ('vtkflag') ! save vtk?
    read(buffer, *, iostat=ios) vtkflag
+   if(rank.eq.0)write(stdout,*) 'parser:','Set ',trim(label),' = ',trim(buffer)
+
+ case ('flag_write_pxyz') ! use px py pz as disk file?
+   read(buffer, *, iostat=ios) flag_write_pxyz
    if(rank.eq.0)write(stdout,*) 'parser:','Set ',trim(label),' = ',trim(buffer)
 
  case ('flagmu') ! flagmu = 0, scan solvent volume fraction; flagmu = 1, scan solvent chemical potential
@@ -816,6 +820,7 @@ endif
 
 
 if(vtkflag.eq.ndi)call stopundef('vtkflag')
+if(flag_write_pxyz.eq.ndi)flag_write_pxyz=0
 if(dimx.eq.ndi)call stopundef('dimx')
 if(scx.eq.ndi)call stopundef('scx')
 if(scy.eq.ndi)call stopundef('scy')

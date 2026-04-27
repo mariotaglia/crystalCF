@@ -1,5 +1,5 @@
 subroutine fkfun(x,f,ier2)
-
+use system
 use chainsdat, only : longcha
 use molecules, only : benergy, vsol
 use const, only : stdout
@@ -328,7 +328,7 @@ avpol_tosend = 0.0
 q = 0.0
 sumtrans = 0.0
 
-rewind(90)
+if (flag_write_pxyz.eq.1)rewind(90)
 
 do jj = 1, cpp(rank+1)
     ii = cppini(rank+1) + jj
@@ -338,41 +338,62 @@ do jj = 1, cpp(rank+1)
     avpol_temp = 0.0
 
     do i = 1, newcuantas(ii)
-        
-        read(90) id_cha, ntrans_val, l_cha, &
-                 px(1, 1:l_cha, 1), &
-                 py(1, 1:l_cha, 1), &
-                 pz(1, 1:l_cha, 1)
-
         pro(i, jj) = dlog(shift)
         
-        do j = 1, l_cha
-            ax = px(1, j, 1)
-            ay = py(1, j, 1)
-            az = pz(1, j, 1)         
+        if (flag_write_pxyz.eq.1) then
+            read(90) id_cha, ntrans_val, l_cha, &
+                     px(1, 1:l_cha, 1), &
+                     py(1, 1:l_cha, 1), &
+                     pz(1, 1:l_cha, 1)
+            
+  
+            do j = 1, l_cha
+                ax = px(1, j, 1)
+                ay = py(1, j, 1)
+                az = pz(1, j, 1)         
+                pro(i, jj) = pro(i, jj) + xpot(ax, ay, az, segtype(j))
+            enddo        
+            pro(i, jj) = pro(i, jj) - benergy*ntrans(i,ii)
+            pro(i, jj) = dexp(pro(i, jj))
+
+            do j = 1, l_cha
+                ax = px(1, j, 1)
+                ay = py(1, j, 1)
+                az = pz(1, j, 1)
+                
+                fv = (1.0 - volprot(ax, ay, az))
+                im = segtype(j)
+                
+                avpol_temp(ax, ay, az, im) = avpol_temp(ax, ay, az, im) + &
+                     pro(i, jj) * vsol / (delta**3) / fv * ngpol(ii)
+            enddo
+
+            q_tosend = q_tosend + pro(i, jj)
+            sumtrans_tosend = sumtrans_tosend + ntrans_val*pro(i, jj)
+
+        else
+           
+           do j=1,longcha(ii)
+            ax = px(i, j, jj) ! cada uno para su cadena...
+            ay = py(i, j, jj)
+            az = pz(i, j, jj)         
             pro(i, jj) = pro(i, jj) + xpot(ax, ay, az, segtype(j))
-        enddo
-        
-        pro(i, jj) = pro(i, jj) - benergy * ntrans_val
-        pro(i, jj) = dexp(pro(i, jj))
-
-        ! --- 3. ACUMULACIÓN DE FRACCIÓN DE VOLUMEN ---
-        do j = 1, l_cha
-            ax = px(1, j, 1)
-            ay = py(1, j, 1)
-            az = pz(1, j, 1)
+           enddo
             
-            fv = (1.0 - volprot(ax, ay, az))
-            im = segtype(j)
-            
-            avpol_temp(ax, ay, az, im) = avpol_temp(ax, ay, az, im) + &
-                 pro(i, jj) * vsol / (delta**3) / fv * ngpol(ii)
-        enddo
-        
-        ! Acumuladores para la normalización
-        q_tosend = q_tosend + pro(i, jj)
-        sumtrans_tosend = sumtrans_tosend + ntrans_val * pro(i, jj)
+           pro(i,jj) = pro(i,jj) -benergy*ntrans(i,ii) ! energy of trans bonds
+           pro(i,jj) = dexp(pro(i,jj))
 
+           do j=1,longcha(ii)
+               fv = (1.0-volprot(px(i,j, jj),py(i,j, jj),pz(i,j, jj)))
+               im = segtype(j)
+               avpol_temp(px(i,j, jj),py(i,j, jj),pz(i,j, jj), im)= &
+               avpol_temp(px(i,j, jj),py(i,j, jj),pz(i,j, jj), im)+pro(i, jj)*vsol/(delta**3)/fv* &
+               ngpol(ii) ! ngpol(ii) has the number of chains grafted to the point ii
+           enddo
+            q_tosend=q_tosend+pro(i, jj)
+            sumtrans_tosend = sumtrans_tosend+ntrans(i, ii)*pro(i,jj)
+        endif      
+        
     enddo ! Fin bucle i (configuraciones de la cadena ii)
 
     ! --- 4. NORMALIZACIÓN POR CADENA ---
