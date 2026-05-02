@@ -20,11 +20,10 @@ integer iii
 !  
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-
+if (flag_write_pxyz.eq.1) allocate(filepos(ncha,maxcpp,cuantas))
 newcuantas = 0
 
 !indexncha = 1
-
 do iii = 1, nlongdif ! loop over different chain lenghts 
 
    seed = seed_lig ! Updates seed so the initial seed of the ligands set of conformations can be controlled independently

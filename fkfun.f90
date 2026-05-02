@@ -1,6 +1,6 @@
 subroutine fkfun(x,f,ier2)
 use system
-use chainsdat, only : longcha
+use chainsdat, only : longcha, filepos
 use molecules, only : benergy, vsol
 use const, only : stdout
 use results, only : xtotalsum, avpol
@@ -31,6 +31,7 @@ real*8 qsv_tosend(dimx,dimy,dimz)
 integer iii
 integer, external :: PBCSYMI, PBCREFI
 integer :: id_cha, l_cha, ntrans_val
+integer :: jj_read
 real*8  :: pro_val
 
 ! poor solvent 
@@ -341,25 +342,27 @@ do jj = 1, cpp(rank+1)
         pro(i, jj) = dlog(shift)
         
         if (flag_write_pxyz.eq.1) then
-            read(90) id_cha, ntrans_val, l_cha, &
-                     px(1, 1:l_cha, 1), &
-                     py(1, 1:l_cha, 1), &
-                     pz(1, 1:l_cha, 1)
-            
-  
+            read(90, pos=filepos(ii,jj,i)) id_cha, ntrans_val, l_cha, jj_read
+            read(90) px(1,1:l_cha,jj_read)
+            read(90) py(1,1:l_cha,jj_read)
+            read(90) pz(1,1:l_cha,jj_read)   
+            if (id_cha /= ii) then 
+                write(stdout,*)'MISMATCH id_cha', id_cha, ii
+                stop
+            endif  
             do j = 1, l_cha
-                ax = px(1, j, 1)
-                ay = py(1, j, 1)
-                az = pz(1, j, 1)         
+                ax = px(1, j, jj)
+                ay = py(1, j, jj)
+                az = pz(1, j, jj)         
                 pro(i, jj) = pro(i, jj) + xpot(ax, ay, az, segtype(j))
             enddo        
             pro(i, jj) = pro(i, jj) - benergy*ntrans(i,ii)
             pro(i, jj) = dexp(pro(i, jj))
 
             do j = 1, l_cha
-                ax = px(1, j, 1)
-                ay = py(1, j, 1)
-                az = pz(1, j, 1)
+                ax = px(1, j, jj)
+                ay = py(1, j, jj)
+                az = pz(1, j, jj)
                 
                 fv = (1.0 - volprot(ax, ay, az))
                 im = segtype(j)

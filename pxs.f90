@@ -26,6 +26,7 @@ integer testsystem_cuboctahedron
 real*8 maxx(3)
 integer flag
 integer aa
+integer(kind=8) :: pos
 
 integer, external :: PBCREFI, PBCSYMI
 
@@ -36,146 +37,142 @@ maxx(3) = float(dimz)*delta
 do jj = 1, cpp(rank+1)
   ii = cppini(rank+1)+jj
 
-if(longcha(ii).eq.chainlenght) then !!! only puts into lattice if the chainlenght is right
+    if(longcha(ii).eq.chainlenght) then !!! only puts into lattice if the chainlenght is right
 
-  flag = 0
+      flag = 0
 
-    do j=1,longcha(ii)
-       x(1) = in1(j ,2)
-       x(2) = in1(j, 3)
-       x(3) = in1(j, 1)
+        do j=1,longcha(ii)
+           x(1) = in1(j ,2)
+           x(2) = in1(j, 3)
+           x(3) = in1(j, 1)
 
-       if((systemtype.eq.2).or.(systemtype.eq.3).or.(systemtype.eq.4).or.(systemtype.eq.41)   &
-       .or.(systemtype.eq.42).or.(systemtype.eq.52).or.(systemtype.eq.60))call rot_chain_cyl(x,ii)
+           if((systemtype.eq.2).or.(systemtype.eq.3).or.(systemtype.eq.4).or.(systemtype.eq.41)   &
+           .or.(systemtype.eq.42).or.(systemtype.eq.52).or.(systemtype.eq.60))call rot_chain_cyl(x,ii)
 
-       x = x + posicion(ii,:)
-       v = MATMUL(MAT,x)
-       pxtemp(:,j) = v(:)
-
-
-select case (systemtype)
-
-case (1)
- 
-       if(testsystem(x).eq.-1) then ! if testsystem = -1,  there is a collision with all or particle 
-         flag = -1
-         exit
-       endif
-
-       if(testsystem(x).eq.-2) then ! if testsystem = -2, the polymer goes out-of-system
-         write(stdout,*) 'pxs: out-of-system'
-         stop
-       endif
+           x = x + posicion(ii,:)
+           v = MATMUL(MAT,x)
+           pxtemp(:,j) = v(:)
 
 
-case (6)
-       if(testsystem(x).eq.-1) then ! if testsystem = -1,  there is a collision with all or particle 
-         flag = -1
-         exit
-       endif
+    select case (systemtype)
 
-       if(testsystem(x).eq.-2) then ! if testsystem = -2, the polymer goes out-of-system
-         write(stdout,*) 'pxs: out-of-system'
-         stop
-       endif
+    case (1)
+     
+           if(testsystem(x).eq.-1) then ! if testsystem = -1,  there is a collision with all or particle 
+             flag = -1
+             exit
+           endif
 
-case (7)
-       if(testsystem_cube(x).eq.-1) then ! if testsystem = -1,  there is a collision with all or particle 
-         flag = -1
-         exit
-       endif
-
-       if(testsystem_cube(x).eq.-2) then ! if testsystem = -2, the polymer goes out-of-system
-         write(stdout,*) 'pxs: out-of-system'
-         stop
-       endif
-
-case(9)
-      if(testsystem_cuboctahedron(x).eq.-1) then ! if testsystem = -1,  there is a collision with all or particle
-         flag = -1
-         exit
-       endif
-
-       if(testsystem_cuboctahedron(x).eq.-2) then ! if testsystem = -2, the polymer goes out-of-system
-         write(stdout,*) 'pxs: out-of-system'
-         stop
-       endif
-
-case (60)
-       if(testsystemc(x).eq.-1) then ! if testsystem = -1,  there is a collision with channel
-         flag = -1
-         exit
-       endif
-
-       if(testsystemc(x).eq.-2) then ! if testsystem = -2, the polymer goes out-of-system
-         write(stdout,*) 'pxs: out-of-system'
-         stop
-       endif
-
-       if(testsystem(x).eq.-1) then ! if testsystem = -1,  there is a collision with all or one particle 
-         flag = -1
-         exit
-       endif
-
-       if(testsystem(x).eq.-2) then ! if testsystem = -2, the polymer goes out-of-system
-         write(stdout,*) 'pxs: out-of-system'
-         stop
-       endif
-
-case (2, 3, 4, 41, 42)
+           if(testsystem(x).eq.-2) then ! if testsystem = -2, the polymer goes out-of-system
+             write(stdout,*) 'pxs: out-of-system'
+             stop
+           endif
 
 
-       if(testsystemc(x).eq.-1) then ! if testsystem = -1,  there is a collision with all or particle 
-         flag = -1
-         exit
-       endif
+    case (6)
+           if(testsystem(x).eq.-1) then ! if testsystem = -1,  there is a collision with all or particle 
+             flag = -1
+             exit
+           endif
 
-       if(testsystemc(x).eq.-2) then ! if testsystem = -2, the polymer goes out-of-system
-         write(stdout,*) 'pxs: out-of-system'
-         stop
-       endif
+           if(testsystem(x).eq.-2) then ! if testsystem = -2, the polymer goes out-of-system
+             write(stdout,*) 'pxs: out-of-system'
+             stop
+           endif
 
-case (80)
+    case (7)
+           if(testsystem_cube(x).eq.-1) then ! if testsystem = -1,  there is a collision with all or particle 
+             flag = -1
+             exit
+           endif
 
-       if(testsystem_cylinder(x).eq.-1) then ! if testsystem = -1,  there is a collision with all or particle 
-         flag = -1
-         exit
-       endif
+           if(testsystem_cube(x).eq.-2) then ! if testsystem = -2, the polymer goes out-of-system
+             write(stdout,*) 'pxs: out-of-system'
+             stop
+           endif
 
-       if(testsystem_cylinder(x).eq.-2) then ! if testsystem = -2, the polymer goes out-of-system
-         write(stdout,*) 'pxs: out-of-system'
-         stop
-       endif
+    case(9)
+          if(testsystem_cuboctahedron(x).eq.-1) then ! if testsystem = -1,  there is a collision with all or particle
+             flag = -1
+             exit
+           endif
 
-case (81)
+           if(testsystem_cuboctahedron(x).eq.-2) then ! if testsystem = -2, the polymer goes out-of-system
+             write(stdout,*) 'pxs: out-of-system'
+             stop
+           endif
 
-       if(testsystem_superellipse(x).eq.-1) then ! if testsystem = -1,  there is a collision with all or particle 
-         flag = -1
-         exit
-       endif
+    case (60)
+           if(testsystemc(x).eq.-1) then ! if testsystem = -1,  there is a collision with channel
+             flag = -1
+             exit
+           endif
 
-       if(testsystem_superellipse(x).eq.-2) then ! if testsystem = -2, the polymer goes out-of-system
-         write(stdout,*) 'pxs: out-of-system'
-         stop
-       endif
+           if(testsystemc(x).eq.-2) then ! if testsystem = -2, the polymer goes out-of-system
+             write(stdout,*) 'pxs: out-of-system'
+             stop
+           endif
 
-case (52)
+           if(testsystem(x).eq.-1) then ! if testsystem = -1,  there is a collision with all or one particle 
+             flag = -1
+             exit
+           endif
 
-       if(testsystemr(x).eq.-1) then ! if testsystem = -1,  there is a collision with all or particle 
-         flag = -1
-         exit
-       endif
+           if(testsystem(x).eq.-2) then ! if testsystem = -2, the polymer goes out-of-system
+             write(stdout,*) 'pxs: out-of-system'
+             stop
+           endif
 
-       if(testsystemr(x).eq.-2) then ! if testsystem = -2, the polymer goes out-of-system
-         write(stdout,*) 'pxs: out-of-system'
-         stop
-       endif
-
-endselect
-
+    case (2, 3, 4, 41, 42)
 
 
+           if(testsystemc(x).eq.-1) then ! if testsystem = -1,  there is a collision with all or particle 
+             flag = -1
+             exit
+           endif
 
+           if(testsystemc(x).eq.-2) then ! if testsystem = -2, the polymer goes out-of-system
+             write(stdout,*) 'pxs: out-of-system'
+             stop
+           endif
+
+    case (80)
+
+           if(testsystem_cylinder(x).eq.-1) then ! if testsystem = -1,  there is a collision with all or particle 
+             flag = -1
+             exit
+           endif
+
+           if(testsystem_cylinder(x).eq.-2) then ! if testsystem = -2, the polymer goes out-of-system
+             write(stdout,*) 'pxs: out-of-system'
+             stop
+           endif
+
+    case (81)
+
+           if(testsystem_superellipse(x).eq.-1) then ! if testsystem = -1,  there is a collision with all or particle 
+             flag = -1
+             exit
+           endif
+
+           if(testsystem_superellipse(x).eq.-2) then ! if testsystem = -2, the polymer goes out-of-system
+             write(stdout,*) 'pxs: out-of-system'
+             stop
+           endif
+
+    case (52)
+
+           if(testsystemr(x).eq.-1) then ! if testsystem = -1,  there is a collision with all or particle 
+             flag = -1
+             exit
+           endif
+
+           if(testsystemr(x).eq.-2) then ! if testsystem = -2, the polymer goes out-of-system
+             write(stdout,*) 'pxs: out-of-system'
+             stop
+           endif
+
+    endselect
     enddo ! j
 
     if(flag.eq.0) then
@@ -221,11 +218,13 @@ endselect
           endif
           pz(1,j,jj) = aa  ! Usamos índice 1 (Buffer)
       enddo
-      write(90) ii, ing, longcha(ii), &
-          px(1, 1:longcha(ii), jj), &
-          py(1, 1:longcha(ii), jj), &
-          pz(1, 1:longcha(ii), jj)
-    
+      inquire(unit=90, pos=pos)
+      filepos(ii, jj, newcuantas(ii)) = pos
+      write(90) ii, ing, longcha(ii), jj
+      write(90) px(1,1:longcha(ii),jj)
+      write(90) py(1,1:longcha(ii),jj)
+      write(90) pz(1,1:longcha(ii),jj)
+
     else 
     
       do j = 1, longcha(ii)

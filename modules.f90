@@ -116,6 +116,7 @@ real*8, ALLOCATABLE :: ngpol(:) ! posicion graft de la cadena ncha
 integer, ALLOCATABLE :: longcha(:) ! chain lenght of chain ncha
 integer, ALLOCATABLE :: cpp(:)
 integer, ALLOCATABLE :: cppini(:)
+integer(kind=8), allocatable :: filepos(:,:,:)
 integer maxcpp
 real*8 lseg
 real*8 lsegkai
