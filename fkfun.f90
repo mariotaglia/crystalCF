@@ -1,6 +1,6 @@
 subroutine fkfun(x,f,ier2)
 use system
-use chainsdat, only : longcha, filepos
+use chainsdat, only : longcha
 use molecules, only : benergy, vsol
 use const, only : stdout
 use results, only : xtotalsum, avpol
@@ -16,6 +16,20 @@ use kaist, only : kp, st
 use mparameters_monomer, only : N_monomer, N_poorsol, hydroph, st_matrix
 use solventchains, only : pxsv, pysv, pzsv, ntranssv, longsv, cuantassv
 implicit none
+
+type :: IndexMap
+        integer :: jj       ! 1ra prioridad: Punto de injerto
+        integer :: ii       ! 2da prioridad: Cadena
+        integer :: i_conf   ! 3ra prioridad: Configuración
+        integer(kind=8) :: pos ! Posición física en el archivo 90[cite: 4, 6]
+end type IndexMap
+
+type(IndexMap), allocatable, save :: sorted_idx(:)
+integer, save :: total_records = 0
+integer :: k
+integer(kind=8) :: file_size_bytes
+
+
 real*8 intq, intxh
 real*8 eta
 integer*4 ier2
@@ -31,8 +45,9 @@ real*8 qsv_tosend(dimx,dimy,dimz)
 integer iii
 integer, external :: PBCSYMI, PBCREFI
 integer :: id_cha, l_cha, ntrans_val
-integer :: jj_read
+integer :: jj_read, i_read
 real*8  :: pro_val
+integer(kind=8) :: pos_read
 
 ! poor solvent 
 real*8 sttemp
@@ -44,6 +59,7 @@ real*8 avpol_tosend(dimx,dimy,dimz,N_monomer)
 real*8 avpol_temp(dimx,dimy,dimz,N_monomer)
 real*8 q_tosend, sumtrans_tosend
 real*8 fv, fv2
+
 
 !-----------------------------------------------------
 ! Common variables
@@ -329,7 +345,24 @@ avpol_tosend = 0.0
 q = 0.0
 sumtrans = 0.0
 
-if (flag_write_pxyz.eq.1)rewind(90)
+if (flag_write_pxyz == 1) then 
+    ! Solo entramos aquí si el arreglo NO ha sido asignado aún
+    if (.not. allocated(sorted_idx)) then
+        rewind(90)
+        rewind(91)
+
+        inquire(unit=91, size=file_size_bytes)
+        total_records = int(file_size_bytes / 20) 
+        
+        allocate(sorted_idx(total_records))
+
+        do k = 1, total_records
+            read(91) sorted_idx(k)%jj, sorted_idx(k)%ii, sorted_idx(k)%i_conf, sorted_idx(k)%pos
+        end do
+
+        call quicksort_idx(sorted_idx, 1, total_records)
+    endif
+endif
 
 do jj = 1, cpp(rank+1)
     ii = cppini(rank+1) + jj
@@ -342,12 +375,13 @@ do jj = 1, cpp(rank+1)
         pro(i, jj) = dlog(shift)
         
         if (flag_write_pxyz.eq.1) then
-            read(90, pos=filepos(ii,jj,i)) id_cha, ntrans_val, l_cha, jj_read
-            read(90) px(1,1:l_cha,jj_read)
-            read(90) py(1,1:l_cha,jj_read)
-            read(90) pz(1,1:l_cha,jj_read)   
+            pos_read = find_pos_in_index(jj, ii, i)
+            read(90, pos=pos_read) jj_read, id_cha, i_read, ntrans_val, l_cha, &
+            px(1,1:l_cha,jj_read), & 
+            py(1,1:l_cha,jj_read), & 
+            pz(1,1:l_cha,jj_read)   
             if (id_cha /= ii) then 
-                write(stdout,*)'MISMATCH id_cha', id_cha, ii
+                write(stdout,*)'MISMATCH id_cha', jj_read, id_cha, i_read, ii, jj, ii
                 stop
             endif  
             do j = 1, l_cha
@@ -593,6 +627,91 @@ endif
 
 3333 continue
 ier2 = 0.0 
-
 return
+
+contains
+
+integer function compare_jj_ii_i(m1, m2)
+    ! NO repitas 'implicit none' aquí si ya está arriba
+    type(IndexMap), intent(in) :: m1, m2
+    
+    if (m1%jj /= m2%jj) then
+        compare_jj_ii_i = m1%jj - m2%jj
+    else if (m1%ii /= m2%ii) then
+        compare_jj_ii_i = m1%ii - m2%ii
+    else
+        compare_jj_ii_i = m1%i_conf - m2%i_conf
+    end if
+end function compare_jj_ii_i
+
+recursive subroutine quicksort_idx(a, first, last)
+    type(IndexMap), intent(in out) :: a(:)
+    integer, intent(in) :: first, last
+    
+    ! Renombramos para evitar conflicto con la 'x' global de fkfun
+    integer :: i_ptr, j_ptr 
+    type(IndexMap) :: pivot, temp
+
+    i_ptr = first
+    j_ptr = last
+    pivot = a((first + last) / 2)
+
+    do
+        do while (compare_jj_ii_i(a(i_ptr), pivot) < 0)
+            i_ptr = i_ptr + 1
+        end do
+        do while (compare_jj_ii_i(a(j_ptr), pivot) > 0)
+            j_ptr = j_ptr - 1
+        end do
+        
+        if (i_ptr <= j_ptr) then
+            temp = a(i_ptr)
+            a(i_ptr) = a(j_ptr)
+            a(j_ptr) = temp
+            i_ptr = i_ptr + 1
+            j_ptr = j_ptr - 1
+        end if
+        
+        if (i_ptr > j_ptr) exit
+    end do
+
+    if (first < j_ptr) call quicksort_idx(a, first, j_ptr)
+    if (i_ptr < last) call quicksort_idx(a, i_ptr, last)
+end subroutine quicksort_idx
+
+
+function find_pos_in_index(target_jj, target_ii, target_i) result(found_pos)
+    integer, intent(in) :: target_jj, target_ii, target_i
+    integer(kind=8) :: found_pos
+    integer :: low, high, mid
+    integer :: cmp
+
+    found_pos = -1 
+    low = 1
+    high = total_records
+
+    do while (low <= high)
+        mid = (low + high) / 2
+        
+        ! Lógica de comparación jerárquica jj > ii > i
+        if (sorted_idx(mid)%jj /= target_jj) then
+            cmp = target_jj - sorted_idx(mid)%jj
+        else if (sorted_idx(mid)%ii /= target_ii) then
+            cmp = target_ii - sorted_idx(mid)%ii
+        else
+            cmp = target_i - sorted_idx(mid)%i_conf
+        end if
+
+        if (cmp == 0) then
+            found_pos = sorted_idx(mid)%pos
+            return
+        else if (cmp > 0) then
+            low = mid + 1
+        else
+            high = mid - 1
+        end if
+    end do
+end function find_pos_in_index
+
+
 end

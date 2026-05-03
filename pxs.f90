@@ -219,11 +219,11 @@ do jj = 1, cpp(rank+1)
           pz(1,j,jj) = aa  ! Usamos índice 1 (Buffer)
       enddo
       inquire(unit=90, pos=pos)
-      filepos(ii, jj, newcuantas(ii)) = pos
-      write(90) ii, ing, longcha(ii), jj
-      write(90) px(1,1:longcha(ii),jj)
-      write(90) py(1,1:longcha(ii),jj)
-      write(90) pz(1,1:longcha(ii),jj)
+      write(90) jj, ii, newcuantas(ii), ing, longcha(ii), & 
+      px(1,1:longcha(ii),jj), & 
+      py(1,1:longcha(ii),jj), & 
+      pz(1,1:longcha(ii),jj) 
+      write(91) jj, ii, newcuantas(ii), pos
 
     else 
     

@@ -44,7 +44,8 @@ character(len=32) :: filename_cfg, filename_pro
 ! Nombre para coordenadas (Unidad 90)
 write(filename_cfg, '("pxs_rank_", I3.3, ".bin")') rank
 open(unit=90, file=trim(filename_cfg), access='stream', form='unformatted', status='replace')
-
+write(filename_cfg, '("pxs_index_", I3.3, ".idx")') rank
+open(unit=91, file=trim(filename_cfg), access='stream', form='unformatted', status='replace')
 if(rank.eq.0) then
        open(unit=301, file='F_tot_gcanon.dat', access='APPEND')
        open(unit=302, file='F_mixs.dat',  access='APPEND')
@@ -81,6 +82,7 @@ close(313)
 close(315)
 close(316)
 close(unit=90, status='DELETE')
+close(unit=91, status='DELETE')
 
 call MPI_FINALIZE(ierr) ! finaliza MPI    
 stop

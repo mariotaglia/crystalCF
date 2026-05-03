@@ -20,7 +20,6 @@ integer iii
 !  
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-if (flag_write_pxyz.eq.1) allocate(filepos(ncha,maxcpp,cuantas))
 newcuantas = 0
 
 !indexncha = 1
