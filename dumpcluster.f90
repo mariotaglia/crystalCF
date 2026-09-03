@@ -251,9 +251,16 @@ do j = 1, indexcluster_in
     open(unit=45, file=filename)
 
     do i = 1, dumpcluster 
-    write(45,*) posx(listcluster_in(1,i,j), listcluster_in(2,i,j)), &
-                posy(listcluster_in(1,i,j), listcluster_in(3,i,j)), &
-                posz(listcluster_in(1,i,j), listcluster_in(4,i,j))
+
+    vect1T(1) = posx(listcluster_in(1,i,j), listcluster_in(2,i,j))
+    vect1T(2) = posy(listcluster_in(1,i,j), listcluster_in(3,i,j))
+    vect1T(3) = posz(listcluster_in(1,i,j), listcluster_in(4,i,j))
+    vect1R = MATMUL(IMAT,vect1T) ! coordinates of particle in real space
+
+
+    write(45,*) vect1R(1), &
+                vect1R(2), &
+                vect1R(3)
     enddo
     close(45)
 enddo
