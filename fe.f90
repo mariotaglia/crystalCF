@@ -28,16 +28,16 @@ real*8  q_tosend(ncha), sumtrans_tosend(ncha)
 real*8  q0(ncha), sumtrans0(ncha)
 integer newcuantas0(ncha)
 real*8 F_Mix_s
-real*8 Free_energy2, sumrho, suma, mupol, sumHS
+real*8 Free_energy2, sumrho, suma, mupol, sumComp
 real*8 temp
-real*8 F_trans, F_Conf, F_vdW, F_eps, F_HS
+real*8 F_trans, F_Conf, F_vdW, F_eps, F_Comp
 real*8 F_conf_sv, F_trans_sv
 real*8 Free_Energy_plusSv
 real*8 pro0(cuantas, maxcpp)
 real*8 entropy(dimx,dimy,dimz)
 real*8 logq(dimx,dimy,dimz)
 character*5  title
-real*8 eta
+real*8 phi
 
 ! MPI
 integer stat(MPI_STATUS_SIZE) 
@@ -381,20 +381,22 @@ endif ! solvent
 
       Free_Energy = Free_Energy + F_eps
 
-! 10 HS contribution
+! 10 Compressibility contribution
 
-      F_HS = 0.0
+      F_Comp = 0.0
       do ix = 1, dimx
       do iy = 1, dimy
       do iz = 1, dimz
          fv=(1.0-volprot(ix,iy,iz))
-         eta = xtotalsum(ix,iy,iz)
-         F_HS = F_HS + eta*(4.-3.*eta)/((1.-eta)**2)*eta*(delta**3)/vsol*fv
+         phi = xtotalsum(ix,iy,iz)
+
+         F_Comp = F_Comp + (B0/vsol)*(1.0-phi)**2/phi*(delta**3)*fv
+
       enddo
       enddo
       enddo
 
-      Free_Energy = Free_Energy + F_HS
+      Free_Energy = Free_Energy + F_Comp
 
       write(stdout,*) 'Free_Energy_Calc: Free energy(1) = ', Free_energy
 
@@ -419,7 +421,7 @@ enddo
 
 !      sumpi = 0.0
       sumrho=0.0
-      sumHS = 0.0 
+      sumComp = 0.0 
 
         do ix=1,dimx
         do iy=1,dimy
@@ -428,9 +430,9 @@ enddo
         fv=(1.0-volprot(ix,iy,iz))
         sumrho = sumrho - rhosv(ix, iy, iz)*fv
 
-         eta = xtotalsum(ix,iy,iz)
+         phi = xtotalsum(ix,iy,iz)
 
-         sumHS = sumHS + (-4.*eta + 2.*eta**2)/((1.-eta)**3) * fv * eta 
+         sumComp = sumComp + (B0/vsol)*2.0*(1.0-phi)/phi*fv
 
          enddo
          enddo
@@ -438,9 +440,9 @@ enddo
          
          sumrho = (delta**3)*sumrho
 
-         sumHS = (delta**3/vsol)*sumHS
+         sumComp = (delta**3)*sumComp
 
-         suma = sumHS + sumrho
+         suma = sumComp + sumrho
 
          do ii = 1, ncha
          Free_Energy2 = Free_Energy2-dlog(q0(ii)/shift)*ngpol(ii) 
@@ -473,7 +475,7 @@ enddo
 
          write(307,*)looped, F_Conf
          write(309,*)looped, F_vdW
-         write(311,*)looped, F_HS
+         write(311,*)looped, F_Comp
          write(410,*)looped, F_eps
 
          write(420,*)looped, Free_Energy_plusSV

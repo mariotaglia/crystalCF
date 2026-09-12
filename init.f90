@@ -52,7 +52,7 @@ if(rank.eq.0) then
        open(unit=307, file='F_conf.dat',  access='APPEND')
        open(unit=3071, file='F_trans.dat',  access='APPEND')
        open(unit=309, file='F_vdW.dat',  access='APPEND')
-       open(unit=311, file='F_HS.dat',  access='APPEND')
+       open(unit=311, file='F_Comp.dat',  access='APPEND')
        open(unit=410, file='F_eps.dat',  access='APPEND')
        open(unit=312, file='F_tot2.dat',  access='APPEND')
        open(unit=314, file='F_mixpos2.dat',  access='APPEND')

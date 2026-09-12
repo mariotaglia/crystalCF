@@ -8,7 +8,7 @@ subroutine readinput
 ! In some cases, assigns defaults values if the input is absent
 !
 
-use molecules, only : benergy, vsol0
+use molecules, only : benergy, vsol0, B0
 use const, only : infile, randominput, seed, seed_np, seed_lig, stdout
 use MPI
 use ellipsoid
@@ -89,6 +89,7 @@ dy = ndr
 dz = ndr
 cdiva = ndr
 vsol0 = ndr
+B0 = ndr
 gama0 = ndr
 benergy = ndr
 coordinate_system = ndi
@@ -306,6 +307,10 @@ case ('long') ! ligand chain length
 
  case ('vsol') ! bead volume
    read(buffer, *, iostat=ios) vsol0
+   if(rank.eq.0)write(stdout,*) 'parser:','Set ',trim(label),' = ',trim(buffer)
+
+ case ('B0') ! bead volume
+   read(buffer, *, iostat=ios) B0
    if(rank.eq.0)write(stdout,*) 'parser:','Set ',trim(label),' = ',trim(buffer)
 
  case ('benergy') ! enegy of gauche bonds
@@ -863,6 +868,7 @@ if(lseg.eq.ndr)call stopundef('lseg')
 if(lsegkai.eq.ndr)call stopundef('lsegkai')
 
 if(vsol0.eq.ndr)call stopundef('vsol')
+if(B0.eq.ndr)call stopundef('B0')
 if(benergy.eq.ndr)call stopundef('benergy')
 if(transform_type.eq.ndi)call stopundef('transform_type')
 if(transform_type.eq.1)then

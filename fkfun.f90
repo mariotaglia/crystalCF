@@ -1,7 +1,7 @@
 subroutine fkfun(x,f,ier2)
 use system
 use chainsdat, only : longcha
-use molecules, only : benergy, vsol
+use molecules, only : benergy, vsol, B0
 use const, only : stdout
 use results, only : xtotalsum, avpol
 use kai, only : Xu, Xulimit
@@ -31,7 +31,7 @@ integer(kind=8) :: file_size_bytes
 
 
 real*8 intq, intxh
-real*8 eta
+real*8 phi
 integer*4 ier2
 integer ncells
 real*8 x(*),f(*)
@@ -60,6 +60,19 @@ real*8 avpol_temp(dimx,dimy,dimz,N_monomer)
 real*8 q_tosend, sumtrans_tosend
 real*8 fv, fv2
 
+
+!-----------------------------------------------------
+! Fkfun for polymer using compressibility penalty in 
+! free energy.
+!
+! Does not work with solvent, check before start
+!----------------------------------------------------
+
+if((flagmu.ne.0).or.(kp.eq.0.0)) then
+    if(rank.eq.0)write(stdout,*)'fkfun: This routine needs sv volume fraction to be zero'
+    if(rank.eq.0)write(stdout,*)'fkfun: Set flagmu = 0, kp = 0.0'
+    stop
+endif
 
 !-----------------------------------------------------
 ! Common variables
@@ -120,9 +133,10 @@ do ix=1,dimx
      fv = (1.0 - volprot(ix,iy,iz))
 
 ! LOCAL HS
-     eta = xtotalsum(ix,iy,iz)
-              xpot(ix, iy, iz, im) = (-(8.0*eta-(9.0*(eta**2))+(3.0*(eta**3))) &
-              /((1.0-eta)**3))
+     phi = xtotalsum(ix,iy,iz) ! volume fraction
+
+! B0 = beta*vp/(2kappa)
+     xpot(ix, iy, iz, im) =  B0*(1.0-phi**2)/(phi**2)    
 
 ! Poor solvent
 
@@ -197,7 +211,6 @@ enddo ! N_monomer
 ! CALCULATE SOLVENT VOLUME FRACTION
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-
 xh = 0.0
 xh_tosend = 0.0
 qsv = 0.0
@@ -205,7 +218,6 @@ qsv_tosend = 0.0
 sumprolnpro = 0.0
 rhosv = 0.0
 sumprotrans = 0.0
-
 
 do ix = 1, dimx
 do iy = 1, dimy
