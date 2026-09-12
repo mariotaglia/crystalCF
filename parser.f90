@@ -97,6 +97,7 @@ dumpcluster = ndi
 cluster_same = ndi
 cutoffcluster = ndr
 flag_write_pxyz = ndi
+flag_polymer = ndi
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Control file variables
@@ -178,6 +179,10 @@ do while (ios == 0)
 
  case ('flag_write_pxyz') ! use px py pz as disk file?
    read(buffer, *, iostat=ios) flag_write_pxyz
+   if(rank.eq.0)write(stdout,*) 'parser:','Set ',trim(label),' = ',trim(buffer)
+
+ case ('flag_polymer') ! consider polymer chains
+   read(buffer, *, iostat=ios) flag_polymer
    if(rank.eq.0)write(stdout,*) 'parser:','Set ',trim(label),' = ',trim(buffer)
 
  case ('flagmu') ! flagmu = 0, scan solvent volume fraction; flagmu = 1, scan solvent chemical potential
@@ -821,6 +826,7 @@ endif
 
 if(vtkflag.eq.ndi)call stopundef('vtkflag')
 if(flag_write_pxyz.eq.ndi)flag_write_pxyz=0
+if(flag_polymer.eq.ndi)call stopundef('flag_polymer')
 if(dimx.eq.ndi)call stopundef('dimx')
 if(scx.eq.ndi)call stopundef('scx')
 if(scy.eq.ndi)call stopundef('scy')
@@ -837,11 +843,11 @@ if(infile.eq.ndi)call stopundef('infile')
 
 if(interaction_00.eq.ndi) then
         interaction_00=1.0
-        print*, 'interaction_00 undefined, use default value of', interaction_00
+        write(stdout,*) 'interaction_00 undefined, use default value of', interaction_00
 endif        
 if(interaction_11.eq.ndi) then
         interaction_11=1.0
-        print*, 'interaction_11 undefined, use default value of',interaction_11
+        write(stdout,*) 'interaction_11 undefined, use default value of',interaction_11
 endif        
 
 if(cutoff.eq.ndr)call stopundef('Xucutoff')
@@ -873,55 +879,55 @@ endif
 
 if(seed.eq.ndi) then
    seed = 938121
-   print*, 'seed undefined, used default:', seed
+   write(stdout,*) 'seed undefined, used default:', seed
 endif
 
 if(seed_np.eq.ndi) then
    seed_np = 938121
-   print*, 'seed_np undefined, used default:', seed
+   write(stdout,*) 'seed_np undefined, used default:', seed
 endif
 
 if(seed_lig.eq.ndi) then
    seed_lig = 14258825
-   print*, 'seed_lig undefined, used default:', seed_lig
+   write(stdout,*) 'seed_lig undefined, used default:', seed_lig
 endif
 
 if(PBC(1).eq.ndi)call stopundef('PBC')
 
 if(flagmu.eq.ndi) then
    flagmu = 0
-   print*, 'flagmu undefined, used default:', flagmu
+   write(stdout,*) 'flagmu undefined, used default:', flagmu
 endif
 
 if(branched.eq.ndi) then
    branched = 0
-   print*, 'branched undefined, used default:', branched
+   write(stdout,*) 'branched undefined, used default:', branched
 endif
 
 if(sigmar.eq.ndr) then
    sigmar = 0.0
-   print*, 'sigmar undefined, used default:', sigmar
+   write(stdout,*) 'sigmar undefined, used default:', sigmar
 endif
 
 if(randominput.eq.ndi) then
    randominput = 0
-   print*, 'randominput undefined, used default:', randominput
+   write(stdout,*) 'randominput undefined, used default:', randominput
 endif
 
 if(dumpcluster.eq.ndi) then
    dumpcluster = 0
-   print*, 'dumpcluster undefined, used default:', dumpcluster
+   write(stdout,*) 'dumpcluster undefined, used default:', dumpcluster
 endif
 
 if(cluster_same.eq.ndi) then
    cluster_same = 0
-   print*, 'cluster_same undefined, used default:', cluster_same
+   write(stdout,*) 'cluster_same undefined, used default:', cluster_same
 endif
 
 
 if(cutoffcluster.eq.ndr) then
    cutoffcluster = 0.0
-   print*, 'cutoffcluster undefined, used default:', cutoffcluster
+   write(stdout,*) 'cutoffcluster undefined, used default:', cutoffcluster
 endif
 
 
@@ -948,9 +954,9 @@ enddo
 
 
 ! DEBUG
-!print*, longp
-!print*, nlongdif
-!print*, longdif
+!write(stdout,*) longp
+!write(stdout,*) nlongdif
+!write(stdout,*) longdif
 
 !stop
 

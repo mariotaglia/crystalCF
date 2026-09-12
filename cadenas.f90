@@ -55,8 +55,11 @@ do iii = 1, nlongdif ! loop over different chain lenghts
 il=0
 
 do while (il.lt.cuantas)
-
-  call cadenas72mr(chains,nchas,transs,longdif(iii)) ! generate chains
+if (flag_polymer.eq.1) then
+    call cadenas_fjc(chains,nchas,transs,longdif(iii))
+else
+    call cadenas72mr(chains,nchas,transs,longdif(iii))
+endif
 
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
@@ -113,8 +116,11 @@ seed = 845955360 ! All processors have the same seed for solvent conformations
 il=0
 
 do while (il.lt.cuantassv)
-
-  call cadenas72mr(chains,nchas,transs,longsv)
+if (flag_polymer.eq.1) then
+    call cadenas_fjc(chains,nchas,transs,longsv)
+else
+    call cadenas72mr(chains,nchas,transs,longsv)
+endif
 
   do i=1,nchas
       il=il+1
@@ -399,4 +405,117 @@ call allocatecpp
 
 end
 
+subroutine cadenas_fjc(chains,nchas,transs,long)
 
+use const
+use chainsdat, only : lseg, long_max
+use system
+
+implicit none
+
+integer long
+integer nchas
+integer i,j
+integer maxchains
+integer iunit
+
+real*8 chains(3,long_max,100)
+real*8 transs(100)
+
+real*8 xend(3,long_max)
+real*8 x(3)
+real*8 rands
+real*8 rn, ree
+real*8 phi
+real*8 costheta
+real*8 sintheta
+
+maxchains = 50
+nchas = 0
+
+!=======================================================================
+! FREE JOINT CHAIN
+!
+! Each bond has fixed length lseg.
+! The orientation of every bond is independent and isotropic.
+!
+! cos(theta) is uniformly distributed in [-1,1]
+! phi        is uniformly distributed in [0,2*pi]
+!
+! No self-avoidance condition is imposed.
+!
+!=======================================================================
+
+do nchas = 1,maxchains
+
+    !-------------------------------------------------------------------
+    ! First grafting point
+    !-------------------------------------------------------------------
+
+    xend(1,1) = 0.0d0
+    xend(2,1) = 0.0d0
+    xend(3,1) = 0.0d0
+
+    !-------------------------------------------------------------------
+    ! Generate independent bonds
+    !-------------------------------------------------------------------
+
+    do i = 2,long
+
+        ! Uniform random point on the sphere
+
+        rn = rands(seed)
+        costheta = 2.0d0*rn - 1.0d0
+
+        rn = rands(seed)
+        phi = 2.0d0*pi*rn
+
+        sintheta = sqrt(max(0.0d0,1.0d0-costheta**2))
+
+        ! Bond vector
+
+        x(1) = lseg*sintheta*cos(phi)
+        x(2) = lseg*sintheta*sin(phi)
+        x(3) = lseg*costheta
+
+        ! New monomer position
+
+        xend(1,i) = xend(1,i-1) + x(1)
+        xend(2,i) = xend(2,i-1) + x(2)
+        xend(3,i) = xend(3,i-1) + x(3)
+
+    enddo
+
+    !-------------------------------------------------------------------
+    ! Store chain
+    !-------------------------------------------------------------------
+
+   do j = 1,long
+       chains(1,j,nchas) = xend(1,j)
+       chains(2,j,nchas) = xend(2,j)
+       chains(3,j,nchas) = xend(3,j)
+   enddo
+
+   ! ! End-to-end distance
+
+   ! ree = sqrt( &
+   !     (xend(1,long)-xend(1,1))**2 + &
+   !     (xend(2,long)-xend(2,1))**2 + &
+   !     (xend(3,long)-xend(3,1))**2 )
+
+   ! write(iunit,'(I8,1X,I8,1X,F20.10)') long,nchas,ree
+   ! write(iunit+100,'(I8,1X,I8,1X,F20.10)') long,nchas, &
+   !     xend(1,long)-xend(1,1)
+
+   ! write(iunit+200,'(I8,1X,I8,1X,F20.10)') long,nchas, &
+   !     xend(2,long)-xend(2,1)
+
+   ! write(iunit+300,'(I8,1X,I8,1X,F20.10)') long,nchas, &
+   !     xend(3,long)-xend(3,1)
+   
+   transs(nchas) = 0.0d0
+
+enddo
+
+return
+end

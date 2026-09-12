@@ -39,7 +39,7 @@ integer PBC(6)
 integer vtkflag
 integer flagmu
 integer eqs ! number of set of equations 
-integer flag_write_pxyz
+integer flag_write_pxyz, flag_polymer
 endmodule
 
 module clusters
