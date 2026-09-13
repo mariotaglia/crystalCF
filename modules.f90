@@ -124,6 +124,7 @@ integer ing ! number of transs in current chain
 
 integer longdif(100) ! different chain lenghts
 integer nlongdif ! number of different chain lenghts
+integer, parameter :: long_max = 200 ! maximum chain lenght
 endmodule
 
 module molecules

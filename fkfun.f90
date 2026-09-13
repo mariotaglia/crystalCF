@@ -68,7 +68,7 @@ real*8 fv, fv2
 ! Does not work with solvent, check before start
 !----------------------------------------------------
 
-if((flagmu.ne.0).or.(kp.eq.0.0)) then
+if((flagmu.ne.0).or.(kp.ne.0.0)) then
     if(rank.eq.0)write(stdout,*)'fkfun: This routine needs sv volume fraction to be zero'
     if(rank.eq.0)write(stdout,*)'fkfun: Set flagmu = 0, kp = 0.0'
     stop
@@ -105,7 +105,8 @@ xtotalsum = 0.0
 do ix=1,dimx
  do iy=1,dimy
   do iz=1,dimz
-     xtotalsum(ix,iy,iz)= 1.0-exp(-x(ix+dimx*(iy-1)+dimx*dimy*(iz-1)))  ! xtotalsum is the sum of polymers (ip >= 1) and solvent (ip = 0)
+!     xtotalsum(ix,iy,iz)=    1.0-exp(-x(ix+dimx*(iy-1)+dimx*dimy*(iz-1)))  ! xtotalsum is the sum of polymers (ip >= 1) and solvent (ip = 0)
+     xtotalsum(ix,iy,iz)= x(ix+dimx*(iy-1)+dimx*dimy*(iz-1))  ! xtotalsum is the sum of polymers (ip >= 1) and solvent (ip = 0)
 
      do ip = 1, N_poorsol
       xtotal(ix,iy,iz,ip) = x(ix+dimx*(iy-1)+dimx*dimy*(iz-1)+ ip*ncells) ! input, xtotal for polymers
@@ -136,7 +137,8 @@ do ix=1,dimx
      phi = xtotalsum(ix,iy,iz) ! volume fraction
 
 ! B0 = beta*vp/(2kappa)
-     xpot(ix, iy, iz, im) =  B0*(1.0-phi**2)/(phi**2)    
+     xpot(ix, iy, iz, im) =  B0*2.0*(1.0-phi)    
+!     xpot(ix, iy, iz, im) =  B0*(1.0-phi**2)/(phi**2)    
 
 ! Poor solvent
 
