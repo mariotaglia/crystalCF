@@ -1,6 +1,6 @@
 subroutine fkfun(x,f,ier2)
 use system
-use chainsdat, only : longcha
+use chainsdat, only : longcha, meanphi
 use molecules, only : benergy, vsol, B0
 use const, only : stdout
 use results, only : xtotalsum, avpol
@@ -137,7 +137,7 @@ do ix=1,dimx
      phi = xtotalsum(ix,iy,iz) ! volume fraction
 
 ! B0 = beta*vp/(2kappa)
-     xpot(ix, iy, iz, im) =  B0*2.0*(1.0-phi)    
+     xpot(ix, iy, iz, im) =  B0*2.0*(1.0-phi)-B0*2.0*(1.0-meanphi)    
 !     xpot(ix, iy, iz, im) =  B0*(1.0-phi**2)/(phi**2)    
 
 ! Poor solvent

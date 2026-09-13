@@ -105,6 +105,8 @@ real*8 free_energy
 endmodule
 
 module chainsdat
+real*8 meanphi
+real*8 sumpolseg
 integer cuantas 
 integer, allocatable :: newcuantas(:)
 integer long

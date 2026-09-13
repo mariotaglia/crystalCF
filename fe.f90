@@ -434,7 +434,7 @@ enddo
 
          phi = xtotalsum(ix,iy,iz)
 
-         sumComp = sumComp - (B0/vsol)*(phi**2-1.0)*fv
+         sumComp = sumComp - (B0/vsol)*(phi**2-1.0)*fv - (B0/vsol)*2.0*(1.0-meanphi)*phi*fv
 
          enddo
          enddo

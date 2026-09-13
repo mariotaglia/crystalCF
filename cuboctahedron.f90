@@ -26,7 +26,6 @@ integer j
 real*8 lcubeL, lcubeS, loctaL, loctaS
 real*8 center(3)
 real*8 area
-real*8 sumpolseg 
 real*8 cutarea
 real*8 sumvoleps1, sumvolprot1, sumvolx1
 integer ncha1

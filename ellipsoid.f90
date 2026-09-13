@@ -85,7 +85,6 @@ logical flag
 integer j
 real pnumber
 real*8 area
-real*8 sumpolseg 
 real*8 maxss
 real*8 cutarea
 real*8 temp
@@ -207,10 +206,14 @@ temp = 0
 do j = 1, NNN
 temp = temp + 4.0/3.0*pi*Aell(1,j)*Aell(2,j)*Aell(3,j)
 enddo
+
+meanphi = sumpolseg*vsol/(delta**3 * (float(dimx*dimy*dimz)-sum(volprot)))
+
 if (rank.eq.0) then
 write(stdout,*) 'ellipsoid:', 'update_matrix: Total volumen real space= ', temp
 write(stdout,*) 'ellipsoid:', 'update_matrix: Total discretized volumen =', sum(volprot)*delta**3
 write(stdout,*) 'ellipsoid:', 'number of monomers in system =', sumpolseg 
+write(stdout,*) 'ellipsoid:', 'mean density in the system (assuming all sites accesible) =', meanphi
 endif
 
 title = 'aveps'

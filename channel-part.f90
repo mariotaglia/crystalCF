@@ -22,7 +22,6 @@ character*5 title
 logical flag
 integer j
 real*8 area
-real*8 sumpolseg 
 real*8 cutarea
 real*8 temp
 real*8 sumvoleps1, sumvolprot1, sumvolx1
