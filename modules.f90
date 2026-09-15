@@ -130,7 +130,6 @@ endmodule
 module molecules
 use system
 real*8 vsol
-real*8 B0
 real*8 vsol0
 real*8 vsalt
 real*8 benergy
@@ -156,8 +155,11 @@ real*8 kp
 real*8, allocatable :: kps(:)
 
 integer nst
+integer nB0
 real*8 st
+real*8 B0
 real*8 sts(100)
+real*8 B0s(100)
 endmodule
 
 module fields_fkfun

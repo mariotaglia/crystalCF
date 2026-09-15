@@ -8,7 +8,7 @@ subroutine readinput
 ! In some cases, assigns defaults values if the input is absent
 !
 
-use molecules, only : benergy, vsol0, B0
+use molecules, only : benergy, vsol0
 use const, only : infile, randominput, seed, seed_np, seed_lig, stdout
 use MPI
 use ellipsoid
@@ -83,13 +83,13 @@ cutoff = ndr
 lseg = ndr
 lsegkai = ndr
 nst = ndi
+nB0 = ndi
 delta = ndr
 dx = ndr
 dy = ndr
 dz = ndr
 cdiva = ndr
 vsol0 = ndr
-B0 = ndr
 gama0 = ndr
 benergy = ndr
 coordinate_system = ndi
@@ -309,10 +309,6 @@ case ('long') ! ligand chain length
    read(buffer, *, iostat=ios) vsol0
    if(rank.eq.0)write(stdout,*) 'parser:','Set ',trim(label),' = ',trim(buffer)
 
- case ('B0') ! bead volume
-   read(buffer, *, iostat=ios) B0
-   if(rank.eq.0)write(stdout,*) 'parser:','Set ',trim(label),' = ',trim(buffer)
-
  case ('benergy') ! enegy of gauche bonds
    read(buffer, *, iostat=ios) benergy
    if(rank.eq.0)write(stdout,*) 'parser:','Set ',trim(label),' = ',trim(buffer)
@@ -369,6 +365,13 @@ case ('nkp') ! solvent volume fraction or chemical potential, depending on flagm
    if(rank.eq.0)write(stdout,*) 'parser:','Set ',trim(label),' = ',trim(buffer)
    do i = 1, nst
    read(fh,*)sts(i)
+   enddo 
+
+ case ('nB0') ! number of B0 cases
+   read(buffer, *, iostat=ios) nB0
+   if(rank.eq.0)write(stdout,*) 'parser:','Set ',trim(label),' = ',trim(buffer)
+   do i = 1, nB0
+   read(fh,*)B0s(i)
    enddo 
 
  case ('Xucutoff') ! cut off for LJ attractions in nm
@@ -859,6 +862,7 @@ if(cutoff.eq.ndr)call stopundef('Xucutoff')
 if(readchains.eq.ndi)call stopundef('readchains')
 if(systemtype.eq.ndi)call stopundef('systemtype')
 if(nst.eq.ndi)call stopundef('nst')
+if(nB0.eq.ndi)call stopundef('nB0')
 
 if(delta.eq.ndr)call stopundef('delta')
 if(dx.eq.ndr)call stopundef('dx')
@@ -868,7 +872,6 @@ if(lseg.eq.ndr)call stopundef('lseg')
 if(lsegkai.eq.ndr)call stopundef('lsegkai')
 
 if(vsol0.eq.ndr)call stopundef('vsol')
-if(B0.eq.ndr)call stopundef('B0')
 if(benergy.eq.ndr)call stopundef('benergy')
 if(transform_type.eq.ndi)call stopundef('transform_type')
 if(transform_type.eq.1)then

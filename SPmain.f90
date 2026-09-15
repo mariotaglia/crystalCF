@@ -5,7 +5,7 @@ use ellipsoid, only : NNN
 use const, only : infile, stdout
 use montecarlo, only : free_energy
 use ematrix, only : vscan, systemtype
-use kaist, only : nst, st, sts, kp, kps, nkp
+use kaist, only : nst, st, sts, kp, kps, nkp, nB0, B0, B0s
 use clusters, only : dumpcluster
 use ellipsoid_create, only : update_matrix_ellipsoid
 use cuboctahedron_create, only : update_matrix_cuboctahedron
@@ -18,7 +18,7 @@ logical flag
 character*10 filename
 integer j, i, ii
 integer flagcrash
-real*8 stOK,kpOK
+real*8 stOK,kpOK, B0OK
 
 stdout = 6
 
@@ -138,11 +138,12 @@ select case (vscan)
 case (1)
 
 st = sts(1)
+B0 = B0s(1)
 kp = 1.0d10+kps(1)
 do i = 1, nkp
  do while (kp.ne.kps(i))
   kp = kps(i)
-  if(rank.eq.0)write(stdout,*)'Switch to kp = ', kp, ' st =', st
+  if(rank.eq.0)write(stdout,*)'Switch to kp = ', kp, ' st =', st, ' B0 = ', B0
   flagcrash = 1
   do while(flagcrash.eq.1)
    flagcrash = 0
@@ -172,11 +173,12 @@ enddo
 case (2)
 
 kp = kps(1)
+B0 = B0s(1)
 st = 1.0d10+sts(1)
 do i = 1, nst
  do while (st.ne.sts(i))
   st = sts(i)
-  if(rank.eq.0)write(stdout,*)'Switch to st = ', st, ' kp =', kp
+  if(rank.eq.0)write(stdout,*)'Switch to st = ', st, ' kp =', kp, ' B0 = ', B0
   flagcrash = 1
   do while(flagcrash.eq.1)
    flagcrash = 0
@@ -203,6 +205,39 @@ do i = 1, nst
 
 enddo
 
+case (3) ! scan B0
+
+kp = kps(1)
+st = sts(1)
+B0 = 1.0d10+B0s(1)
+do i = 1, nB0
+ do while (B0.ne.B0s(i))
+  B0 = B0s(i)
+  if(rank.eq.0)write(stdout,*)'Switch to st = ', st, ' kp =', kp, ' B0 = ', B0
+  flagcrash = 1
+  do while(flagcrash.eq.1)
+   flagcrash = 0
+   if(systemtype.eq.7)call puntas(i)
+   call solve(flagcrash)
+   if(flagcrash.eq.1) then
+    if(i.eq.1)stop
+    B0 = (B0 + B0OK)/2.0
+    if(rank.eq.0)write(stdout,*)'Error, switch to B0 = ', B0
+   endif
+  enddo
+
+  B0OK = B0 ! last st solved OK
+  if(rank.eq.0)write(stdout,*) 'Solved OK, B0: ', B0OK
+ enddo
+
+ counterr = counter + i + ii  - 1
+ call Free_Energy_Calc(counterr)
+ if(rank.eq.0)write(stdout,*) 'Free energy after solving', free_energy
+ call savedata(counterr)
+ if(rank.eq.0)write(stdout,*) 'Save OK'
+ call store2disk(counterr)
+
+enddo
 endselect
 
 call endall

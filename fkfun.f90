@@ -1,7 +1,7 @@
 subroutine fkfun(x,f,ier2)
 use system
 use chainsdat, only : longcha
-use molecules, only : benergy, vsol, B0
+use molecules, only : benergy, vsol
 use const, only : stdout
 use results, only : xtotalsum, avpol
 use kai, only : Xu, Xulimit
@@ -12,7 +12,7 @@ use fields_fkfun, only : xtotal, sumprolnpro, sumprotrans, long, phisolv, musolv
 use kinsol, only : maxiters, iter, norma
 use conformations, only : px,py,pz, ntrans
 use ematrix, only : dimx, dimy, dimz, eqs, volprot, pbc, delta, flagmu
-use kaist, only : kp, st
+use kaist, only : kp, st, B0
 use mparameters_monomer, only : N_monomer, N_poorsol, hydroph, st_matrix
 use solventchains, only : pxsv, pysv, pzsv, ntranssv, longsv, cuantassv
 implicit none
