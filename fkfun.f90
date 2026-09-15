@@ -468,15 +468,14 @@ do jj = 1, cpp(rank+1)
         
 
     ! --- 4. NORMALIZACIÓN POR CADENA ---
-    if (q_tosend > 0.0d0) then
         avpol_tosend = avpol_tosend + avpol_temp / q_tosend
         q(ii) = q_tosend 
         sumtrans(ii) = sumtrans_tosend / q_tosend
-    endif
 
 enddo ! Fin bucle jj (total de puntos de injerto del rank)
 
 !------------------ MPI ----------------------------------------------
+
 
 call MPI_Barrier(MPI_COMM_WORLD, err)
 call MPI_REDUCE(avpol_tosend, avpol, ncells*N_monomer, MPI_DOUBLE_PRECISION, MPI_SUM,0, MPI_COMM_WORLD, err)
@@ -515,7 +514,6 @@ endif
 ! intq = integral of qsv
 
 
-
 if (flagmu.eq.0) then ! calculate using constant phi
 
 
@@ -539,6 +537,8 @@ else if (flagmu.eq.2) then ! calculate using constant Nsolv
 
 endif
 
+xh = 0.0 ! no solvent
+
 !!!! phisolv
 
 phisolv = 0.0
@@ -550,6 +550,8 @@ phisolv = phisolv + xh(ix,iy,iz)*fv
 enddo
 enddo
 enddo
+
+
 phisolv = phisolv/float(dimx*dimy*dimz) 
 
 !! CHECK MUSOLV
@@ -614,8 +616,8 @@ do iz=1,dimz
 f(ix+dimx*(iy-1)+dimx*dimy*(iz-1))= -xtotalsum(ix,iy,iz)+xh(ix,iy,iz) ! xtotalsum = solvent + polymers
 do im = 1, N_monomer
     f(ix+dimx*(iy-1)+dimx*dimy*(iz-1))= f(ix+dimx*(iy-1)+dimx*dimy*(iz-1)) + avpol(ix,iy,iz,im)
-enddo ! im
 
+enddo ! im
 
 enddo
 enddo

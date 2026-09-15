@@ -442,7 +442,8 @@ enddo
         do iz=1,dimz
 
         fv=(1.0-volprot(ix,iy,iz))
-        sumrho = sumrho - rhosv(ix, iy, iz)*fv
+
+         sumrho = sumrho - rhosv(ix, iy, iz)*fv
 
          phi = xtotalsum(ix,iy,iz)
 
@@ -456,7 +457,9 @@ enddo
 
          sumComp = (delta**3)*sumComp
 
-         suma = sumComp + sumrho
+         suma = sumComp !!! NO SOLVENT
+!         suma = sumComp + sumrho
+
 
          do ii = 1, ncha
          Free_Energy2 = Free_Energy2+ (-dlog(q0(ii)) + shift0(ii))*ngpol(ii) 

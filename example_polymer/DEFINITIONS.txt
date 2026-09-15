@@ -11,7 +11,7 @@ seed 938121
 !!! SCAN !!!
 
 !infile
-infile 0
+infile 2 
 !what to scan: 1, solvent volume fraction or chemical potential, use kp and flagmu
 !2, attraction strength st. If 1 then the system will use the first st value.
 vscan 2
@@ -49,7 +49,7 @@ long 12
 cuantas 100000
 
 ! segment lengths
-lseg 1.0
+lseg 1.5
 lsegkai 0.4
 
 ! properties of solvent chains
@@ -66,15 +66,15 @@ branched 0
 randominput 0
 
 !volume
-vsol 0.8
+vsol 0.96
 
 !!! UNIT CELL !!!
 !system size
-dimx 20
-dimy 20
-dimz 20
+dimx 22
+dimy 22
+dimz 22
 
-delta 1.0
+delta 2.06
 
 dx 0.0
 dy 0.0
@@ -101,8 +101,8 @@ systemtype 1
 0.0 0.0 0.0
 0.5 0.5 0.5
 !particle semiaxis x y z in nm
-5.0 5.0 5.0
-5.0 5.0 5.0
+15.0 15.0 15.0
+15.0 15.0 15.0
 ! Rotation
 1.0 0.0 0.0
 0.0 1.0 0.0
@@ -111,8 +111,8 @@ systemtype 1
 0.0 1.0 0.0
 0.0 0.0 1.0
 ! coverage
-1.20
-1.20
+1.0
+1.0
 !Surface-polymer atraction
 0.0
 0.0
@@ -122,5 +122,5 @@ systemtype 1
 
 seed_lig 938121
 
-B0 4.580
+B0 20.0
 flag_polymer 1
