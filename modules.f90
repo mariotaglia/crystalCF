@@ -176,7 +176,7 @@ real*8, allocatable :: pro(:,:)
 real*8 prosv 
 real*8, allocatable :: xh(:, :, :)
 real*8 phisolv ! solvent density
-real*8 shift
+real*8, allocatable :: shift(:)
 endmodule
 
 module conformations

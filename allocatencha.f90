@@ -9,6 +9,7 @@ implicit none
 
 ! fields_fkfun
 ALLOCATE(q(ncha))
+ALLOCATE(shift(ncha))
 ALLOCATE(sumtrans(ncha))
 ALLOCATE(ntrans(cuantas,ncha))
 

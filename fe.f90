@@ -134,7 +134,7 @@ Free_Energy2 = 0.0
       
          F_Conf = F_Conf + (pro(i, jj)/q0(iii)) &
       *dlog((pro(i, jj))/q0(iii))*ngpol(iii)
-         logq(p0(iii,1),p0(iii,2),p0(iii,3)) =  - dlog(q0(iii)/shift) 
+         logq(p0(iii,1),p0(iii,2),p0(iii,3)) =  - dlog(q0(iii)/shift(iii)) 
          entropy(p0(iii,1),p0(iii,2),p0(iii,3)) =  - (pro0(i, jj)/q0(iii))*dlog((pro0(i, jj))/q0(iii))
        enddo
        enddo 
@@ -153,7 +153,7 @@ Free_Energy2 = 0.0
        do i = 1, newcuantas0(iii)
 
          F_Conf = F_Conf + (pro0(i, jj)/q0(iii))*dlog((pro0(i, jj))/q0(iii))*ngpol(iii)
-         logq(p0(iii,1),p0(iii,2),p0(iii,3)) =  - dlog(q0(iii)/shift) 
+         logq(p0(iii,1),p0(iii,2),p0(iii,3)) =  - dlog(q0(iii)/shift(iii)) 
          entropy(p0(iii,1),p0(iii,2),p0(iii,3)) =  - (pro0(i, jj)/q0(iii))*dlog((pro0(i, jj))/q0(iii))
 
        enddo
@@ -447,7 +447,7 @@ enddo
          suma = sumComp + sumrho
 
          do ii = 1, ncha
-         Free_Energy2 = Free_Energy2-dlog(q0(ii)/shift)*ngpol(ii) 
+         Free_Energy2 = Free_Energy2-dlog(q0(ii)/shift(ii))*ngpol(ii) 
          enddo
 
          Free_Energy2 = Free_Energy2 + suma - F_vdW
@@ -459,7 +459,7 @@ enddo
 
         mupol = 0.0
         do ii = 1, ncha
-        mupol = mupol - dlog(q0(ii)/shift)*ngpol(ii)
+        mupol = mupol - dlog(q0(ii)/shift(ii))*ngpol(ii)
         enddo
 
         temp = sum(ngpol)

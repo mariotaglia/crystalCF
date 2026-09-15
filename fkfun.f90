@@ -386,7 +386,7 @@ do jj = 1, cpp(rank+1)
     avpol_temp = 0.0
 
     do i = 1, newcuantas(ii)
-        pro(i, jj) = dlog(shift)
+        pro(i, jj) = dlog(shift(ii))
         
         if (flag_write_pxyz.eq.1) then
             pos_read = find_pos_in_index(jj, ii, i)
