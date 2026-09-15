@@ -385,10 +385,12 @@ do jj = 1, cpp(rank+1)
     sumtrans_tosend = 0.0
     avpol_temp = 0.0
 
-    do i = 1, newcuantas(ii)
-        pro(i, jj) = shift(ii)
-        
-        if (flag_write_pxyz.eq.1) then
+       
+   if (flag_write_pxyz.eq.1) then
+
+            
+        do i = 1, newcuantas(ii)
+            pro(i, jj) = shift(ii)
             pos_read = find_pos_in_index(jj, ii, i)
             read(90, pos=pos_read) jj_read, id_cha, i_read, ntrans_val, l_cha, &
             px(1,1:l_cha,jj_read), & 
@@ -405,6 +407,8 @@ do jj = 1, cpp(rank+1)
                 pro(i, jj) = pro(i, jj) + xpot(ax, ay, az, segtype(j))
             enddo        
             pro(i, jj) = pro(i, jj) - benergy*ntrans(i,ii)
+       enddo ! i
+       do i = 1, newcuantas(ii)
             pro(i, jj) = dexp(pro(i, jj))
 
             do j = 1, l_cha
@@ -422,7 +426,11 @@ do jj = 1, cpp(rank+1)
             q_tosend = q_tosend + pro(i, jj)
             sumtrans_tosend = sumtrans_tosend + ntrans_val*pro(i, jj)
 
-        else
+        enddo ! i
+        else ! flagwrite
+ 
+         do i = 1, newcuantas(ii)
+           pro(i, jj) = shift(ii)
            
            do j=1,longcha(ii)
             ax = px(i, j, jj) ! cada uno para su cadena...
@@ -432,6 +440,9 @@ do jj = 1, cpp(rank+1)
            enddo
             
            pro(i,jj) = pro(i,jj) -benergy*ntrans(i,ii) ! energy of trans bonds
+       
+           enddo ! i
+           do i = 1, newcuantas(ii)
            pro(i,jj) = dexp(pro(i,jj))
 
            do j=1,longcha(ii)
@@ -443,9 +454,10 @@ do jj = 1, cpp(rank+1)
            enddo
             q_tosend=q_tosend+pro(i, jj)
             sumtrans_tosend = sumtrans_tosend+ntrans(i, ii)*pro(i,jj)
-        endif      
+          enddo ! Fin bucle i (configuraciones de la cadena ii)
+     
+    endif ! flag write
         
-    enddo ! Fin bucle i (configuraciones de la cadena ii)
 
     ! --- 4. NORMALIZACIÓN POR CADENA ---
     if (q_tosend > 0.0d0) then
