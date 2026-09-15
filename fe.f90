@@ -24,8 +24,8 @@ use solventchains
 implicit none
 
 integer looped
-real*8  q_tosend(ncha), sumtrans_tosend(ncha)
-real*8  q0(ncha), sumtrans0(ncha)
+real*8  q_tosend(ncha), sumtrans_tosend(ncha), shift_tosend(ncha)
+real*8  q0(ncha), sumtrans0(ncha), shift0(ncha)
 integer newcuantas0(ncha)
 real*8 F_Mix_s
 real*8 Free_energy2, sumrho, suma, mupol, sumComp
@@ -68,7 +68,9 @@ real*8 sumprotrans0(dimx,dimy,dimz)
 logq = 0.0
 entropy = 0.0
 q0 = 0.0
+shift0 = 0.0
 q_tosend = 0.0
+shift_tosend = 0.0
 sumtrans_tosend = 0.0
 
 if(rank.ne.0) then
@@ -78,9 +80,11 @@ if(rank.ne.0) then
        do jj = 1, cpp(rank+1)
        iii = cppini(rank+1)+jj
        q_tosend(iii) = q(iii)
+       shift_tosend(iii) = shift(iii)
        enddo
 
         call MPI_REDUCE(q_tosend, q0, ncha, MPI_DOUBLE_PRECISION, MPI_SUM,0, MPI_COMM_WORLD, err)
+        call MPI_REDUCE(shift_tosend, shift0, ncha, MPI_DOUBLE_PRECISION, MPI_SUM,0, MPI_COMM_WORLD, err)
 
 ! newcuantas
         call MPI_REDUCE(newcuantas, newcuantas0, ncha, MPI_INTEGER, MPI_SUM,0, MPI_COMM_WORLD, err)
@@ -121,10 +125,15 @@ Free_Energy2 = 0.0
        do jj = 1, cpp(rank+1)
        iii = jj
        q_tosend(iii) = q(iii)
+       shift_tosend(iii) = shift(iii)
        enddo
 
         call MPI_REDUCE(q_tosend, q0, ncha, &
         MPI_DOUBLE_PRECISION, MPI_SUM,0, MPI_COMM_WORLD, err)
+
+        call MPI_REDUCE(shift_tosend, shift0, ncha, &
+        MPI_DOUBLE_PRECISION, MPI_SUM,0, MPI_COMM_WORLD, err)
+
 
         call MPI_REDUCE(newcuantas, newcuantas0, ncha, MPI_INTEGER, MPI_SUM,0, MPI_COMM_WORLD, err)
 
@@ -135,7 +144,7 @@ Free_Energy2 = 0.0
        if(pro(i, jj).ne.0.0) then
          F_Conf = F_Conf + (pro(i, jj)/q0(iii)) &
       *dlog((pro(i, jj))/q0(iii))*ngpol(iii)
-         logq(p0(iii,1),p0(iii,2),p0(iii,3)) =  - dlog(q0(iii)) + shift(iii)
+         logq(p0(iii,1),p0(iii,2),p0(iii,3)) =  - dlog(q0(iii)) + shift0(iii)
          entropy(p0(iii,1),p0(iii,2),p0(iii,3)) =  - (pro0(i, jj)/q0(iii))*dlog((pro0(i, jj))/q0(iii))
        endif
   
@@ -157,7 +166,7 @@ Free_Energy2 = 0.0
 
        if(pro0(i, jj).ne.0.0) then
          F_Conf = F_Conf + (pro0(i, jj)/q0(iii))*dlog((pro0(i, jj))/q0(iii))*ngpol(iii)
-         logq(p0(iii,1),p0(iii,2),p0(iii,3)) =  - dlog(q0(iii)) + shift(iii)
+         logq(p0(iii,1),p0(iii,2),p0(iii,3)) =  - dlog(q0(iii)) + shift0(iii)
          entropy(p0(iii,1),p0(iii,2),p0(iii,3)) =  - (pro0(i, jj)/q0(iii))*dlog((pro0(i, jj))/q0(iii))
        endif
 
@@ -450,7 +459,7 @@ enddo
          suma = sumComp + sumrho
 
          do ii = 1, ncha
-         Free_Energy2 = Free_Energy2+ (-dlog(q0(ii)) + shift(ii))*ngpol(ii) 
+         Free_Energy2 = Free_Energy2+ (-dlog(q0(ii)) + shift0(ii))*ngpol(ii) 
          enddo
 
          Free_Energy2 = Free_Energy2 + suma - F_vdW
@@ -462,7 +471,7 @@ enddo
 
         mupol = 0.0
         do ii = 1, ncha
-        mupol = mupol + (-dlog(q0(ii)) + shift(ii))*ngpol(ii)
+        mupol = mupol + (-dlog(q0(ii)) + shift0(ii))*ngpol(ii)
         enddo
 
         temp = sum(ngpol)

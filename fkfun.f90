@@ -77,7 +77,7 @@ endif
 !-----------------------------------------------------
 ! Common variables
 
-shift = dlog(1.0d100)
+shift = dlog(1.0d100)*rank
 
 ncells = dimx*dimy*dimz ! numero de celdas
 
