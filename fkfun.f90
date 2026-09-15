@@ -77,7 +77,7 @@ endif
 !-----------------------------------------------------
 ! Common variables
 
-shift = dlog(1.0d100)*rank
+shift = 0.0
 
 ncells = dimx*dimy*dimz ! numero de celdas
 
@@ -390,7 +390,7 @@ do jj = 1, cpp(rank+1)
 
             
         do i = 1, newcuantas(ii)
-            pro(i, jj) = shift(ii)
+            pro(i, jj) = 0.0
             pos_read = find_pos_in_index(jj, ii, i)
             read(90, pos=pos_read) jj_read, id_cha, i_read, ntrans_val, l_cha, &
             px(1,1:l_cha,jj_read), & 
@@ -408,6 +408,10 @@ do jj = 1, cpp(rank+1)
             enddo        
             pro(i, jj) = pro(i, jj) - benergy*ntrans(i,ii)
        enddo ! i
+   
+       shift(ii) = -maxval(pro(1:newcuantas(ii),jj)) ! maximum value of pro shifted to 0
+       pro(:,jj) = pro(:,jj) + shift(ii)
+
        do i = 1, newcuantas(ii)
             pro(i, jj) = dexp(pro(i, jj))
 
@@ -430,7 +434,7 @@ do jj = 1, cpp(rank+1)
         else ! flagwrite
  
          do i = 1, newcuantas(ii)
-           pro(i, jj) = shift(ii)
+           pro(i, jj) = 0.0
            
            do j=1,longcha(ii)
             ax = px(i, j, jj) ! cada uno para su cadena...
@@ -442,6 +446,10 @@ do jj = 1, cpp(rank+1)
            pro(i,jj) = pro(i,jj) -benergy*ntrans(i,ii) ! energy of trans bonds
        
            enddo ! i
+
+           shift(ii) = -maxval(pro(1:newcuantas(ii),jj)) ! maximum value of pro shifted to 0
+           pro(:,jj) = pro(:,jj) + shift(ii)
+
            do i = 1, newcuantas(ii)
            pro(i,jj) = dexp(pro(i,jj))
 
