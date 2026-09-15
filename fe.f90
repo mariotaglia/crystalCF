@@ -132,11 +132,14 @@ Free_Energy2 = 0.0
        do i = 1, newcuantas0(jj)
        iii = jj
       
+       if(pro(i, jj).ne.0.0) then
          F_Conf = F_Conf + (pro(i, jj)/q0(iii)) &
       *dlog((pro(i, jj))/q0(iii))*ngpol(iii)
          logq(p0(iii,1),p0(iii,2),p0(iii,3)) =  - dlog(q0(iii)) + shift(iii)
          entropy(p0(iii,1),p0(iii,2),p0(iii,3)) =  - (pro0(i, jj)/q0(iii))*dlog((pro0(i, jj))/q0(iii))
-       enddo
+       endif
+  
+         enddo
        enddo 
 
          do ii = 2, size ! loop sobre los procesadores restantes
@@ -152,9 +155,11 @@ Free_Energy2 = 0.0
        iii = cppini(ii)+jj
        do i = 1, newcuantas0(iii)
 
+       if(pro0(i, jj).ne.0.0) then
          F_Conf = F_Conf + (pro0(i, jj)/q0(iii))*dlog((pro0(i, jj))/q0(iii))*ngpol(iii)
          logq(p0(iii,1),p0(iii,2),p0(iii,3)) =  - dlog(q0(iii)) + shift(iii)
          entropy(p0(iii,1),p0(iii,2),p0(iii,3)) =  - (pro0(i, jj)/q0(iii))*dlog((pro0(i, jj))/q0(iii))
+       endif
 
        enddo
        enddo
@@ -389,8 +394,6 @@ endif ! solvent
       do iz = 1, dimz
          fv=(1.0-volprot(ix,iy,iz))
          phi = xtotalsum(ix,iy,iz)
-
-!         F_Comp = F_Comp + (B0/vsol)*(1.0-phi)**2/phi*(delta**3)*fv
 
           F_Comp = F_Comp + (B0/vsol)*(1.0-phi)**2*(delta**3)*fv
 
