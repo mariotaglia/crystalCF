@@ -147,7 +147,6 @@ do i = 1, nkp
   do while(flagcrash.eq.1)
    flagcrash = 0
    if(systemtype.eq.7)call puntas(i)
-   call improve_meanphi ! improves the estimation of meanphi
    call solve(flagcrash)
    if(flagcrash.eq.1) then
     if(i.eq.1)stop
@@ -182,7 +181,6 @@ do i = 1, nst
   do while(flagcrash.eq.1)
    flagcrash = 0
    if(systemtype.eq.7)call puntas(i)
-   call improve_meanphi ! improves the estimation of meanphi
    call solve(flagcrash)
    if(flagcrash.eq.1) then
     if(i.eq.1)stop

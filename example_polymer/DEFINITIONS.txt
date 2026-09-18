@@ -11,7 +11,7 @@ seed 938121
 !!! SCAN !!!
 
 !infile
-infile 2
+infile 0
 !what to scan: 1, solvent volume fraction or chemical potential, use kp and flagmu
 !2, attraction strength st. If 1 then the system will use the first st value.
 vscan 2
@@ -122,6 +122,5 @@ systemtype 1
 
 seed_lig 938121
 
-B0 72 
-!458.0
+B0 4.580
 flag_polymer 1

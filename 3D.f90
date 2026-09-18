@@ -17,7 +17,6 @@ use const, only : error, stdout, infile
 use kinsol, only : ier, xflag, norma, iter
 use MPI
 use mparameters_monomer, only : N_poorsol
-use chainsdat, only : meanphi
 
 implicit none
 external fcn
@@ -55,13 +54,13 @@ endif
 
 if(infile.eq.0) then
   do i=1,ncells
-    xg1(i)=meanphi
-    x1(i)=meanphi
+    xg1(i)=0.1
+    x1(i)=0.1
   enddo
 
   do i = ncells+1,(N_poorsol+1)*ncells
-    xg1(i)=meanphi
-    x1(i)=meanphi
+    xg1(i)=0.1
+    x1(i)=0.1
   enddo
 endif ! infile
 
