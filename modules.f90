@@ -159,6 +159,7 @@ integer nst
 integer nB0
 real*8 st
 real*8 B0
+real*8 alpha0
 real*8 sts(100)
 real*8 B0s(100)
 endmodule

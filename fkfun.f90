@@ -12,7 +12,7 @@ use fields_fkfun, only : xtotal, sumprolnpro, sumprotrans, long, phisolv, musolv
 use kinsol, only : maxiters, iter, norma
 use conformations, only : px,py,pz, ntrans
 use ematrix, only : dimx, dimy, dimz, eqs, volprot, pbc, delta, flagmu
-use kaist, only : kp, st, B0
+use kaist, only : kp, st, B0, alpha0
 use mparameters_monomer, only : N_monomer, N_poorsol, hydroph, st_matrix
 use solventchains, only : pxsv, pysv, pzsv, ntranssv, longsv, cuantassv
 implicit none
@@ -137,7 +137,7 @@ do ix=1,dimx
      phi = xtotalsum(ix,iy,iz) ! volume fraction
 
 ! B0 = beta*vp/(2kappa)
-     xpot(ix, iy, iz, im) =  B0*(3.0*phi-1.0)*(1.0-phi)    
+     xpot(ix, iy, iz, im) = B0*phi**(alpha0-1)*((2.0+alpha0)*phi-alpha0)*(1.0-phi)    
 !     xpot(ix, iy, iz, im) =  B0*(1.0-phi**2)/(phi**2)    
 
 ! Poor solvent
