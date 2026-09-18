@@ -17,7 +17,7 @@ use const, only : error, stdout, infile
 use kinsol, only : ier, xflag, norma, iter
 use MPI
 use mparameters_monomer, only : N_poorsol
-use molecules, only : phimean
+use molecules, only : meanphi
 
 implicit none
 external fcn
@@ -55,13 +55,13 @@ endif
 
 if(infile.eq.0) then
   do i=1,ncells
-    xg1(i)=phimean
-    x1(i)=phimean
+    xg1(i)=meanphi
+    x1(i)=meanphi
   enddo
 
   do i = ncells+1,(N_poorsol+1)*ncells
-    xg1(i)=phimean
-    x1(i)=phimean
+    xg1(i)=meanphi
+    x1(i)=meanphi
   enddo
 endif ! infile
 

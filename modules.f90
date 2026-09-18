@@ -133,7 +133,7 @@ real*8 vsol
 real*8 vsol0
 real*8 vsalt
 real*8 benergy
-real*8 phimean
+real*8 meanphi
 endmodule
 
 module cube
