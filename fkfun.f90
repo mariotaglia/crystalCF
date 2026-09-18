@@ -137,7 +137,7 @@ do ix=1,dimx
      phi = xtotalsum(ix,iy,iz) ! volume fraction
 
 ! B0 = beta*vp/(2kappa)
-     xpot(ix, iy, iz, im) =  B0*2.0*(1.0-phi)    
+     xpot(ix, iy, iz, im) =  B0*(3.0*phi-1.0)*(1.0-phi)    
 !     xpot(ix, iy, iz, im) =  B0*(1.0-phi**2)/(phi**2)    
 
 ! Poor solvent

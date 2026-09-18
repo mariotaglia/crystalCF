@@ -207,10 +207,14 @@ temp = 0
 do j = 1, NNN
 temp = temp + 4.0/3.0*pi*Aell(1,j)*Aell(2,j)*Aell(3,j)
 enddo
+
+meanphi = sumpolseg*vsol/((float(dimx*dimy*dimz)-sum(volprot))*delta**3)
+
 if (rank.eq.0) then
 write(stdout,*) 'ellipsoid:', 'update_matrix: Total volumen real space= ', temp
 write(stdout,*) 'ellipsoid:', 'update_matrix: Total discretized volumen =', sum(volprot)*delta**3
 write(stdout,*) 'ellipsoid:', 'number of monomers in system =', sumpolseg 
+write(stdout,*) 'ellipsoid:', 'volume fraction in free space =', phimean
 endif
 
 title = 'aveps'
@@ -774,4 +778,3 @@ enddo
 
 end subroutine
 
-end module
