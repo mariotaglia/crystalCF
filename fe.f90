@@ -405,7 +405,7 @@ endif ! solvent
          phi = xtotalsum(ix,iy,iz)
 
           F_Comp = F_Comp + (B0/vsol)*(phi**alpha0)*(1.0-phi)**2*(delta**3)*fv
-          if (alpha0.eq.0.0)F_Comp = F_Comp - (B0/vsol)*(delta**3)*fv
+!          if (alpha0.eq.0.0)F_Comp = F_Comp - (B0/vsol)*(delta**3)*fv
 
       enddo
       enddo
@@ -449,7 +449,7 @@ enddo
          phi = xtotalsum(ix,iy,iz)
 
          sumComp = sumComp + (B0/vsol)*(phi**alpha0)*(phi-1.0)*(-(alpha0+1.0)*phi+(alpha0-1.0))*fv
-         if(alpha0.eq.0.0)sumComp = sumComp - (B0/vsol)*(-1.0)*(alpha0-1.0)*fv
+!         if(alpha0.eq.0.0)sumComp = sumComp - (B0/vsol)*(-1.0)*(alpha0-1.0)*fv
 
          enddo
          enddo
