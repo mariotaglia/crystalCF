@@ -124,8 +124,16 @@ seed_lig 938121
 
 flag_polymer 1
 
-nB0 1
+nB0 9
+0.0
+0.1
+1
+3
+10
+30
+50
+100
 350.0
 
-alpha0 0.5
+alpha0 0
 
