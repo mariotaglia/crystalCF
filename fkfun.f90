@@ -137,8 +137,9 @@ do ix=1,dimx
      phi = xtotalsum(ix,iy,iz) ! volume fraction
 
 ! B0 = beta*vp/(2kappa)
-     xpot(ix, iy, iz, im) = B0*phi**(alpha0-1)*((2.0+alpha0)*phi-alpha0)*(1.0-phi)    
-!     xpot(ix, iy, iz, im) =  B0*(1.0-phi**2)/(phi**2)    
+!     xpot(ix, iy, iz, im) = B0*phi**(alpha0-1)*((2.0+alpha0)*phi-alpha0)*(1.0-phi)    
+     !if(phi>1)write(stdout,*)phi,ix,iy,iz
+     xpot(ix, iy, iz, im) =  -2*B0*(dlog(max(phi,1.0d-200)))   
 
 ! Poor solvent
 
