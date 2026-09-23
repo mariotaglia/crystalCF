@@ -403,8 +403,8 @@ endif ! solvent
       do iz = 1, dimz
          fv=(1.0-volprot(ix,iy,iz))
          phi = xtotalsum(ix,iy,iz)
-         !if(phi>1)write(stdout,*)phi,ix,iy,iz
-          F_Comp = F_Comp + 2*B0*phi*(dlog(max(phi,1.0d-100))-1)*(delta**3)*fv
+
+         F_Comp = F_Comp + 2*B0*(phi*(dlog(phi)-1)+1)*(delta**3)*fv
 !          if (alpha0.eq.0.0)F_Comp = F_Comp - (B0/vsol)*(delta**3)*fv
 
       enddo
@@ -448,7 +448,7 @@ enddo
 
          phi = xtotalsum(ix,iy,iz)
 
-         sumComp = sumComp + (B0/vsol)*(phi**alpha0)*(phi-1.0)*(-(alpha0+1.0)*phi+(alpha0-1.0))*fv
+         sumComp = sumComp + 2*B0*(1-phi)*fv
 !         if(alpha0.eq.0.0)sumComp = sumComp - (B0/vsol)*(-1.0)*(alpha0-1.0)*fv
 
          enddo
