@@ -137,7 +137,7 @@ do ix=1,dimx
      phi = xtotalsum(ix,iy,iz) ! volume fraction
 
 ! B0 = beta*vp/(2kappa) 
-     phi = dlog(max(dexp(min(phi,700.)),-700.))   
+     phi = dlog(max(dexp(min(phi,600.)),-600.))   
      xpot(ix, iy, iz, im) =  -2*B0*vsol*(dlog(phi))
 ! Poor solvent
 
