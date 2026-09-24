@@ -143,7 +143,7 @@ Free_Energy2 = 0.0
       
        if(pro(i, jj).ne.0.0) then
          F_Conf = F_Conf + (pro(i, jj)/q0(iii)) &
-      *dlog((pro(i, jj))/q0(iii))*ngpol(iii)
+      *dlog(max((pro(i, jj))/q0(iii),1.0d-300))*ngpol(iii)
          logq(p0(iii,1),p0(iii,2),p0(iii,3)) =  - dlog(q0(iii)) + shift0(iii)
          entropy(p0(iii,1),p0(iii,2),p0(iii,3)) =  - (pro0(i, jj)/q0(iii))*dlog((pro0(i, jj))/q0(iii))
        endif
@@ -403,7 +403,7 @@ endif ! solvent
          fv=(1.0-volprot(ix,iy,iz))
          phi = xtotalsum(ix,iy,iz)
 
-         F_Comp = F_Comp + 2*B0*(phi*(dlog(phi)-1))*(delta**3)*fv
+         F_Comp = F_Comp + 2*B0*(phi*(dlog(phi)-1)+1)*(delta**3)*fv
 
 !          if (alpha0.eq.0.0)F_Comp = F_Comp - (B0/vsol)*(delta**3)*fv
 
@@ -448,7 +448,7 @@ enddo
 
          phi = xtotalsum(ix,iy,iz)
 
-         sumComp = sumComp + 2*B0*(-phi)*fv
+         sumComp = sumComp + 2*B0*(1-phi)*fv
 !         if(alpha0.eq.0.0)sumComp = sumComp - (B0/vsol)*(-1.0)*(alpha0-1.0)*fv
 
          enddo

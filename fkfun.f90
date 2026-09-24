@@ -69,9 +69,11 @@ real*8 fv, fv2
 !----------------------------------------------------
 
 if((flagmu.ne.0).or.(kp.ne.0.0)) then
+    if(kp.ne.1) then
     if(rank.eq.0)write(stdout,*)'fkfun: This routine needs sv volume fraction to be zero'
     if(rank.eq.0)write(stdout,*)'fkfun: Set flagmu = 0, kp = 0.0'
     stop
+    endif
 endif
 
 !-----------------------------------------------------
