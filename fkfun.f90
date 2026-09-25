@@ -618,7 +618,8 @@ do im = 1, N_monomer
     f(ix+dimx*(iy-1)+dimx*dimy*(iz-1))= f(ix+dimx*(iy-1)+dimx*dimy*(iz-1)) + avpol(ix,iy,iz,im)
 
 enddo ! im
-
+     fv = (1.0 - volprot(ix,iy,iz))
+     f(ix+dimx*(iy-1)+dimx*dimy*(iz-1))=f(ix+dimx*(iy-1)+dimx*dimy*(iz-1))*fv
 enddo
 enddo
 enddo
@@ -638,6 +639,8 @@ do ip = 1, N_poorsol
    endif
   enddo ! im
 
+     fv = (1.0 - volprot(ix,iy,iz))
+     f(ix+dimx*(iy-1)+dimx*dimy*(iz-1)+ip*ncells) =f(ix+dimx*(iy-1)+dimx*dimy*(iz-1)+ip*ncells)*fv
 enddo ! ip
 enddo ! ix
 enddo ! iy

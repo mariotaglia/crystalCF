@@ -167,7 +167,9 @@ do j = 1, NNN
  sumpolseg = sumpolseg + area*sigma(j)*longp(j)
 
 !! volume  
- volprot1 = volprot1 * 0.99
+! volprot1 = volprot1 * 0.99
+
+ where(volprot1 > 1.0)volprot1 = 1.0
  volprot = volprot+volprot1
 
 ! CHECK COLLISION HERE...
