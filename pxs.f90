@@ -9,6 +9,7 @@ use chainsdat
 use conformations
 use const
 use transform
+use ematrix
 
 implicit none
 integer chainlenght    
@@ -27,7 +28,7 @@ real*8 maxx(3)
 integer flag
 integer aa
 integer(kind=8) :: pos
-
+integer kx,ky,kz
 integer, external :: PBCREFI, PBCSYMI
 
 maxx(1) = float(dimx)*delta
@@ -174,6 +175,50 @@ do jj = 1, cpp(rank+1)
 
     endselect
     enddo ! j
+
+!!!!!!!!!!!!!!!!!!!!!!!!! NEW -- TEST THAT THE POSITION AVOIDS PARTICLE IN THE GRID !!!!!!!!
+
+      do j = 1, longcha(ii)
+      aa = floor(pxtemp(1,j)/delta) + 1
+      kx = aa
+      if(aa.lt.1) then
+        if(PBC(1).eq.1)kx = PBCSYMI(aa,dimx)
+        if(PBC(1).eq.3)kx = PBCREFI(aa,dimx)
+      endif
+      if(aa.gt.dimx) then
+        if(PBC(2).eq.1)kx = PBCSYMI(aa,dimx)
+        if(PBC(2).eq.3)kx = PBCREFI(aa,dimx)
+      endif
+
+      aa = floor(pxtemp(2,j)/delta) + 1
+      ky = aa
+      if(aa.lt.1) then
+        if(PBC(3).eq.1)ky = PBCSYMI(aa,dimy)
+        if(PBC(3).eq.3)ky = PBCREFI(aa,dimy)
+      endif
+      if(aa.gt.dimy) then
+        if(PBC(4).eq.1)ky = PBCSYMI(aa,dimy)
+        if(PBC(4).eq.3)ky = PBCREFI(aa,dimy)
+      endif
+
+      aa = floor(pxtemp(3,j)/delta) + 1
+      kz = aa
+      if(aa.lt.1) then
+        if(PBC(5).eq.1)kz = PBCSYMI(aa,dimz)
+        if(PBC(5).eq.3)kz = PBCREFI(aa,dimz)
+      endif
+      if(aa.gt.dimz) then
+        if(PBC(6).eq.1)kz = PBCSYMI(aa,dimz)
+        if(PBC(6).eq.3)kz = PBCREFI(aa,dimz)
+      endif
+
+      if(volprot(kx,ky,kz).eq.1.0) then
+              flag = -1
+              exit
+      endif
+      enddo ! j
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
 
     if(flag.eq.0) then
 
