@@ -37,7 +37,6 @@ real*8 lcubeL, lcubeS, loctaL, loctaS
 real*8 center_co(3)
 real*8 area_co
 real*8 sumpolseg_co
-real*8 cutarea_co
 real*8 COvol
 
 call make_ellipsoid(NNNell) ! update matrixes for all particles

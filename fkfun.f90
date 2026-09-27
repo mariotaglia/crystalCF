@@ -6,13 +6,13 @@ use const, only : stdout
 use results, only : xtotalsum, avpol
 use kai, only : Xu, Xulimit
 use MPI
-use fields_fkfun, only : xtotal, sumprolnpro, sumprotrans, long, phisolv, musolv, &
+use fields_fkfun, only : xtotal, sumprolnpro, sumprotrans,  phisolv, musolv, &
     pro, prosv, newcuantas, ngpol, cpp, cppini, segtype, xh, shift, sumtrans, &
     q, qsv, rhosv
 use kinsol, only : maxiters, iter, norma
 use conformations, only : px,py,pz, ntrans
 use ematrix, only : dimx, dimy, dimz, eqs, volprot, pbc, delta, flagmu
-use kaist, only : kp, st, B0, alpha0
+use kaist, only : kp, st, B0
 use mparameters_monomer, only : N_monomer, N_poorsol, hydroph, st_matrix
 use solventchains, only : pxsv, pysv, pzsv, ntranssv, longsv, cuantassv
 implicit none
@@ -46,7 +46,6 @@ integer iii
 integer, external :: PBCSYMI, PBCREFI
 integer :: id_cha, l_cha, ntrans_val
 integer :: jj_read, i_read
-real*8  :: pro_val
 integer(kind=8) :: pos_read
 
 ! poor solvent 

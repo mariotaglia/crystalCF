@@ -417,7 +417,6 @@ integer long
 integer nchas
 integer i,j
 integer maxchains
-integer iunit
 
 real*8 chains(3,long_max,100)
 real*8 transs(100)
@@ -425,7 +424,7 @@ real*8 transs(100)
 real*8 xend(3,long_max)
 real*8 x(3)
 real*8 rands
-real*8 rn, ree
+real*8 rn
 real*8 phi
 real*8 costheta
 real*8 sintheta

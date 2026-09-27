@@ -34,7 +34,7 @@ integer pos
 integer, parameter :: fh = 15
 integer ios
 integer line
-integer i, j, k
+integer i, j
 character(len=50) :: filename = 'DEFINITIONS.txt'
 character basura
 integer ndi
@@ -84,7 +84,6 @@ lseg = ndr
 lsegkai = ndr
 nst = ndi
 nB0 = ndi
-alpha0 = ndr
 delta = ndr
 dx = ndr
 dy = ndr
@@ -378,11 +377,6 @@ case ('nkp') ! solvent volume fraction or chemical potential, depending on flagm
  case ('Xucutoff') ! cut off for LJ attractions in nm
    read(buffer, *, iostat=ios) cutoff
    if(rank.eq.0)write(stdout,*) 'parser:','Set ',trim(label),' = ',trim(buffer)
-
- case ('alpha0') ! exponent in compressibility F
-   read(buffer, *, iostat=ios) alpha0
-   if(rank.eq.0)write(stdout,*) 'parser:','Set ',trim(label),' = ',trim(buffer)
-
 
  case ('systemtype')
    read(buffer, *, iostat=ios) systemtype
@@ -869,7 +863,6 @@ if(readchains.eq.ndi)call stopundef('readchains')
 if(systemtype.eq.ndi)call stopundef('systemtype')
 if(nst.eq.ndi)call stopundef('nst')
 if(nB0.eq.ndi)call stopundef('nB0')
-if(alpha0.eq.ndr)call stopundef('alpha0')
 
 if(delta.eq.ndr)call stopundef('delta')
 if(dx.eq.ndr)call stopundef('dx')

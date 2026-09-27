@@ -28,7 +28,7 @@ real*8 maxx(3)
 integer flag
 integer aa
 integer(kind=8) :: pos
-integer kx,ky,kz
+integer kx(long_max),ky(long_max),kz(long_max)
 integer, external :: PBCREFI, PBCSYMI
 
 maxx(1) = float(dimx)*delta
@@ -180,39 +180,39 @@ do jj = 1, cpp(rank+1)
 
       do j = 1, longcha(ii)
       aa = floor(pxtemp(1,j)/delta) + 1
-      kx = aa
+      kx(j) = aa
       if(aa.lt.1) then
-        if(PBC(1).eq.1)kx = PBCSYMI(aa,dimx)
-        if(PBC(1).eq.3)kx = PBCREFI(aa,dimx)
+        if(PBC(1).eq.1)kx(j) = PBCSYMI(aa,dimx)
+        if(PBC(1).eq.3)kx(j) = PBCREFI(aa,dimx)
       endif
       if(aa.gt.dimx) then
-        if(PBC(2).eq.1)kx = PBCSYMI(aa,dimx)
-        if(PBC(2).eq.3)kx = PBCREFI(aa,dimx)
+        if(PBC(2).eq.1)kx(j) = PBCSYMI(aa,dimx)
+        if(PBC(2).eq.3)kx(j) = PBCREFI(aa,dimx)
       endif
 
       aa = floor(pxtemp(2,j)/delta) + 1
-      ky = aa
+      ky(j) = aa
       if(aa.lt.1) then
-        if(PBC(3).eq.1)ky = PBCSYMI(aa,dimy)
-        if(PBC(3).eq.3)ky = PBCREFI(aa,dimy)
+        if(PBC(3).eq.1)ky(j) = PBCSYMI(aa,dimy)
+        if(PBC(3).eq.3)ky(j) = PBCREFI(aa,dimy)
       endif
       if(aa.gt.dimy) then
-        if(PBC(4).eq.1)ky = PBCSYMI(aa,dimy)
-        if(PBC(4).eq.3)ky = PBCREFI(aa,dimy)
+        if(PBC(4).eq.1)ky(j) = PBCSYMI(aa,dimy)
+        if(PBC(4).eq.3)ky(j) = PBCREFI(aa,dimy)
       endif
 
       aa = floor(pxtemp(3,j)/delta) + 1
-      kz = aa
+      kz(j) = aa
       if(aa.lt.1) then
-        if(PBC(5).eq.1)kz = PBCSYMI(aa,dimz)
-        if(PBC(5).eq.3)kz = PBCREFI(aa,dimz)
+        if(PBC(5).eq.1)kz(j) = PBCSYMI(aa,dimz)
+        if(PBC(5).eq.3)kz(j) = PBCREFI(aa,dimz)
       endif
       if(aa.gt.dimz) then
-        if(PBC(6).eq.1)kz = PBCSYMI(aa,dimz)
-        if(PBC(6).eq.3)kz = PBCREFI(aa,dimz)
+        if(PBC(6).eq.1)kz(j) = PBCSYMI(aa,dimz)
+        if(PBC(6).eq.3)kz(j) = PBCREFI(aa,dimz)
       endif
 
-      if(volprot(kx,ky,kz).eq.1.0) then
+      if(volprot(kx(j),ky(j),kz(j)).eq.1.0) then
               flag = -1
               exit
       endif
@@ -227,41 +227,9 @@ do jj = 1, cpp(rank+1)
 
     if (flag_write_pxyz.eq.1) then
       do j = 1, longcha(ii)
-          ! --- X coordinate ---
-          aa = floor(pxtemp(1,j)/delta) + 1
-          if(aa.lt.1) then
-              if(PBC(1).eq.1) aa = PBCSYMI(aa,dimx)
-              if(PBC(1).eq.3) aa = PBCREFI(aa,dimx)
-          endif
-          if(aa.gt.dimx) then
-              if(PBC(2).eq.1) aa = PBCSYMI(aa,dimx)
-              if(PBC(2).eq.3) aa = PBCREFI(aa,dimx)
-          endif
-          px(1,j,jj) = aa  ! Usamos índice 1 (Buffer)
-
-          ! --- Y coordinate ---
-          aa = floor(pxtemp(2,j)/delta) + 1
-          if(aa.lt.1) then
-              if(PBC(3).eq.1) aa = PBCSYMI(aa,dimy)
-              if(PBC(3).eq.3) aa = PBCREFI(aa,dimy)
-          endif
-          if(aa.gt.dimy) then
-              if(PBC(4).eq.1) aa = PBCSYMI(aa,dimy)
-              if(PBC(4).eq.3) aa = PBCREFI(aa,dimy)
-          endif
-          py(1,j,jj) = aa  ! Usamos índice 1 (Buffer)
-
-          ! --- Z coordinate ---
-          aa = floor(pxtemp(3,j)/delta) + 1
-          if(aa.lt.1) then
-              if(PBC(5).eq.1) aa = PBCSYMI(aa,dimz)
-              if(PBC(5).eq.3) aa = PBCREFI(aa,dimz)
-          endif
-          if(aa.gt.dimz) then
-              if(PBC(6).eq.1) aa = PBCSYMI(aa,dimz)
-              if(PBC(6).eq.3) aa = PBCREFI(aa,dimz)
-          endif
-          pz(1,j,jj) = aa  ! Usamos índice 1 (Buffer)
+          px(1,j,jj) = kx(j)  ! Usamos índice 1 (Buffer)
+          py(1,j,jj) = ky(j)  ! Usamos índice 1 (Buffer)
+          pz(1,j,jj) = kz(j)  ! Usamos índice 1 (Buffer)
       enddo
       inquire(unit=90, pos=pos)
       write(90) jj, ii, newcuantas(ii), ing, longcha(ii), & 
@@ -273,43 +241,14 @@ do jj = 1, cpp(rank+1)
     else 
     
       do j = 1, longcha(ii)
-      aa = floor(pxtemp(1,j)/delta) + 1
-      px(newcuantas(ii),j,jj) = aa
-      if(aa.lt.1) then
-        if(PBC(1).eq.1)px(newcuantas(ii),j,jj) = PBCSYMI(aa,dimx)
-        if(PBC(1).eq.3)px(newcuantas(ii),j,jj) = PBCREFI(aa,dimx)
-      endif
-      if(aa.gt.dimx) then
-        if(PBC(2).eq.1)px(newcuantas(ii),j,jj) = PBCSYMI(aa,dimx)
-        if(PBC(2).eq.3)px(newcuantas(ii),j,jj) = PBCREFI(aa,dimx)
-      endif
+      px(newcuantas(ii),j,jj) = kx(j)
+      py(newcuantas(ii),j,jj) = ky(j)
+      pz(newcuantas(ii),j,jj) = kz(j)
+      enddo ! j
 
-      aa = floor(pxtemp(2,j)/delta) + 1
-      py(newcuantas(ii),j,jj) = aa
-      if(aa.lt.1) then
-        if(PBC(3).eq.1)py(newcuantas(ii),j,jj) = PBCSYMI(aa,dimy)
-        if(PBC(3).eq.3)py(newcuantas(ii),j,jj) = PBCREFI(aa,dimy)
-      endif
-      if(aa.gt.dimy) then
-        if(PBC(4).eq.1)py(newcuantas(ii),j,jj) = PBCSYMI(aa,dimy)
-        if(PBC(4).eq.3)py(newcuantas(ii),j,jj) = PBCREFI(aa,dimy)
-      endif
+    endif ! flag_write_pxyz
 
-      aa = floor(pxtemp(3,j)/delta) + 1
-      pz(newcuantas(ii),j,jj) = aa
-      if(aa.lt.1) then
-        if(PBC(5).eq.1)pz(newcuantas(ii),j,jj) = PBCSYMI(aa,dimz)
-        if(PBC(5).eq.3)pz(newcuantas(ii),j,jj) = PBCREFI(aa,dimz)
-      endif
-      if(aa.gt.dimz) then
-        if(PBC(6).eq.1)pz(newcuantas(ii),j,jj) = PBCSYMI(aa,dimz)
-        if(PBC(6).eq.3)pz(newcuantas(ii),j,jj) = PBCREFI(aa,dimz)
-      endif
-      enddo
-
-    endif
-
-endif
+endif ! flag
 
 endif ! chainlenght
 

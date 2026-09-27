@@ -39,7 +39,7 @@ implicit none
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Open common files
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
-character(len=32) :: filename_cfg, filename_pro
+character(len=32) :: filename_cfg
 
 ! Nombre para coordenadas (Unidad 90)
 write(filename_cfg, '("pxs_rank_", I3.3, ".bin")') rank
