@@ -112,8 +112,9 @@ loctaS = Loctall(j) - delta
  sumpolseg = sumpolseg + area*sigma(j)*longp(j)
 
 !! volume
- volprot1 = volprot1 * 0.99
- volprot = volprot+volprot1
+! volprot1 = volprot1 * 0.99
+ where(volprot1 > 0.99)volprot1 = 1.00
+volprot = volprot+volprot1
 
 ! CHECK COLLISION HERE...
  if(maxval(volprot).gt.1.0) then ! collision

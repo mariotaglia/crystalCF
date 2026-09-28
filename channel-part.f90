@@ -96,8 +96,8 @@ p0(i,:)=p1(i,:)
 rotangle(i) = atan2(com1(i,1)-originc(1), com1(i,2)-originc(2))
 longc(i) = long ! global value
 enddo
-
- volprot = volprot+volprot1*0.99 ! sum channel
+ where(volprot1 > 0.99)volprot1 = 1.00
+ volprot = volprot+volprot1 ! sum channel
 
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -141,7 +141,8 @@ do j = 1, NNN
  voleps1 = voleps1*eeps(j)
 
 !! volume  
- volprot1 = volprot1 * 0.99
+! volprot1 = volprot1 * 0.99
+  where(volprot1 > 0.99)volprot1 = 1.00
  volprot = volprot+volprot1 ! sum particle to channel
 
 

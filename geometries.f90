@@ -106,7 +106,8 @@ do j = 1, NNNell
    sumpolseg_ell = sumpolseg_ell + area_ell*sigma(ids_ell(j))*longp(ids_ell(j))
 
   !! volume  
-   volprot1 = volprot1 * 0.99
+!   volprot1 = volprot1 * 0.99
+  where(volprot1 > 0.99)volprot1 = 1.00  
    volprot = volprot+volprot1
 
   ! CHECK COLLISION HERE...
@@ -197,8 +198,9 @@ do j=1,NNNco ! loop ovr the cuboctahedron particles
    sumpolseg_co = sumpolseg_co + area_co*sigma(ids_co(j))*longp(ids_co(j))
 
   !! volume
-   volprot1 = volprot1 * 0.99
-   volprot = volprot+volprot1
+!   volprot1 = volprot1 * 0.99
+  where(volprot1 > 0.99)volprot1 = 1.00
+  volprot = volprot+volprot1
 
   ! CHECK COLLISION HERE...
    if(maxval(volprot).gt.1.005) then ! collision
