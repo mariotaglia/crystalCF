@@ -404,7 +404,7 @@ endif ! solvent
          fv=(1.0-volprot(ix,iy,iz))
          phi = xtotalsum(ix,iy,iz)
 
-         F_Comp = F_Comp + 2*B0*(phi*(dlog(phi)-1)+1)*(delta**3)*fv
+         F_Comp = F_Comp + 2*B0*((phi-dlog(phi)-1)/phi)*(delta**3)*fv
 !          if (alpha0.eq.0.0)F_Comp = F_Comp - (B0/vsol)*(delta**3)*fv
 
       enddo
@@ -448,7 +448,7 @@ enddo
 
          phi = xtotalsum(ix,iy,iz)
 
-         sumComp = sumComp + 2*B0*(1-phi)*fv
+         sumComp = sumComp + 2*B0*(-2*dlog(phi)/phi-1/phi+1)*fv
 !         if(alpha0.eq.0.0)sumComp = sumComp - (B0/vsol)*(-1.0)*(alpha0-1.0)*fv
 
          enddo

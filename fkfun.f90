@@ -134,9 +134,9 @@ do ix=1,dimx
 
 ! LOCAL HS
      phi = xtotalsum(ix,iy,iz) ! volume fraction
-
+     
 ! B0 = beta*vp/(2kappa) 
-     xpot(ix, iy, iz, im) =  -2*B0*vsol*(dlog(phi))
+     xpot(ix, iy, iz, im) =  -2*B0*vsol*(dlog(phi)/phi**2)
 ! Poor solvent
 
      protemp=0.0
