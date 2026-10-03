@@ -39,7 +39,7 @@ integer PBC(6)
 integer vtkflag
 integer flagmu
 integer eqs ! number of set of equations 
-integer flag_write_pxyz, flag_polymer
+integer flag_write_pxyz, flag_polymer, flag_avpol_part
 endmodule
 
 module clusters
@@ -208,7 +208,7 @@ endmodule
 
 module const
 real*8 pi 
-real*8, parameter :: Na = 6.02d23 
+real*8, parameter :: Na = 6.022d23 
 integer seed
 integer seed_lig
 integer seed_np
@@ -302,7 +302,13 @@ real*8 IMAT(3,3)
 endmodule
 
 
-
+module avpolpart
+use ematrix, only : maxvolx
+integer flag_avpol_part
+integer flag_avpol_final        ! lo activa solve para la evaluación final
+integer chainpart(maxvolx)
+real*8, allocatable :: avpolp(:,:,:,:)
+end module
 
 
 

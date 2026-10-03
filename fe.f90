@@ -51,7 +51,7 @@ integer err
 integer ix, iy, iz, i, ii, ax, ay, az, jj
 integer jx, jy, jz,iii
 integer im, ip, ipp
-real*8 fv, fv2
+real*8 fv, fv2, prob
 
 integer, external :: PBCSYMI, PBCREFI
 
@@ -142,10 +142,11 @@ Free_Energy2 = 0.0
        iii = jj
       
        if(pro(i, jj).ne.0.0) then
-         F_Conf = F_Conf + (pro(i, jj)/q0(iii)) &
-      *dlog((pro(i, jj))/q0(iii))*ngpol(iii)
-         logq(p0(iii,1),p0(iii,2),p0(iii,3)) =  - dlog(q0(iii)) + shift0(iii)
-         entropy(p0(iii,1),p0(iii,2),p0(iii,3)) =  - (pro0(i, jj)/q0(iii))*dlog((pro0(i, jj))/q0(iii))
+         prob = pro(i,jj)/q0(iii)  
+         F_Conf = F_Conf + prob*dlog(prob)*ngpol(iii)
+         logq(p0(iii,1),p0(iii,2),p0(iii,3)) = - dlog(q0(iii)) + shift0(iii)
+         entropy(p0(iii,1),p0(iii,2),p0(iii,3)) = &
+              entropy(p0(iii,1),p0(iii,2),p0(iii,3)) - prob*dlog(prob)
        endif
   
          enddo
@@ -406,7 +407,7 @@ endif ! solvent
 
          F_Comp = F_Comp + 2*B0*((phi-dlog(phi)-1)/phi)*(delta**3)*fv
 !          if (alpha0.eq.0.0)F_Comp = F_Comp - (B0/vsol)*(delta**3)*fv
-
+  
       enddo
       enddo
       enddo

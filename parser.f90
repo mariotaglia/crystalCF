@@ -99,6 +99,7 @@ cluster_same = ndi
 cutoffcluster = ndr
 flag_write_pxyz = ndi
 flag_polymer = ndi
+flag_avpol_part = ndi
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Control file variables
@@ -184,6 +185,10 @@ do while (ios == 0)
 
  case ('flag_polymer') ! consider polymer chains
    read(buffer, *, iostat=ios) flag_polymer
+   if(rank.eq.0)write(stdout,*) 'parser:','Set ',trim(label),' = ',trim(buffer)
+
+ case ('flag_avpol_part') ! 1: save avpol per particle
+   read(buffer, *, iostat=ios) flag_avpol_part
    if(rank.eq.0)write(stdout,*) 'parser:','Set ',trim(label),' = ',trim(buffer)
 
  case ('flagmu') ! flagmu = 0, scan solvent volume fraction; flagmu = 1, scan solvent chemical potential
@@ -895,6 +900,8 @@ if(seed_np.eq.ndi) then
    seed_np = 938121
    if(rank.eq.0)write(stdout,*) 'seed_np undefined, used default:', seed
 endif
+
+if(flag_avpol_part.eq.ndi)flag_avpol_part=0
 
 if(seed_lig.eq.ndi) then
    seed_lig = 14258825

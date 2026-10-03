@@ -448,18 +448,15 @@ nchas = 0
 do nchas = 1,maxchains
 
     !-------------------------------------------------------------------
-    ! First grafting point
-    !-------------------------------------------------------------------
-
-    xend(1,1) = 0.0d0
-    xend(2,1) = 0.0d0
-    xend(3,1) = 0.0d0
-
-    !-------------------------------------------------------------------
     ! Generate independent bonds
+    !
+    ! The first bond is also random: segment 1 sits at a distance lseg
+    ! from the grafting point (origin), as in cadenas72mr, instead of
+    ! sitting exactly on it. This spreads segment 1 over a sphere of
+    ! radius lseg and removes the deterministic spike in the grafting cell.
     !-------------------------------------------------------------------
 
-    do i = 2,long
+    do i = 1,long
 
         ! Uniform random point on the sphere
 
@@ -479,9 +476,15 @@ do nchas = 1,maxchains
 
         ! New monomer position
 
-        xend(1,i) = xend(1,i-1) + x(1)
-        xend(2,i) = xend(2,i-1) + x(2)
-        xend(3,i) = xend(3,i-1) + x(3)
+        if (i.eq.1) then
+            xend(1,1) = x(1)      ! grafting point is the origin
+            xend(2,1) = x(2)
+            xend(3,1) = x(3)
+        else
+            xend(1,i) = xend(1,i-1) + x(1)
+            xend(2,i) = xend(2,i-1) + x(2)
+            xend(3,i) = xend(3,i-1) + x(3)
+        endif
 
     enddo
 
